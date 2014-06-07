@@ -1,0 +1,98 @@
+div.tip_description {
+    margin-bottom: 20px;
+    padding: 0 10px 0 10px;
+}
+
+#msg_bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    background: #FFFFFF;
+    opacity: 0.8;
+    z-index:1000;
+    display:none;
+}
+
+#msg_box {
+    padding: 2px;
+    position: absolute;
+    width: 400px;
+    height: 240px;
+    top: 180px;
+    left: 280px;
+    background: #FFFFFF;
+    border: 2px solid black;
+    z-index:1001;
+    display: none;
+}
+
+#msg_title {
+    font-weight: bold;
+    font-size: medium;
+    font-variant: normal;
+    cursor: move;
+    background-image: url(//static.booking.com/images/admin/f_book.jpg);
+    background-color: #FFB902;
+    color: #001199;
+    background-repeat: no-repeat;
+    background-position: right center;
+    padding-left: 5px;
+    padding-top: 3px;
+    padding-bottom: 2px;
+    text-align:left;
+    width: 98%;
+}
+
+#msg_box.error #msg_title {
+    background-color: #e30714;
+}
+
+#msg_txt {
+    position: relative;
+    overflow: auto;
+    height: 300px;
+    padding: 16px;
+}
+
+#msg_btns {
+    position: relative;
+    height: 2em;
+    bottom: 0px;
+    padding: 0px 12px 0px 0px;
+}
+
+
+#msg_btns label {
+    padding:1px 8px;
+    float: left;
+    margin: 2px;
+}
+
+#msg_btns a {
+    padding:1px 8px;
+    border: 1px solid gray;
+    float: right;
+    margin: 2px;
+    background-color: #d0e2eb;
+}
+
+#msg_btns a:hover {
+    color: white;
+    background-color: #003580;
+}
+
+
+#resizeSE {
+    position: absolute;
+    font-size: 1pt;
+    width:  10px;
+    height: 10px;
+    bottom: 0px;
+    right: 0px;
+    background-image: url(//static.booking.com/images/admin/resize_se.png);
+    background-repeat: no-repeat;
+    cursor: se-resize;
+    z-index: 2000;
+}

@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2012 Expedia, Inc. All Rights Reserved -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.expediaconnect.com/EQC/PAR/2011/06" targetNamespace="http://www.expediaconnect.com/EQC/PAR/2011/06" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0.0">
+	<xs:element name="ProductAvailRateRetrievalRS">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:choice>
+					<xs:element name="Error" maxOccurs="unbounded">
+						<xs:complexType>
+							<xs:simpleContent>
+								<xs:extension base="xs:string">
+									<xs:attribute name="code" use="required">
+										<xs:annotation>
+											<xs:documentation>Refer to Expedia QuickConnect specification online for a complete list of the possible codes.</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:positiveInteger">
+												<xs:minInclusive value="1000"/>
+												<xs:maxInclusive value="9999"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:extension>
+							</xs:simpleContent>
+						</xs:complexType>
+					</xs:element>
+					<xs:element name="ProductList">
+						<xs:annotation>
+							<xs:documentation>Returned when parameter “ProductRetrieval” is specified in Request. Contains the list of active products for this hotel by default.</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="Hotel">
+									<xs:complexType>
+										<xs:attribute name="id" type="xs:unsignedInt" use="required"/>
+										<xs:attribute name="name" use="required">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="0"/>
+													<xs:maxLength value="255"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:attribute>
+										<xs:attribute name="city" use="required">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="0"/>
+													<xs:maxLength value="255"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:attribute>
+									</xs:complexType>
+								</xs:element>
+								<xs:element name="RoomType" minOccurs="0" maxOccurs="unbounded">
+									<xs:complexType>
+										<xs:sequence>
+											<xs:element name="RatePlan" minOccurs="0" maxOccurs="unbounded">
+												<xs:complexType>
+													<xs:attribute name="id" use="required">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="1"/>
+																<xs:maxLength value="50"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:attribute>
+													<xs:attribute name="code" use="required">
+														<xs:annotation>
+															<xs:documentation>Customizable identifier (can only be defined/modified by Expedia). Default value is rate plan type (RoomOnly, Corp, PKG).</xs:documentation>
+														</xs:annotation>
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="1"/>
+																<xs:maxLength value="50"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:attribute>
+													<xs:attribute name="name" use="required">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="0"/>
+																<xs:maxLength value="255"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:attribute>
+													<xs:attribute name="status" type="statusType" use="required">
+														<xs:annotation>
+															<xs:documentation>Active or Inactive</xs:documentation>
+														</xs:annotation>
+													</xs:attribute>
+													<xs:attribute name="type" use="required">
+														<xs:annotation>
+															<xs:documentation>Standalone, Package or Corporate</xs:documentation>
+														</xs:annotation>
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="Standalone"/>
+																<xs:enumeration value="Package"/>
+																<xs:enumeration value="Corporate"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:attribute>
+													<xs:attribute name="distributionModel" use="required">
+														<xs:annotation>
+															<xs:documentation>Possible values are: Merchant, Agency.
+Rate plan with a “Merchant” distribution model will be used to book reservations under Expedia Collect.
+Rate plan with an “Agency” distribution model will be used to book reservations under Hotel Colllect.</xs:documentation>
+														</xs:annotation>
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="Agency"/>
+																<xs:enumeration value="Merchant"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:attribute>
+													<xs:attribute name="rateAcquisitionType" use="required">
+														<xs:annotation>
+															<xs:documentation>Possible values are:
+- NetRate: Remittance Rate. Under the Expedia Collect model the remittance rate provided to Expedia is equal to the Hotels lowest available rate for that product less the compensation.
+- LowestAvailableRate: The lowest publically available rate for a room. Providing Expedia with LAR removes the need for hotel or hotel system to calculate the remittance rate for Expedia Collect.
+- SellRate:Rate at which hotel sells room to the end customer in Hotel Collect.
+- Derived: When flex products are enabled only one rate needs to be updated, either remittance rate for Expedia Collect or sell rate for Hotel Collect. The corresponding rate will be derived for the other product, and cannot be managed.
+EQC partner must send rate update using the correct rate acquizition type defined in the Expedia system. Any rate plan with a “Derived” rate acquisition type cannot be updated by the EQC partner.</xs:documentation>
+														</xs:annotation>
+														<xs:simpleType>
+															<xs:restriction base="xs:NMTOKEN">
+																<xs:enumeration value="NetRate"/>
+																<xs:enumeration value="LowestAvailableRate"/>
+																<xs:enumeration value="SellRate"/>
+																<xs:enumeration value="Derived"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:attribute>
+												</xs:complexType>
+											</xs:element>
+										</xs:sequence>
+										<xs:attribute name="id" use="required">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="1"/>
+													<xs:maxLength value="50"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:attribute>
+										<xs:attribute name="code" use="required">
+											<xs:annotation>
+												<xs:documentation>Customizable identifier (can only be defined/modified by Expedia). Default value is room type name.</xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="1"/>
+													<xs:maxLength value="50"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:attribute>
+										<xs:attribute name="name" use="required">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="0"/>
+													<xs:maxLength value="255"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:attribute>
+										<xs:attribute name="status" type="statusType" use="required">
+											<xs:annotation>
+												<xs:documentation>Active or Inactive</xs:documentation>
+											</xs:annotation>
+										</xs:attribute>
+									</xs:complexType>
+								</xs:element>
+							</xs:sequence>
+						</xs:complexType>
+					</xs:element>
+					<xs:element name="AvailRateList">
+						<xs:annotation>
+							<xs:documentation>Returned when “AvailRateRetrieval” is specified in the request. Contains avail and/or rate information for the products requested.</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="Hotel">
+									<xs:complexType>
+										<xs:attribute name="id" type="xs:unsignedInt" use="required"/>
+									</xs:complexType>
+								</xs:element>
+								<xs:element name="AvailRate" minOccurs="0" maxOccurs="unbounded">
+									<xs:complexType>
+										<xs:sequence>
+											<xs:element name="RoomType" type="RoomTypeType" maxOccurs="unbounded">
+												<xs:annotation>
+													<xs:documentation>Room Types belonging to that hotel. By default, only active room types are returned. This element is repeated once per room type that exists per hotel.</xs:documentation>
+												</xs:annotation>
+											</xs:element>
+										</xs:sequence>
+										<xs:attribute name="date" type="xs:date" use="required">
+											<xs:annotation>
+												<xs:documentation>Date for which the avail, rate and restriction data provided for the product applies.
+When only one rate plan ID is requested, we will return a maximum of 365 days of data in a response. If more than 365 days were requested, we will return the first 365 days of the date range, without any other error or warning indicating we didn’t return everything requested.
+When requesting more than one rate plan ID, or not requesting a specific room or rate plan ID, we will return a maximum of 31 days in a response. If more than 31 days were requested, we will return the first 31 days of the date range, without any other error or warning indicating we didn’t return everything requested.
+</xs:documentation>
+											</xs:annotation>
+										</xs:attribute>
+									</xs:complexType>
+								</xs:element>
+							</xs:sequence>
+						</xs:complexType>
+					</xs:element>
+				</xs:choice>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="DateRangeType">
+		<xs:attribute name="from" type="xs:date" use="required"/>
+		<xs:attribute name="to" type="xs:date" use="required"/>
+		<xs:attribute name="sun" type="xs:boolean" use="optional"/>
+		<xs:attribute name="mon" type="xs:boolean" use="optional"/>
+		<xs:attribute name="tue" type="xs:boolean" use="optional"/>
+		<xs:attribute name="wed" type="xs:boolean" use="optional"/>
+		<xs:attribute name="thu" type="xs:boolean" use="optional"/>
+		<xs:attribute name="fri" type="xs:boolean" use="optional"/>
+		<xs:attribute name="sat" type="xs:boolean" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="RoomTypeType">
+		<xs:sequence>
+			<xs:element name="Inventory" minOccurs="0">
+				<xs:complexType>
+					<xs:attribute name="baseAllocation">
+						<xs:annotation>
+							<xs:documentation>Only returned for hotels configured for base allocation.</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:int">
+								<xs:minInclusive value="0"/>
+								<xs:maxInclusive value="4999"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="flexibleAllocation" use="optional">
+						<xs:annotation>
+							<xs:documentation>Always returned. In the case of a hotel using base allocation: number of additional rooms available for this room type.
+In the case of a hotel not on base allocation, it will be equal to the totalInventoryAvailable attribute.
+</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:int">
+								<xs:minInclusive value="0"/>
+								<xs:maxInclusive value="4999"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="totalInventoryAvailable" use="required">
+						<xs:simpleType>
+							<xs:restriction base="xs:int">
+								<xs:minInclusive value="0"/>
+								<xs:maxInclusive value="4999"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="RatePlan" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Requested rate plans. Rate plan data could be missing if appropriate filters are disabled in RQ (rates, restriction and rate avail status), or if no rate plan data has been received from the supplier for the requested stay dates yet.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:complexContent>
+						<xs:extension base="RatePlanType"/>
+					</xs:complexContent>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="id" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="50"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="closed" type="xs:boolean"/>
+	</xs:complexType>
+	<xs:complexType name="RatePlanType">
+		<xs:sequence>
+			<xs:element name="Rate" minOccurs="0">
+				<xs:complexType>
+					<xs:choice minOccurs="0">
+						<xs:element name="PerDay" maxOccurs="28">
+							<xs:complexType>
+								<xs:attribute name="rate" use="required">
+									<xs:simpleType>
+										<xs:restriction base="xs:decimal">
+											<xs:minInclusive value="0.00"/>
+											<xs:fractionDigits value="3"/>
+											<xs:totalDigits value="16"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+								<xs:attribute name="lengthOfStay">
+									<xs:simpleType>
+										<xs:restriction base="xs:int">
+											<xs:minInclusive value="1"/>
+											<xs:maxInclusive value="28"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="PerOccupancy" maxOccurs="20">
+							<xs:complexType>
+								<xs:attribute name="rate" use="required">
+									<xs:simpleType>
+										<xs:restriction base="xs:decimal">
+											<xs:fractionDigits value="3"/>
+											<xs:minInclusive value="0.00"/>
+											<xs:totalDigits value="16"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+								<xs:attribute name="occupancy" use="required">
+									<xs:simpleType>
+										<xs:restriction base="xs:positiveInteger">
+											<xs:maxInclusive value="20"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="PerPerson">
+							<xs:complexType>
+								<xs:attribute name="rate" use="required">
+									<xs:simpleType>
+										<xs:restriction base="xs:decimal">
+											<xs:fractionDigits value="3"/>
+											<xs:totalDigits value="16"/>
+											<xs:minInclusive value="0.00"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:choice>
+					<xs:attribute name="currency" use="required">
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:minLength value="3"/>
+								<xs:maxLength value="3"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="rateChangeIndicator" type="xs:boolean" use="optional">
+						<xs:annotation>
+							<xs:documentation>Only returned for products that are enabled for Day-Of-Arrival pricing.</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Restrictions" minOccurs="0">
+				<xs:complexType>
+					<xs:attribute name="minLOS" use="optional">
+						<xs:simpleType>
+							<xs:restriction base="xs:int">
+								<xs:minInclusive value="1"/>
+								<xs:maxInclusive value="28"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="maxLOS" use="optional">
+						<xs:simpleType>
+							<xs:restriction base="xs:int">
+								<xs:minInclusive value="1"/>
+								<xs:maxInclusive value="28"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="closedToArrival" type="xs:boolean" use="optional"/>
+					<xs:attribute name="closedToDeparture" type="xs:boolean" use="optional"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="id" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="50"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="closed" type="xs:boolean" use="optional">
+			<xs:annotation>
+				<xs:documentation>Rate plan availability status. Optional due to possibility that it would be missing for stay dates with partially loaded information.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:simpleType name="statusType">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="Active"/>
+			<xs:enumeration value="Inactive"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

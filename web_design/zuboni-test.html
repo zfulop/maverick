@@ -1,0 +1,56 @@
+<!doctype>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Zuboni font test</title>
+  <style>
+    @font-face {
+      font-family: 'Zuboni Stencil';
+      src: url('css/fonts/zuboni-stencil.eot');
+      src: url('css/fonts/zuboni-stencil.eot?#iefix') format('embedded-opentype'),
+          url('css/fonts/zuboni-stencil.woff') format('woff'),
+          url('css/fonts/zuboni-stencil.ttf') format('truetype'),
+          url('css/fonts/zuboni-stencil.svg#zuboni-stencil') format('svg');
+      font-weight: normal;
+      font-style: normal;
+    }
+    
+    body {
+      margin: 0;
+    }
+    
+    p {
+      background: #000;
+      color: #fff;
+      font-size: 150px;
+      height: 150px;
+      line-height: 150px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    
+    p.arial {
+      font-family: arial, sans-serif;
+    }
+    
+    p.zuboni {
+      font-family: 'Zuboni Stencil', arial, sand-serif;
+    }
+    
+    p.zuboni.hack {
+      line-height: .7;
+    }
+  </style>
+</head>
+<body>
+  <p class="arial">
+    Kazinczy Inn
+  </p>
+  <p class="zuboni">
+    Kazinczy Inn
+  </p>
+  <p class="zuboni hack">
+    Kazinczy Inn
+  </p>
+</body>
+</html>

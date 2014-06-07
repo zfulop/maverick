@@ -1,0 +1,65 @@
+RewriteEngine On
+
+RewriteBase /
+
+RewriteCond %{REQUEST_URI} ![deu|esp|fra|eng|ita]
+RewriteCond %{QUERY_STRING} !language
+RewriteCond %{HTTP:Accept-Language} ^de [NC]
+RewriteRule ^(.*)$ /deu/$1 [R=301,L]
+
+RewriteCond %{REQUEST_URI} ![deu|esp|fra|eng|ita]
+RewriteCond %{QUERY_STRING} !language
+RewriteCond %{HTTP:Accept-Language} ^es [NC]
+RewriteRule ^(.*)$ /esp/$1 [R=301,L]
+
+RewriteCond %{REQUEST_URI} ![deu|esp|fra|eng|ita]
+RewriteCond %{QUERY_STRING} !language
+RewriteCond %{HTTP:Accept-Language} ^fr [NC]
+RewriteRule ^(.*)$ /fra/$1 [R=301,L]
+
+RewriteCond %{REQUEST_URI} ![deu|esp|fra|eng|ita]
+RewriteCond %{QUERY_STRING} !language
+RewriteCond %{HTTP:Accept-Language} ^en [NC]
+RewriteRule ^(.*)$ /eng/$1 [R=301,L]
+
+RewriteCond %{REQUEST_URI} ![deu|esp|fra|eng|ita]
+RewriteCond %{QUERY_STRING} !language 
+RewriteCond %{HTTP:Accept-Language} ^it [NC]
+RewriteRule ^(.*)$ /ita/$1 [R=301,L]
+
+RewriteCond %{REQUEST_URI} ![deu|esp|fra|eng|ita]
+RewriteCond %{QUERY_STRING} !language
+RewriteRule ^(.*)$ /eng/$1 [R=301,L]
+
+RewriteCond %{REQUEST_URI} [deu|esp|fra|eng|ita]/.*
+RewriteRule (deu|esp|fra|eng|ita)/(.*)$ /$2?language=$1 [L,QSA]
+
+RewriteCond %{REQUEST_URI} maverick_city_lodge.php
+RewriteRule maverick_city_lodge.php location.php?location=lodge [L,QSA]
+
+RewriteCond %{REQUEST_URI} maverick_hostel_ensuites.php
+RewriteRule maverick_hostel_ensuites.php location.php?location=hostel [L,QSA]
+
+RewriteCond %{REQUEST_URI} hostel_available_rooms.php
+RewriteRule hostel_available_rooms.php available_rooms.php?location=hostel [L,QSA]
+
+RewriteCond %{REQUEST_URI} lodge_available_rooms.php
+RewriteRule lodge_available_rooms.php available_rooms.php?location=lodge [L,QSA]
+
+RewriteCond %{REQUEST_URI} hostel_extra_services.php
+RewriteRule hostel_extra_services.php extra_services.php?location=hostel [L,QSA]
+
+RewriteCond %{REQUEST_URI} lodge_extra_services.php
+RewriteRule lodge_extra_services.php extra_services.php?location=lodge [L,QSA]
+
+RewriteCond %{REQUEST_URI} hostel_contact_details.php
+RewriteRule hostel_contact_details.php contact_details.php?location=hostel [L,QSA]
+
+RewriteCond %{REQUEST_URI} lodge_contact_details.php
+RewriteRule lodge_contact_details.php contact_details.php?location=lodge [L,QSA]
+
+RewriteCond %{REQUEST_URI} hostel_book_now.php
+RewriteRule hostel_book_now.php book_now.php?location=hostel [L,QSA]
+
+RewriteCond %{REQUEST_URI} lodge_book_now.php
+RewriteRule lodge_book_now.php book_now.php?location=lodge [L,QSA]

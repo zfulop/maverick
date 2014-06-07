@@ -1,0 +1,903 @@
+/*
+* Set the default <body> options
+*/
+body {
+  background-color: #ffffff;
+  color: #003580;
+  font-family: sans-serif;
+  font-size: small;
+  margin: 0px;
+  text-decoration: none;
+}
+
+h1,h2,h3	{
+  font-size: medium;
+  font-weight: normal;
+  font-variant: normal;
+  padding-left: 5px;
+  text-align:left
+}
+
+h1	{
+  background-color: #003580;
+  color: #ffffff;
+}
+
+h2,h3	{
+   background-color: #D0E2EB;
+    color: #003580;
+}
+
+textarea, select {
+  font-family: sans-serif;
+background-color: #ffffcc;
+color: #003580;
+padding: .1em .2em .1em .2em;
+    font-size: small;
+    border-style: solid;
+    border-top-color: #dddff4;
+    border-left-color: #dddff4;
+    border-right-color: #1F8398;
+    border-bottom-color: #1F8398;
+    border-width: 1px;
+}
+
+UL {
+/*  margin-left: 1px; */
+	margin-top: 0px;
+    list-style: outside;
+    list-style-type: square;
+    font-family: sans-serif;
+}
+
+OL {
+	font-size:small;
+}
+
+/*
+* Make sure <form> will never impact its surroundings
+*/
+form {
+margin: 0px;
+display: inline;
+}
+/*
+* Make sure input fields will use appropriate small font
+*/
+form input {
+    margin: 0px;
+    padding: 0px;
+    font-size: small;
+    font-family: sans-serif;
+    background-color: #ffffcc;
+    font-family: sans-serif;
+    color: #003580;
+    padding: .1em .2em .1em .2em;
+    font-size: small;
+    text-align: left;
+}
+
+form input:disabled {
+    background-color: #cccccc;
+    color: black;
+}
+
+/*
+* Make sure links will never be shown with underlines
+*/
+a, td a {
+text-decoration: none;
+cursor: pointer;
+}
+/*
+* Set other default options for links
+*/
+a, td a, a:link, a:visited, td a:link,a:visited, a:active, td a:active {
+    color: #0066CC;
+    cursor: pointer;
+}
+a:hover, td a:hover { color: #ffffff;
+    background-color: #0066CC;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/*
+* Title of the page + the list of languages
+*/
+#header {
+position: absolute; /* for MSIE only */
+color: #003580;
+width: 100%;
+height: 76px;
+z-index: 999;
+}
+
+/*
+* Just the title of the page, with the first part of the logo
+*/
+
+#title {
+position: absolute; /* for MSIE only */
+top: 0px;
+left: 0px;
+background-image: url(//static.booking.com/images/admin/header.gif);
+background-repeat: repeat-x;
+width: 100%;
+padding:  0px 0px 0px 0px;
+height: 65px;
+z-index: 10000;
+}
+
+.titletext {
+font-size: small;
+font-weight: bold;
+color: #779bca;
+padding-left:195px;
+padding-top: 8px;
+}
+
+#functions {
+position: absolute; /* for MSIE only */
+right: 2%;
+top: 7px;
+z-index: 10001;
+}
+
+/*
+* Make sure the top bar will remain on top for browsers that support it
+*/
+body>#header>#functions {position:fixed}
+body>#header {position:fixed}
+body>#header>#title {position:fixed}
+
+
+/*
+* Show the language options, with the second part of the logo
+*/
+#lang {
+position: absolute; /* for MSIE only */
+top: 28px;
+left: 196px;
+height: 14px;
+width: 100%;
+font-size: medium;
+padding-left: 0px;
+z-index: 10000;
+}
+
+/*
+* Make sure the flags are shown as we want them
+*/
+#lang img {
+margin: 1px;
+margin-left: 0px;
+border-style: none;
+}
+
+/*
+* Make sure the languages bar will remain on top for browsers that support it
+*/
+body>#header>#lang { position: fixed; }
+
+/*
+* The top level options bar and the 3rd part of the Bookings logo
+*/
+#logo {
+position: absolute; /* for MSIE only */
+top: 2px;
+left: 10px;
+width: 185px;
+height: 58px;
+background-image: url(//static.booking.com/images/admin/logotot.gif);
+background-position: 0px 0px;
+background-position:top left;
+background-repeat: no-repeat;
+z-index: 10001;
+}
+
+
+#nav {
+    position: absolute; /* for MSIE only */
+    padding-top: 10px;
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-bottom: 1px;
+    top: 52px;
+    left: 175px;
+    height: 15px;
+    background-color: #ffffff;
+    z-index: 10000;
+}
+
+/*
+* Set up the properties of links in the top level options bar
+*/
+#nav a, #nav a:link, #nav a:visited, #nav a:hover {
+padding-left: 10px;
+padding-right: 10px;
+padding-top: 4px;
+padding-bottom: 2px;
+background-color: #D0E2EB;
+border-left: 1px solid #003580;
+border-right: 1px solid #003580;
+border-top: 1px solid #003580;
+border-bottom: 2px solid #fff;
+cursor: pointer;
+}
+
+#nav a, #nav a:visited
+{background-color: #D0E2EB;}
+
+#nav a:hover { padding-top: 6px; color: #ffffff; background-color: #0066cc;
+}
+
+#nav a:active  { }
+
+/*
+* Make sure the selected top level option stands out
+*/
+
+#nav a.selected, #nav a.selected:visited {
+   color: #003580;
+   background-color: #fff;
+   font-weight: normal;
+   padding-top: 9px;
+}
+
+#nav a.selected:hover {
+   background-color: #0066CC;
+   color: #fff;
+   font-weight: normal;
+   padding-top: 10px;
+}
+
+/*
+* Make sure top level options bar will remain on top for supporting browsers
+*/
+body>#header>#nav { position: fixed; }
+body>#header>#logo { position: fixed; }
+
+/* Set the basic options for the bread crumb
+*/
+#where {
+    position: absolute; /* for MSIE only */
+background-color: #fff;
+    left: 195px;
+    top: 9em;
+    height: 15px;
+    padding-top: 2px;
+    padding-left: 4px;
+    font-weight: normal;
+    font-style: italic;
+    font-size: x-small;
+    z-index: 888;
+    width: 70%;
+}
+
+/*
+* Set up bread crumb link properties
+*/
+
+#where a:link    { color: #0066CC; }
+#where a:visited { color: #0066CC; }
+#where a:active  { color: #0066CC; }
+#where a:hover   { color: #ffffff; background-color: #0066CC; cursor: pointer;}
+
+/*
+* Make sure bread cumbs will remain on top for supporting browsers
+
+
+body>#header>#where { position: fixed; }
+*/
+
+/*
+*Set up properties for the "Printable version" button
+*/
+#printable {
+position: absolute; /* MSIE only */
+top: 3px;
+right: 17%;
+z-index: 10000;
+}
+
+/*
+* Set up properties for the "Quickjump" feature
+*/
+#quickjump {
+position: absolute; /* MSIE only */
+top: 3px;
+right: 6%;
+z-index: 10000;
+}
+
+
+
+/*
+* Make sure it will stay on top with supporting browsers
+*/
+body>#printable { position: fixed; }
+body>#quickjump { position: fixed; }
+
+
+/*
+* Set up basics of lefthand side menu
+*/
+#leftnav {
+position: absolute; /* MSIE only */
+top: 90px;
+width: 30em;
+white-space: nowrap;
+}
+
+/*
+* Make sure embedded options will be indented properly
+*/
+#leftnav div, #leftnav div a {
+margin-left: 0.5em;
+font-weight: normal;
+  z-index: 1000;
+}
+
+
+/*
+* Set up properties for the bread crumb of selected options only
+*/
+
+#leftnav div span, #leftnav div span a {
+background-color: #ffffff;
+display: block;
+font-weight: normal;
+  font-size: 130%;
+}
+
+/*
+* Set up properties for non active dividers
+*/
+#leftnav div.divider {
+color: #003580;
+font-weight: normal;
+padding-top: 20px;
+}
+
+div.divider {
+padding-left: 0px;
+}
+
+/*
+* Make sure left hand side will remain on top for supporting browsers
+*/
+/*
+ Disabled so people can reach the lower menu items in HotelAdmin
+ Can be enabled again later when the menu gets fewer items
+
+body>#leftnav { position: fixed; }
+*/
+
+/*
+* Set the stuff for the generic content areas -content is normal -no-menu-content has no menu
+*/
+#content, #no_menu_content {
+position: absolute;
+background-color: #fff;
+top: 110px;
+margin: 0px 4em 0em 4em;
+}
+
+#content {
+/* background-color: #E2EEF4; in availability */
+position: absolute;
+left: 145px;
+width: 74%;
+}
+
+/*
+* Set the stuff for the generic content area without menu
+*/
+
+#no_menu_content {
+left: 10px;
+width: 90%;
+z-index: 2000;
+
+}
+
+/* default table */
+table {
+	text-align: left;
+	vertical-align: top;
+}
+
+
+.tablewithborder {
+	text-align: left;
+	vertical-align: top;
+	border: 1px solid #99CCFF;
+}
+
+th {
+    font-weight: normal;
+    font-size: small;
+    background-position: top;
+    background-color: #D0E2EB;
+    text-align: left;
+}
+
+th.selected { background-color: #99befc; }
+
+/* allerlei gedoe rond tooltips worden niet gebruikt en heb ik dus weer weggehaald*/
+
+/* dit is de layer waar de streep achter de rubriekskeuzes in staat*/
+#layerstreep {
+position: absolute;
+top: 58px;
+left: 0px;
+width: 100%;
+height:21px;
+background-image: url(//static.booking.com/images/admin/fill.gif);
+background-repeat: repeat-x;
+background-position: bottom;
+background-color: #fff;
+z-index: 2222;
+}
+
+/* dit is de layer waar de XML melding in staat*/
+#xmlalert {
+position: absolute;
+top: 57px;
+left: 92px;
+width: 82px;
+height:17px;
+font-weight: bold;
+text-align: center;
+padding-top: 3px;
+border: 0px solid ;
+color: white;
+background-color: red;
+z-index: 1111111;
+}
+
+/* dit is de layer waar de no-ors melding in staat*/
+#noorsalert {
+position: absolute;
+top: 7ex;
+right: 1em;
+font-weight: bold;
+text-align: center;
+padding: 0.5ex 0.5em;
+border: 0px;
+color: white;
+background-color: green;
+z-index: 1111111;
+}
+
+/* dit is de layer waar de replicatie melding in staat*/
+#replication {
+position: absolute;
+top: 24px;
+left: 0px;
+width: 600px;
+height:14px;
+background-repeat: no-repeat;
+color: white;
+font-size: 11px;
+text-align: left;
+padding-top: 1px;
+padding-left: 4px;
+background-position: top left;
+background-position: 0px 0px;
+border: 1px solid black;
+background-color: red;
+z-index: 2000000000; 
+}
+
+body>#header>#xmlalert  { position: fixed; }
+
+body>#header>#layerstreep  { position: fixed; }
+
+body>#header>#Helpcontent { position: fixed; }
+
+/* dit is het font van headers /kopjes */
+.headernolink {
+    font-size: medium;
+    font-weight: normal;
+    text-decoration: none;
+    padding-bottom: 5px;
+}
+
+/*Dit is een extra klein font */
+.smallfont {
+    font-size: x-small;
+    text-decoration: none;
+}
+
+.subheader {
+    font-style: italic;
+}
+
+.textbold {
+    font-weight: bold;
+}
+
+.explanation {
+    font-size: x-small;
+    font-style: italic;
+    font-weight: bold;
+}
+
+
+/* dit is de achtergrond en het font van het rubrieks-menu; althans wat er bij gewoon, visted en hover hetzelfde is */
+a.topmenu, topmenu:visited,a.topchosen, a.topchosen:visited, a.topchosen:hover{
+
+}
+
+/* dit is de eerste keuze van de menukeuzes links; maar die lijkt geen effect te hebben*/
+.m1 {
+    font-size: small;
+}
+
+/* dit is de eerste keuze van de menukeuzes links*/
+.m1_chosen {
+    font-size: small;
+    font-weight: bold;
+    font-style: italic;
+}
+
+.m2, .m2_chosen, a.m2, a.m2:visited, a.m2:hover, .m3, .m3_chosen, a.m3, a.m3:visited, a.m3:hover  {
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+    font-size: small;
+}
+
+.m2_chosen, .m3_chosen {
+    color: #ffffff;
+    font-style: italic;
+    padding-left: 1px;
+    background-color: #ffffff;
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-image: url(//static.booking.com/images/admin/m_chosen.jpg);
+}
+
+/* dit is de hotelnaam in de bovenrand */
+.hotelname {
+    font-size: medium;
+    color: #ffffff;
+}
+
+/* dit zijn de gekleurde randen waar de schermtitels in staan */
+.pagetitle,.pagetitle_an,.pagetitle_ap,.pagetitle_aa,.pagetitle_as,.pagetitle_ar,.pagetitle_kn,.pagetitle_pn, .pagetitle_nieuws, .pagetitle_book
+{    font-size: medium;
+    font-weight: normal;
+    font-variant: normal;
+    background-repeat: no-repeat;
+    background-position: right center;
+    padding-left: 5px;
+    padding-top: 3px;
+    padding-bottom: 2px;
+    text-align:left;
+    width: 100%;
+}
+/* dit is de gele rand die vaak gebruikt wordt als achtergrond bij een schermtitel*/
+.pagetitle          {
+    background-image: url(//static.booking.com/images/admin/f_alg1.jpg);
+    background-color: #FFB902;
+    color: #001122;
+}
+
+/* dit is de gele rand met het Bookingslogo*/
+.pagetitle_book          {
+    background-image: url(//static.booking.com/images/admin/f_book.jpg);
+    background-color: #FFB902;
+    color: #001199;
+}
+
+/* dit is de lichtblauwe rand die gebruikt wordt bij nieuwsberichten */
+.pagetitle_nieuws {background-color: #D0E2EB;
+}
+
+.pagetitle_an,.pagetitle_ap,.pagetitle_aa,.pagetitle_as,.pagetitle_ar,.pagetitle_kn,.pagetitle_pn {
+    color: #ffffff;
+}
+
+/* dit is de donkerblauwe rand die gebruikt wordt als het over het hele hotel gaat*/
+.pagetitle_an,.pagetitle_ap,.pagetitle_aa,.pagetitle_as,.pagetitle_ar {background-color: #003580;}
+
+/* dit zijn de randen met symbool, als het gaat over wijzigingen voor een bepaalde periode*/
+.pagetitle_an    {background-image: url(//static.booking.com/images/admin/f_an.jpg)}
+.pagetitle_ap    {background-image: url(//static.booking.com/images/admin/f_ap.jpg)}
+.pagetitle_aa    {background-image: url(//static.booking.com/images/admin/f_aa.jpg)}
+.pagetitle_as    {background-image: url(//static.booking.com/images/admin/f_as.jpg)}
+.pagetitle_ar        {background-image: url(//static.booking.com/images/admin/f_ar.jpg)}
+
+/* dit is de rand die gebruikt wordt als het over kamers gaat */
+.pagetitle_kn    {background-image: url(//static.booking.com/images/admin/f_kn.jpg);background-color: #7287C2;}
+
+/* dit is de rand die gebruikt wordt als het over prijscategorien gaat */
+.pagetitle_pn    {background-image: url(//static.booking.com/images/admin/f_pn.jpg); background-color: #95dbb0;color: #006600;}
+
+/* dit is de kleur die gebruikt wordt voor een belangrijke mededeling */
+.textalert {
+    font-weight: bold;
+    color: #CC3300;
+}
+
+/* dit is een class om aan te geven of een taal leidend is */
+.vlaglink {
+    background-color:#66CCFF;
+    padding-top: 3px;
+    padding-bottom: 1px;
+}
+
+/* dit is een class om aan te geven dat een tekst vertaald moet worden */
+.translink {
+    padding-top: 3px;
+    padding-bottom: 1px;
+    background-color:#FF66CC;
+	font-weight: bold;
+}
+
+/* dit is een tekst die onder de aandacht gebracht moet worden */
+.highlight {
+    background-color: #FFDC84;
+    color: #000000;
+	font-weight: bold;
+}
+
+/* dit is het deel uit de oude hoteladmin */
+table.tnav { background-color: #D0E2EB; }
+
+td.section { color: #003580; font-size: small; text-align: left;}
+td.tdnav { background-color: #D0E2EB; color: #003580; font-size: small; }
+
+
+td.tabselect, td.tabnormal {
+	padding-left: 6px;
+	padding-right: 0px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	font-size: small;
+	border-left: 1px solid #003580;
+	border-right: 1px solid #003580;
+	border-top: 1px solid #003580;}
+
+
+td.tabnormal { background-color: #D0E2EB; color: #ffffff  }
+td.tabselect { background-color: #ffffff; color: #003580; }
+
+td.section,
+td.tdsubmit
+{ background-color: #ffffff; }
+form {    margin-bottom: 15px; padding: 0px; }
+
+a.navlabel { }
+
+a.navlabel:link,
+a.navlabel:visited,
+a.edit:link,
+a.edit:visited
+a.navlabel:active,
+a.navlabel2:visited,
+a.navlabel2:link,
+a.navlabel2:active,
+a.edit:active,
+a.accepted:active,
+a.tocheck:active,
+a.tocheck:link,
+a.tocheck:visited,
+a.needstrans:active
+{ color: #0066cc; }
+
+a.navlabel2:visited,
+a.navlabel2:link,
+a.navlabel2:active {margin-left: 20px;
+color: #f00;}
+
+A.EDIT:Hover,
+a.navlabel:hover,
+a.accepted:hover,
+a.needstrans:hover
+a.tocheck:hover,
+a.navlabel2:hover
+{ color: #ffffff; background-color:#0066cc; }
+
+a.navlabel2,
+a.edit,
+a.tocheck,
+a.needstrans
+{ font-weight: normal; text-decoration: none; }
+
+a.accepted
+{ font-weight: bold;}
+
+a.active { font-weight: normal; text-decoration: none; color: #ff0000;}
+
+
+a.accepted:link,
+a.accepted:visited { color: green; }
+a.accepted:hover { background-color: green; color: #fff }
+
+a.needstrans:link,
+a.needstrans:visited { color: #ff0000; font-weight: bold;}
+
+/* Mark unavailable hotels in lists */
+li.unavailable { color: #808080; } 
+li.unavailable a.unavailable  { color: #808080; }
+
+
+
+th a { color: white; }
+
+td.error {
+	color: #003580;
+	background-color: #feba02;
+	border: #000000 solid 1px;
+	padding-top: 7px;
+	padding-bottom: 0px;
+	padding-left: 0px;
+	padding-right: 18px;
+}
+td.warning {
+	color: #003580;
+	background-color: #AAFFAA;
+	border: #000000 solid 1px;
+	padding-top: 7px;
+	padding-bottom: 0px;
+	padding-left: 0px;
+	padding-right: 18px;
+}
+
+span.active { font-weight: bold; color: #0066cc; }
+
+span.factype { font-weight: bold;
+	color:#003580;
+	background-color: #D0E2EB;
+	padding-left: 5px;
+	padding-right: 30px;
+}
+
+
+.tablebig	{
+	width: 90%;
+ 	background-color: #ffffff;
+}
+
+th.invoice {
+    white-space : nowrap;
+}
+
+td.invoice {
+    text-align : right;
+    white-space : nowrap;
+    border-bottom:1px solid #A0A0F0;
+}
+
+.intercompany {
+	width: 90%;
+ 	background-color: #ffffff;
+}
+
+table.intercompany td {
+    text-align: right;
+}
+
+table.intercompany td.channel {
+    text-align: left;
+    white-space : nowrap;
+    display: inline;
+}
+
+.temp {
+    font-style: italic;
+    color:#CC33CC;
+}
+
+.checked {
+	background-color: #FFE161;
+	color: #999999;
+	font-size: 12px;
+}
+
+/* later #A6FF3D (groen) gebruiken? */
+
+.unchecked {
+	background-color: #ffffff;
+	color: #000000;
+	font-size: 12px;
+}
+
+
+.hidden {
+    display: none;
+}
+
+
+/* addons */
+.addon_sell {
+    background-color: #D0E2EB; 
+}
+
+.addon_nosell {
+    color: #808080;
+    background-color: #E0E0E0;
+}
+
+.addon_selected {
+    background-color: #E0E0E0;
+}
+.addon_unselected {
+    color: #808080;
+    background-color: #E0E0E0;
+}
+
+span.partially_paid {
+    padding-right:       20px;
+    background-position: right center;
+    background-repeat:   no-repeat;
+    background-image: url(/financial/partially_paid.png);
+}
+
+span.overdue {
+    padding-right:       20px;
+    background-position: right center;
+    background-repeat:   no-repeat;
+    background-image: url(/financial/unpaid.png);
+}
+
+span.cleared {
+    padding-right:       20px;
+    background-position: right center;
+    background-repeat:   no-repeat;
+    background-image: url(/financial/paid.png);
+}
+
+span.overpaid {
+    padding-right:       20px;
+    background-position: right center;
+    background-repeat:   no-repeat;
+    background-image: url(/financial/paid.png);
+}
+
+/* rate relations */
+a.raterelation:active,a.raterelation:link,a.raterelation:visited {
+    color: #0066CC;
+    font-weight: bold;
+}
+
+.rate_relation_parent {
+    color: #003366;
+    /* background-color: #0088DD; */
+    border-style: solid;
+    border-top-color: #dddff4;
+    border-left-color: #dddff4;
+    border-right-color: #1F8398;
+    border-bottom-color: #1F8398;
+    border-width: 1px;
+    font-weight: bold;
+}
+
+.rate_relation_child {
+    color: #003366;
+    /* background-color: #00AAFF; */
+    border-style: solid;
+    border-top-color: #dddff4;
+    border-left-color: #dddff4;
+    border-right-color: #1F8398;
+    border-bottom-color: #1F8398;
+    border-width: 1px;
+    font-weight: bold;
+}
+
+/* make ranking tool experimental features stand out */
+.nlr {
+   border-style: dashed;
+   border-width: 2px;
+   border-color: #f3c;
+   padding: 0.2ex 0.2em;
+}
+
+
+
+
+

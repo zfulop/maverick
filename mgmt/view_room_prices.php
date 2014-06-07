@@ -1,0 +1,110 @@
+<?php
+
+require("includes.php");
+
+$link = db_connect();
+
+$roomTypeId = $_REQUEST['room_type_id'];
+$year = date('Y');
+if(isset($_REQUEST['year'])) {
+	$year = $_REQUEST['year'];
+} else {
+	$year = date('Y');
+}
+
+
+$sql = "SELECT rt.* FROM room_types rt WHERE rt.id=$roomTypeId";
+$result = mysql_query($sql, $link);
+if(!$result) {
+	trigger_error("Cannot get room in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+}
+$roomType = mysql_fetch_assoc($result);
+
+$prices = array();
+$sql = "SELECT * FROM prices_for_date WHERE room_type_id=$roomTypeId AND date>'$year/01/00' AND date<'$year/13/00'";
+$result = mysql_query($sql, $link);
+if(!$result) {
+	trigger_error("Cannot get room prices in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+}
+while($row = mysql_fetch_assoc($result)) {
+	$prices[$row['date']] = $row;
+}
+
+$type = $roomType['type'];
+
+
+html_start("Maverick Mgmt - Room Prices ");
+
+echo "<h2>" . $roomType['name'] . "</h2>\n";
+echo "<table>\n";
+echo "<tr><td>Price per bed: </td><td>" . $roomType['price_per_bed'] . "</td></tr>\n";
+echo "<tr><td>Price per room: </td><td>" . $roomType['price_per_room'] . "</td></tr>\n";
+echo "<tr><td>Num of beds: </td><td>" . $roomType['num_of_beds'] . "</td></tr>\n";
+echo "<tr><td>Num of extra beds: </td><td>" . $roomType['num_of_extra_beds'] . "</td></tr>\n";
+echo "<tr><td>Type: </td><td>" . $roomType['type'] . "</td></tr>\n";
+echo "</table><br>\n";
+
+echo "<a href=\"view_room_prices.php?room_type_id=$roomTypeId&year=" . ($year - 1) . "\">View prices for previous year</a> \n";
+echo "<strong>$year</strong> \n";
+echo "<a href=\"view_room_prices.php?room_type_id=$roomTypeId&year=" . ($year + 1) . "\">View prices for next year</a><br>\n";
+
+echo "<p>\n";
+echo "<form action=\"save_room_prices.php\" method=\"POST\">\n";
+echo "<input type=\"hidden\" name=\"room_type_id\" value=\"$roomTypeId\">\n";
+echo "<input type=\"hidden\" name=\"year\" value=\"$year\">\n";
+echo "<input type=\"hidden\" name=\"start_year\" value=\"$year\">\n";
+echo "<input type=\"hidden\" name=\"start_month\" value=\"01\">\n";
+echo "<input type=\"hidden\" name=\"start_day\" value=\"01\">\n";
+echo "<input type=\"hidden\" name=\"end_year\" value=\"$year\">\n";
+echo "<input type=\"hidden\" name=\"end_month\" value=\"12\">\n";
+echo "<input type=\"hidden\" name=\"end_day\" value=\"31\">\n";
+echo "<table border=\"1\">\n";
+echo "	<tr><td></td>";
+for($i = 1; $i <= 31; $i++) {
+	echo "	<td>$i</td>";
+}
+echo "</tr>\n";
+
+if($roomType['type'] == 'BOTH') {
+	echo "<strong style=\"font-size: 150%;\">Input format in each cell: 1st input - bed price, 2nd input room price</strong><br>";
+} elseif($roomType['type'] == 'DORM') {
+	echo "<strong style=\"font-size: 150%;\">Prices are per BED</strong><br>";
+} elseif($roomType['type'] == 'PRIVATE') {
+	echo "<strong style=\"font-size: 150%;\">Prices are per ROOM</strong><br>";
+}
+
+for($i = 1; $i <= 12; $i++) {
+	$monthDt = mktime(10, 1, 1, $i, 1, $year);
+	$dayOfWeek = date("w", $monthDt);
+	echo "	<tr><td>" . date("F", $monthDt) . "</td>\n";
+	for($day = 1; $day <= date("t", $monthDt); $day++) {
+		$dateStr = "$year/";
+		$dateStr .= ($i < 10 ? "0$i/" : "$i/");
+		$dateStr .= ($day < 10 ? "0$day" : $day);
+		$bgColor = ((($dayOfWeek+$day) % 7) < 2) ? "#AAAA00" : "#FFFFFF";
+		echo "		<td style=\"background-color: $bgColor\">";
+		$val = '';
+		if(isset($prices[$dateStr])) {
+			$val = $type == 'DORM' ? $prices[$dateStr]['price_per_bed'] : $prices[$dateStr]['price_per_room'];
+		}
+		echo "<input style=\"width: 20px; font-size: 9px;\" name=\"$dateStr\" value=\"$val\">";
+		echo "</td>\n";
+	}
+	echo "	</tr>\n";
+}
+
+echo <<<EOT
+</table>
+<input type="submit" value="Save Prices">
+</form>
+
+EOT;
+
+
+mysql_close($link);
+
+html_end();
+
+
+
+?>

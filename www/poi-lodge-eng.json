@@ -1,0 +1,19 @@
+[
+  {"name": "Maverick",  "lat": 47.498072, "lng": 19.062733, "image": "/img/poi-lodge.png"},
+  {"name": "Simpla Kert", "lat": 47.497015, "lng": 19.063348},
+  {"name": "Dohany Synagogue", "lat": 47.495596, "lng": 19.059852},
+  {"name": "Spiler Restaurant (Gozsdu Court)", "lat": 47.499204, "lng": 19.058385},
+  {"name": "Corvintető, Club on the roof top (Blaha Lujza Square)", "lat": 47.496374, "lng": 19.069024},
+  {"name": "Keleti Train Station", "lat": 47.500491, "lng": 19.082659},
+  {"name": "Fogasház Bar, Club, Cultural Center", "lat": 47.501576, "lng": 19.064113},
+  {"name": "Basilica", "lat": 47.500890, "lng": 19.053989},
+  {"name": "Hungarian State Opera", "lat": 47.502337, "lng": 19.058887},
+  {"name": "Ötkert Club and Restaurant", "lat": 47.500246, "lng": 19.048603},
+  {"name": "Széchenyi Chain Bridge", "lat": 47.498956, "lng": 19.043775},
+  {"name": "Fisherman's Bastion", "lat": 47.501917, "lng": 19.035112},
+  {"name": "Váci street, Main promenade", "lat": 47.494266, "lng": 19.052401},
+  {"name": "Boat Trip", "lat": 47.492280, "lng": 19.050245},
+  {"name": "Csendes Bar", "lat": 47.492684, "lng": 19.060180},
+  {"name": "Budapest Bagel", "lat": 47.490386, "lng": 19.060118},
+  {"name": "National Museum", "lat": 47.491091, "lng": 19.061950}
+]

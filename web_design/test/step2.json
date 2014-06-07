@@ -1,0 +1,12 @@
+{
+  "details": {
+    "rooms": [
+      {"name": "The Blue Brothers", "description": "4 nights for 1 person", "price": "€87"},
+      {"name": "Mr and Mss Yellow", "description": "x nights for y person", "price": "€zz"}
+    ],
+    "services": [
+      {"title": "Extra services"}
+    ]
+  },
+  "total": "€87"
+}

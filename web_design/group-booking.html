@@ -1,0 +1,256 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7"><![endif]-->
+<!--[if IE 7]><html class="no-js lt-ie9 lt-ie8"><![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9"><![endif]-->
+<!--[if gt IE 8]><!--><html class="no-js"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title></title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans:300,600,700|Oswald:300,700&subset=latin,latin-ext">
+  <link rel="stylesheet" href="css/main.css">
+  <script src="js/vendor/modernizr-2.6.2.min.js"></script>
+</head>
+<body>
+  <div id="zoom-helper">
+  <div class="site-wrapper">
+    <header id="header">
+      <h1 class="logo">
+        <a class="ir" href="">Maverick Budapest Kazinczy</a>
+      </h1>
+      
+      <nav class="navigation">
+        <ul>
+          <li>
+            <a href="">Home</a>
+          </li>
+          <li>
+            <a href="">Kazinczy Inn</a>
+          </li>
+          <li>
+            <a href="">Ferenciek hostel</a>
+          </li>
+          <li>
+            <a href="">Services</a>
+          </li>
+          <li>
+            <a href="">Restaurant</a>
+          </li>
+          <li>
+            <a href="">Contact</a>
+          </li>
+        </ul>
+      </nav>
+      
+      <p class="language fake-select">
+        <span class="value"></span>
+        <span class="open-select icon-down"></span>
+        <select id="language" data-current-language="eng">
+          <option value="english">English</option>
+          <option value="french">French</option>
+          <option value="german">German</option>
+          <option value="spanish">Spanish</option>
+          <option value="zulu">Zulu</option>
+        </select>
+      </p>
+      
+      <p class="currency fake-select">
+        <span class="value"></span>
+        <span class="open-select icon-down"></span>
+        <select id="currency">
+          <option value="eur">EUR</option>
+          <option value="usd">USD</option>
+          <option value="gbp">GBP</option>
+          <option value="stone">Stone</option>
+        </select>
+      </p>
+    </header>
+    
+    <div class="content-wrapper">
+      <section id="mobile-header">
+        <span class="open-header icon-menu"></span>
+        <span class="close-header"></span>
+        
+        <p>Maverick Kazinczy Inn</p>
+      </section>
+      
+      <h1 class="page-title">
+        Contact details
+      </h1>
+      
+      <div class="fluid-wrapper page">
+        <section id="group-booking" class="common-form">
+          <form action="" method="post">
+            <fieldset>
+              <h1>Please provide your contact details below</h1>
+              
+              <p class="info">
+                If you are a group with more than 9 participants, you are at the
+                right place. We will give you a great offer, which will be hard
+                to resist. We can also organize meals, tours, special programs
+                for you. Please fill out the form below and we will contact you
+                in 24 hour.<br>
+                <br>
+                Thank you and Have a nice day,<br>
+                Maverick Lodges
+              </p>
+              
+              <div class="fields">
+                <div class="group clearfix">
+                  <span class="group-label">Your name:</span>
+                  
+                  <div class="field clearfix">
+                    <label for="data_firstname">First name:</label>
+                    <input type="text" id="data_firstname" name="data_firstname" placeholder="First name">
+                  </div>
+                  
+                  <div class="field clearfix">
+                    <label for="data_lastname">Last name:</label>
+                    <input type="text" id="data_lastname" name="data_lastname" placeholder="Last name">
+                  </div>
+                </div>
+                
+                <div class="field clearfix">
+                  <label for="data_email">E-mail address:</label>
+                  <input type="email" id="data_email" name="data_email">
+                </div>
+                
+                <div class="field clearfix">
+                  <label for="data_email2">Confirm e-mail address:</label>
+                  <input type="email" id="data_email2" name="data_email2">
+                </div>
+                
+                <div class="group clearfix">
+                  <span class="group-label">Phone number:</span>
+                  
+                  <div class="field clearfix">
+                    <label for="data_countrycode">Country code:</label>
+                    <div class="fake-select">
+                      <span class="value"></span>
+                      <span class="open-select icon-down"></span>
+                      <select id="data_countrycode" name="data_countrycode">
+                        <option>Please select</option>
+                        <option value="+36">+36 (Hungary</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div class="field clearfix">
+                    <label for="data_phone">Last name:</label>
+                    <input type="text" id="data_phone" name="data_phone">
+                  </div>
+                </div>
+                
+                <div class="field clearfix">
+                  <label for="data_destination">Destination:</label>
+                  <div class="fake-select">
+                    <span class="value"></span>
+                    <span class="open-select icon-down"></span>
+                    <select id="data_destination" name="data_destination">
+                      <option>Please select</option>
+                      <option value="">Maverick Hostel &amp; Ensuites</option>
+                      <option value="">Maverick City Lodge</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="group without-label clearfix">
+                  <div class="field date from clearfix">
+                    <label for="data_arrival">Date of arrival:</label>
+                    <input type="date" id="data_arrival" class="from" name="data_arrival" value="2013-12-10">
+                  </div>
+                  
+                  <div class="field date to clearfix">
+                    <label for="data_departure">Date of departure:</label>
+                    <input type="date" id="data_departure" class="to" name="data_departure" value="2013-12-10">
+                  </div>
+                </div>
+                
+                <div class="field clearfix">
+                  <label for="data_grouptype">Group type:</label>
+                  <div class="fake-select">
+                    <span class="value"></span>
+                    <span class="open-select icon-down"></span>
+                    <select id="data_grouptype" name="data_grouptype">
+                      <option>Please select</option>
+                      <option value="">University Trip</option>
+                      <option value="">School Group</option>
+                      <option value="">Sport Tour</option>
+                      <option value="">Other</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="field short clearfix">
+                  <label for="data_number">Number of participants:</label>
+                  <input type="email" id="data_number" name="data_number">
+                </div>
+                
+                <div class="field clearfix">
+                  <label for="data_nationality">Nationality:</label>
+                  <div class="fake-select">
+                    <span class="value"></span>
+                    <span class="open-select icon-down"></span>
+                    <select id="data_nationality" name="data_nationality">
+                      <option>Please select</option>
+                      <option value="dunno">dunno</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="field clearfix">
+                  <label for="data_roomtype">Room type preference:</label>
+                  <div class="fake-select">
+                    <span class="value"></span>
+                    <span class="open-select icon-down"></span>
+                    <select id="data_roomtype" name="data_roomtype">
+                      <option>Please select</option>
+                      <option value="">Private rooms</option>
+                      <option value="">Dorms</option>
+                      <option value="">Both</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="field clearfix">
+                  <label for="data_comment">Comment:</label>
+                  <textarea id="data_comment" name="data_comment"></textarea>
+                </div>
+                
+                <button type="submit">Send inquiry</button>
+              </div>
+            </fieldset>
+          </form>
+        </section>
+      </div>
+        
+      <footer id="footer">
+        <div>
+          <p>
+            <a href="">Hostel and Booking Policy</a>
+          </p>
+          <p>
+            <a href="">Awards</a>
+          </p>
+          <p>
+            <a href="">Find us on Facebook for programs</a>
+          </p>
+          <p class="copyright">
+            Copyright, Maverick Hostels 2006-2013
+          </p>
+        </div>
+      </footer>
+    </div>
+  </div>
+  </div>
+  
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')</script>
+  <script src="js/vendor/jquery-ui-1.10.3.custom.min.js"></script>
+  <script src="js/plugins.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

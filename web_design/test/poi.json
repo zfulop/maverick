@@ -1,0 +1,11 @@
+[
+  {"name": "Garzon",    "lat": 47.497948, "lng": 19.063999},
+  {"name": "Gödör",     "lat": 47.498420, "lng": 19.056725},
+  {"name": "Keksz",     "lat": 47.497610, "lng": 19.057079},
+  {"name": "Lámpás",    "lat": 47.497649, "lng": 19.060595},
+  {"name": "Lokál",     "lat": 47.497843, "lng": 19.060705},
+  {"name": "Központ",   "lat": 47.498012, "lng": 19.057902},
+  {"name": "Szóda",     "lat": 47.497323, "lng": 19.062417},
+  {"name": "Telep",     "lat": 47.498200, "lng": 19.058082},
+  {"name": "Maverick",  "lat": 47.498072, "lng": 19.062733, "image": "img/poi-citylodge.png"}
+]
