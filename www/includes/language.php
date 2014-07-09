@@ -6,7 +6,8 @@ function getLanguages() {
 		'deu' => 'Deutsch',
 		'fra' => 'Francais',
 		'ita' => 'Italiano',
-		'esp' => 'Espagnol');
+		'esp' => 'Espagnol'/*,
+		'por' => 'Portugal'*/);
 }
 
 function getCurrentLanguage() {

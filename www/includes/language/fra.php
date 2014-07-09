@@ -233,7 +233,7 @@ define('PRICE', 'Prix');
 define('PRICE_PER_NIGHT_PER_BED', '%s/nuit/lit');
 define('PRICE_PER_NIGHT_PER_ROOM', '%s/nuit/chambre');
 define('PRICE_PER_OCCASION', '%s/occasion');
-define('PRICE_STARTING_FROM_PER_BED', 'À partir de %s*/itt');
+define('PRICE_STARTING_FROM_PER_BED', 'À partir de %s/lit');
 define('PRICE_STARTING_FROM_PER_ROOM', 'De %s/chambre');
 define('PRIVATE_ROOM', 'Chambre individuelle');
 define('PROVIDE_CONTACT_DETAILS', 'Prix promotionnels et événements spécifiques');

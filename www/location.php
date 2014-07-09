@@ -188,7 +188,7 @@ $slides
               </div>
               
               <div class="submit">
-                <button type="submit">Check availability</button>
+                <button type="submit">$checkAvailability</button>
               </div>
             </fieldset>
           </form>
