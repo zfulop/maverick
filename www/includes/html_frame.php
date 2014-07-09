@@ -34,6 +34,7 @@ function html_start($menuTitle, $extraHeader = '', $onloadScript='') {
   <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans:300,600,700|Oswald:300,700&subset=latin,latin-ext">
   <link rel="stylesheet" href="/css/main.css">
   <script src="/js/vendor/modernizr-2.6.2.min.js"></script>
+$extraHeader
 </head>
 <body onload="$onloadScript">
   <div id="zoom-helper">
@@ -60,7 +61,7 @@ EOT;
         </ul>
       </nav>
       
-      <p class="language fake-select" style="display:none;">
+      <p class="language fake-select">
         <span class="value" style="font-size: 130%;"></span>
         <span class="open-select icon-down"></span>
         <select id="language" data-current-language="$currLang">
@@ -133,6 +134,10 @@ echo <<<EOT
           </p>
           <p>
             <a href="http://www.facebook.com/mavericklodges">$findUs</a>
+          </p>
+		  <p>
+             <a href="http://google.com/+MaverickCityLodgeBudapest">City Lodge on Google+</a><br>
+             <a href="http://google.com/+MaverickHostel">Hostel on Google+</a>
           </p>
           <p class="copyright">$copyight</p>
           <a href="http://www.famoushostels.com" style="float:right;position:relative;right:120px;top:-80px;width:78px;height:78px;"><img src="/img/europes_famous_hostels.jpg"></a>

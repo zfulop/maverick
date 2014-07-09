@@ -10,6 +10,7 @@
 		$img_file = getDestinationFile($dir, $fname);
 		$tmp_name = $_FILES[$formName]["tmp_name"];
 		if(move_uploaded_file($tmp_name, $img_file)) {
+			chmod($img_file, 0644);
 			set_message("Image copied to: $img_file");
 			if($fitIntoBox) {
 				fitImageIntoBox($img_file, $maxWidth, $maxHeight);

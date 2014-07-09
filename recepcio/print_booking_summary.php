@@ -104,6 +104,24 @@ while($row = mysql_fetch_assoc($result)) {
 	$serviceCharges[] = $row;
 }
 
+$guestData = array();
+$sql = "SELECT * FROM booking_guest_data WHERE booking_description_id=$descrId";
+$result = mysql_query($sql, $link);
+if(!$result) {
+	$err = "Cannot get guest data of booking (with description_id: $descrId).";
+	set_error($err);
+	trigger_error($err . " SQL Error: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	mysql_close($link);
+	header('Location: ' . $_SERVER['HTTP_REFERER']);
+	return;
+}
+while($row = mysql_fetch_assoc($result)) {
+	if(strlen($row['deposit']) > 0) {
+		$guestData[] = $row;
+	}
+}
+
+
 mysql_close($link);
 
 
@@ -151,7 +169,7 @@ $pdf->SetFont('Helvetica','B',10);
 $pdf->Cell(70, 7, "Room name");
 $pdf->Cell(25, 7, "Type");
 $pdf->Cell(40, 7, "# of beds");
-$pdf->Cell(50, 7, "Price");
+//$pdf->Cell(50, 7, "Price");
 $pdf->Ln();
 
 $pdf->SetFont('Helvetica','',10);
@@ -161,15 +179,17 @@ foreach($bookings as $booking) {
 	$pdf->Cell(70, 7, $booking['room_type_name']);
 	$pdf->Cell(25, 7, $booking['booking_type']);
 	$pdf->Cell(40, 7, $booking['num_of_person']);
-	$pdf->Cell(50, 7, floatval($booking['room_payment']) . " EUR");
+	//$pdf->Cell(50, 7, floatval($booking['room_payment']) . " EUR");
 	$pdf->Ln();
 	$roomTotal += $booking['room_payment'];
 }
 
+/*
 $pdf->Cell(95, 7, "");
 $pdf->SetFont('Helvetica','B',10);
 $pdf->Cell(40, 7, "Total room price");
 $pdf->Cell(50, 7, $roomTotal . " EUR");
+ */
 
 $pdf->Ln();
 $pdf->Ln();
@@ -266,6 +286,24 @@ $pdf->Cell(60, 7, "$balance EUR ($balanceHuf Ft)", 0);
 $pdf->Ln();
 $pdf->Cell(30, 7, "Date: ");
 $pdf->Cell(60, 7, date('Y-m-d'), 0);
+$pdf->Ln();
+$pdf->Ln();
+$pdf->Ln();
+$pdf->Ln();
+
+if(count($guestData) > 0) {
+	$pdf->SetFont('Helvetica','B',14);
+	$pdf->Cell(40, 7, "Deposits:", 0);
+	$pdf->Ln();
+
+	$pdf->SetFont('Helvetica','',10);
+	foreach($guestData as $gd) {
+		$pdf->Cell(20, 7, "");
+		$pdf->Cell(70, 7, $gd['deposit']);
+		$pdf->Ln();
+	}
+}
+
 
 
 if(isset($_REQUEST['action']) and ($_REQUEST['action'] == 'email')) {

@@ -368,8 +368,8 @@ foreach($bookings as $oneRoomBooked) {
 	$dtotal += $dprice;
 	$total += $price;
 	if($price != $dprice) {
-		$pctOff = sprintf(PERCENT_OFF, ($dprice/($price/100)));
-		$price = "<span style=\"text-decoration:line-through\">" . formatMoney($price, $currency) . "</span> " . formatMoney($dprice, $currency) . $pctOff;
+		$pctOff = sprintf(PERCENT_OFF, (100 - $dprice/($price/100)));
+		$price = "<span style=\"text-decoration:line-through\">" . formatMoney($price, $currency) . "</span> " . $pctOff . " " . formatMoney($dprice, $currency);
 	} else {
 		$price = formatMoney($dprice, $currency);
 	}
@@ -440,7 +440,8 @@ $total += $totalServicePrice;
 $dtotal += $totalServicePrice;
 if($total != $dtotal) {
 	//$pctOff = sprintf(PERCENT_OFF, ($dtotal/($total/100)));
-	$price = formatMoney($dtotal, $currency) . " <span style=\"text-decoration:line-through\">" . formatMoney($total, $currency) . "</span> " . $pctOff;
+	//$total = formatMoney($dtotal, $currency) . " <span style=\"text-decoration:line-through\">" . formatMoney($total, $currency) . "</span> " . $pctOff;
+	$total = formatMoney($dtotal, $currency);
 } else {
 	$total = formatMoney($total, $currency);
 }
@@ -703,7 +704,7 @@ foreach($bookings as $oneRoomBooked) {
 	$numOfGuests = $oneRoomBooked['numOfGuests'];
 	$price = $oneRoomBooked['price'];
 	$dprice = $oneRoomBooked['discountedPrice'];
-	$total += $price;
+	$total += $dprice;
 	if($price != $dprice) {
 		$price = "<span style=\"text-decoration:line-through\">$price euro</span> $dprice euro";
 	} else {

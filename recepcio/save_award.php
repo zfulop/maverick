@@ -9,6 +9,8 @@ header('Location: view_awards.php');
 $id = intval($_REQUEST['id']);
 $name = $_REQUEST['name'];
 $url = $_REQUEST['url'];
+$js = str_replace(PHP_EOL, "", $_REQUEST['javascript']);
+$html = str_replace(PHP_EOL, "", $_REQUEST['html']);
 $order = intval($_REQUEST['order']);
 if($order < 1) $order = 1;
 
@@ -35,7 +37,7 @@ if(!$result) {
 }
 
 if($id < 1) {
-	$sql = "INSERT INTO awards (name, img, url, _order) VALUES ('$name', $img, '$url', $order)";
+	$sql = "INSERT INTO awards (name, img, url, _order, javascript, html) VALUES ('$name', $img, '$url', $order, '$js', '$html')";
 } else {
 	$sql = "UPDATE awards SET name='$name', url='$url', _order=$order";
 	if($img != 'NULL') {

@@ -93,7 +93,7 @@ if(isset($_SESSION['pricing_start_date'])) {
 if(isset($_SESSION['pricing_end_date'])) {
 	$endDate = $_SESSION['pricing_end_date'];
 } else {
-	$endDate = date('Y-m-t');
+	$endDate = date('Y-m-d', strtotime($startDate . " +13 day"));
 }
 
 if(isset($_REQUEST['start_date'])) {

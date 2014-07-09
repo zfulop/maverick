@@ -18,7 +18,27 @@ if(isset($_SESSION['booking_error'])) {
 	unset($_SESSION['booking_error']);
 }
 
-html_start(constant('LOCATION_NAME_' . strtoupper($location)), '', $onloadScript);
+$oneAwardHtml = '';
+$oneAwardJs = '';
+$sql = "SELECT a.*, d.value AS description FROM awards a INNER JOIN lang_text d ON (d.table_name='awards' AND d.column_name='description' AND d.row_id=a.id and d.lang='$lang')";
+$result = mysql_query($sql, $link);
+if(mysql_num_rows($result) > 0) {
+	$idx = rand(0, mysql_num_rows($result)-1);
+	$row = null;
+	for($i = 0; $i <= $idx; $i++) {
+		$row = mysql_fetch_assoc($result);
+	}
+	if(strlen($row['html']) > 0) {
+		$oneAwardHtml = $row['html'];
+		$oneAwardJs = $row['javascript'];
+	} else {
+		$oneAwardHtml = "<img src=\"" . constant('AWARDS_IMG_URL_' . strtoupper($location)) . $row['img'] . "\">" . $row['description'];
+	}
+}
+
+
+
+html_start(constant('LOCATION_NAME_' . strtoupper($location)), $oneAwardJs, $onloadScript);
 
 $checkin = CHECKIN;
 $checkinDate = CHECKIN_DATE;
@@ -69,18 +89,6 @@ $more = MORE;
 $awards = AWARDS;
 $viewAwards = VIEW_AWARDS;
 $photos = PHOTOS;
-$oneAwardHtml = '';
-$sql = "SELECT a.*, d.value AS description FROM awards a INNER JOIN lang_text d ON (d.table_name='awards' AND d.column_name='description' AND d.row_id=a.id and d.lang='$lang')";
-$result = mysql_query($sql, $link);
-if(mysql_num_rows($result) > 0) {
-	$idx = rand(0, mysql_num_rows($result)-1);
-	$row = null;
-	for($i = 0; $i <= $idx; $i++) {
-		$row = mysql_fetch_assoc($result);
-	}
-	$oneAwardHtml = "<img src=\"" . constant('AWARDS_IMG_URL_' . strtoupper($location)) . $row['img'] . "\">" . $row['description'];
-}
-
 
 // constants are defined in config.php
 $contactPhone = constant('CONTACT_PHONE_' . strtoupper($location));

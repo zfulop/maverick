@@ -26,6 +26,8 @@ echo <<<EOT
 <input type="hidden" id="id" name="id" value="">
 <table>
 <tr><td><label>Name</label><input name="name" id="name" style="width: 120px;"></td></tr>
+<tr><td><label>Javascript</label><textarea name="javascript" id="javascript" style="width: 320px; height: 120px;"></textarea></td></tr>
+<tr><td><label>HTML</label><textarea name="html" id="html" style="width: 320px; height: 120px;"></textarea></td></tr>
 <tr><td><label>URL</label><input name="url" id="url" style="width: 120px;"></td></tr>
 <tr><td><label>Image</label><input name="img" type="file" style="width: 120px;"></td></tr>
 <tr><td><label>Order</label><input name="order" id="order" style="width: 40px;"></td></tr>
@@ -54,7 +56,7 @@ echo <<<EOT
 EOT;
 if($result) {
 	if(mysql_num_rows($result) > 0)
-		echo "	<tr><th>Order</th><th>Image</th><th>Name</th><th>URL</th><th>Description</th><th></th></tr>\n";
+		echo "	<tr><th>Order</th><th>Name</th><th>Javascript</th><th>Html</th><th>Image</th><th>URL</th><th>Description</th><th></th></tr>\n";
 	else
 		echo "	<tr><td><i>No record found.</i></td></tr>\n";
 
@@ -87,13 +89,18 @@ if($result) {
 
 		echo "	<tr>\n";
 		echo "		<td><table><tr><td rowspan=\"2\">" . $row['_order'] . ".</td><td><input type=\"button\" value=\"Move up\" onclick=\"window.location='change_order.php?direction=up&table=awards&id=" . $row['id'] . "&order=" . $row['_order'] . "';\"></td></tr><tr><td><input type=\"button\" value=\"Move down\" onclick=\"window.location='change_order.php?direction=down&table=awards&id=" . $row['id'] . "&order=" . $row['_order'] . "';\"></td></tr></table></td>\n";
+		echo "</td><td>" . $row['name'] . "</td>\n";
+		$js = strlen($row['javascript']) > 0 ? 'Yes' : '';
+		$html = strlen($row['html']) > 0 ? 'Yes' : '';
+		echo "<td>$js</td>\n";
+		echo "<td>$html</td>\n";
 		echo "		<td>";
 		$fileParam = "";
 		if(!is_null($row['img']) and file_exists(AWARDS_IMG_DIR . $row['img'])) {
 			echo "<img src=\"" . AWARDS_IMG_URL . $row['img'] . "\">";
 			$fileParam = "&file=" . urlencode($row['img']);
 		}
-		echo "</td><td>" . $row['name'] . "</td><td>" . $row['url'] . "</td>\n";
+		echo "</td><td>" . $row['url'] . "</td>\n";
 		echo "		<td>\n";
 		foreach($record as $lang => $cols) {
 			echo "			<strong>$lang</strong> " . $cols['description'] . "<br>\n";

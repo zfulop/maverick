@@ -22,7 +22,7 @@ $priceChanges = array();
 while($row = mysql_fetch_assoc($result)) {
 	$priceChanges[] = $row;
 }
-usort($priceChanges, 'sortByDate');
+usort($priceChanges, 'sortByName');
 
 echo "<table>\n";
 echo "	<tr><th>Date</th><th>Room name</th><th>Room type</th><th>Price</th></tr>\n";
@@ -42,4 +42,15 @@ function sortByDate($pc1, $pc2) {
 		return 0;
 	}
 }
+
+function sortByName($pc1, $pc2) {
+	if($pc1['name'] < $pc2['name']) {
+		return -1;
+	} elseif($pc2['name'] < $pc1['name']) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
 ?>
