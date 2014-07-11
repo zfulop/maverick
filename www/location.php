@@ -97,7 +97,7 @@ $contactFax = constant('CONTACT_FAX_' . strtoupper($location));
 
 $slides = getCarousel($location, $lang);
 
-$roomTypesData = loadRoomTypes($link);
+$roomTypesData = loadRoomTypes($link, $lang);
 
 $today = date('Y-m-d');
 $specialOfferSection = '';

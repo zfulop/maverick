@@ -232,9 +232,10 @@ button{border:0;margin:0;outline:0;padding:0}
 #contact ~ #location .address{float:left}
 }@media only screen and (min-width: 1024px){#map-container{padding:6px}
 }@media only screen and (min-width: 1280px){#special-offers{clear:both}
-}#special-offers li{margin-top:20px;}
+}#special-offers li{margin-top:20px;margin-bottom:20px;}
 #special-offers li:first-child{margin-top:0}
-@media only screen and (min-width: 1024px){#special-offers li{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;display:inline-block;height:250px;margin-left:2%;margin-top:0;vertical-align:top;width:32%}
+#special-offers li:nth-child(4), #special-offers li:nth-child(7){margin-left:0}
+@media only screen and (min-width: 1024px){#special-offers li{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;display:inline-block;height:auto;margin-left:2%;margin-top:0;vertical-align:top;width:32%}
 #special-offers li:first-child{margin-left:0}
 }@media only screen and (min-width: 1280px) and (max-width: 1366px){#special-offers li{height:350px}
 }#special-offers h2{font:56px/1 'Zuboni Stencil',arial,sans-serif;margin-bottom:20px;}
@@ -291,7 +292,8 @@ button{border:0;margin:0;outline:0;padding:0}
 }.rooms .extra .details{margin-bottom:12px;}
 @media only screen and (min-width: 1024px){.rooms .extra .details{margin-bottom:25px}
 }@media only screen and (min-width: 1024px){.rooms .extra .extras{float:left}
-}.rooms .extra .extras li{margin-top:12px;}
+}.rooms .extra .extras li{margin-top:12px;text-align:center; display:inline-block;margin-right:10px;}
+.rooms .extra .extras li img{margin:0px auto;}
 .rooms .extra .extras li:first-child{margin-top:0}
 @media only screen and (min-width: 1024px){.rooms .extra .extras li{float:left;margin-top:0;margin-right:10px;position:relative}
 .rooms .extra .extras li div{background:#ffffe1;border:1px solid #eae3dc;-webkit-box-shadow:0 1px 2px rgba(0,0,0,0.17);-moz-box-shadow:0 1px 2px rgba(0,0,0,0.17);box-shadow:0 1px 2px rgba(0,0,0,0.17);opacity:0;padding:15px;position:absolute;top:66px;transition-delay:0,.2s;transition-duration:.2s,0;transition-property:opacity,visibility;visibility:hidden;width:300px;z-index:5;}
