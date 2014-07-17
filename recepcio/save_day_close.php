@@ -5,6 +5,8 @@ require("includes.php");
 $timeOfDayClose = date('Y-m-d H:i:s');
 $hufCasse = $_REQUEST['casseHUF'];
 $eurCasse = $_REQUEST['casseEUR'];
+$hufCasse2 = $_REQUEST['casseHUF2'];
+$eurCasse2 = $_REQUEST['casseEUR2'];
 $fromLogin = $_SERVER['PHP_AUTH_USER'];
 $toLogin = $_REQUEST['to_login'];
 $toPwd = $_REQUEST['to_pwd'];
@@ -20,7 +22,7 @@ if(!http_authenticate($toLogin,$toPwd)) {
 
 $link = db_connect();
 
-$sql = "INSERT INTO day_close (`from`, `to`, time_of_day_close, casseHUF, casseEUR, comment) VALUES ('$fromLogin', '$toLogin', '$timeOfDayClose', $hufCasse, $eurCasse,  '$comment')";
+$sql = "INSERT INTO day_close (`from`, `to`, time_of_day_close, casseHUF, casseEUR, casseHUF2, casseEUR2, comment) VALUES ('$fromLogin', '$toLogin', '$timeOfDayClose', $hufCasse, $eurCasse,  $hufCasse2, $eurCasse2,  '$comment')";
 
 if(!mysql_query($sql, $link)) {
 	trigger_error("Could not save day close: " . mysql_error($link) . " (SQL: $sql)");
