@@ -2,8 +2,7 @@
 
 define('AUDIT_CREATE_BOOKING', 'CREATE_BOOKING');
 
-function audit($type, $data, $bookingId, $bookingDescriptionId, $link) {
-	$login = 'WWW';
+function audit($type, $data, $bookingId, $bookingDescriptionId, $link, $login = 'WWW') {
 	$time = date('Y-m-d H:i:s');
 	if(is_null($bookingId)) {
 		$bookingId = 'NULL';

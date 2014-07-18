@@ -564,7 +564,7 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 				$availableBeds = getNumOfAvailBeds($roomData, $currDate);
 				if($roomType['type'] == 'PRIVATE' and $availableBeds != $roomType['num_of_beds']) {
 					$roomsNotToBook[$roomId][] = $currDate;
-				} elseif($roomType['type'] == 'DORM' and $availableBeds < $numOfPerson)
+				} elseif($roomType['type'] == 'DORM' and $availableBeds < $roomData['num_of_beds'])
 					$roomsNotToBook[$roomId][] = $currDate;
 			}
 		}
@@ -605,8 +605,9 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 				if($numOfBedsBooked == $numOfPerson) {
 					break;
 				}
-				$personToBook = ($roomType['type'] == 'PRIVATE' ? $roomType['num_of_beds'] : $numOfPerson);
+				$personToBook = ($roomType['type'] == 'PRIVATE' ? $roomType['num_of_beds'] : min($roomData['num_of_beds'], $numOfPerson-$numOfBedsBooked));
 				$toBook[$roomId] = array('num_of_person' => $personToBook, 'type' => ($roomType['type'] == 'PRIVATE' ? 'ROOM' : 'BED'));
+
 				$numOfBedsBooked += $personToBook;
 				// add roomChanges for the dates unavailable
 				foreach($datesUnavailable as $oneDate) {
