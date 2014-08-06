@@ -41,7 +41,7 @@ foreach($lines as $oneLine) {
 		continue;
 
 	list($name, $pwd) = split(":", $oneLine);
-	if($login != $name) {
+	if(($login != $name) and (($login . '_') != $name)) {
 		$content .= $oneLine . "\n";
 	}
 }

@@ -547,6 +547,9 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 	foreach($numOfPersonForRoomType as $roomTypeId => $numOfPerson) {
 		$roomType = $roomTypes[$roomTypeId];
 		set_debug("getBookingData() - Checking room type: " . $roomType['name'] . ". There are $numOfPerson  person for that room(s)");
+		if($numOfPerson < 1) {
+			continue;
+		}
 /*
 		if($roomType['type'] == 'DORM') {
 			$toBook[$roomIds[0]] = array('num_of_person' => $numOfPerson, 'type' => 'BED');
@@ -564,8 +567,7 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 				$availableBeds = getNumOfAvailBeds($roomData, $currDate);
 				if($roomType['type'] == 'PRIVATE' and $availableBeds != $roomType['num_of_beds']) {
 					$roomsNotToBook[$roomId][] = $currDate;
-				} elseif($roomType['type'] == 'DORM' and $availableBeds < $roomData['num_of_beds'])
-					$roomsNotToBook[$roomId][] = $currDate;
+				}
 			}
 		}
 
@@ -582,7 +584,7 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 					$toBook[$roomId] = array('num_of_person' => $roomData['num_of_beds'], 'type' => 'ROOM');
 					$numOfBedsBooked += $roomData['num_of_beds'];
 				} elseif($roomType['type'] == 'DORM') {
-					$numOfPersonInDorm = min($roomData['num_of_beds'], $numOfPerson-$numOfBedsBooked);
+					$numOfPersonInDorm = $numOfPerson-$numOfBedsBooked;
 					$toBook[$roomId] = array('num_of_person' => $numOfPersonInDorm, 'type' => 'BED');
 					$numOfBedsBooked += $numOfPersonInDorm;
 				}
@@ -592,7 +594,7 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 		// If there is no room that would be free for all the days, find the room that is the least booked, 
 		// and add 'roomChanges' for the days that is booked, that is: it will find another room for the days where 
 		// the mostly free room is booked.
-		if($numOfBedsBooked < $numOfPerson) {
+		if($roomType['type'] == 'PRIVATE' and $numOfBedsBooked < $numOfPerson) {
 			$roomsNotToBookInReverse = $roomsNotToBook;
 			// sort the $roomsNotToBook in the order of the number of dates unavailable (ascending)
 			uasort($roomsNotToBook, "sortByArraySize");
@@ -602,7 +604,7 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 			set_debug('getBookingData() - $roomsNotToBook = ' . print_r($roomsNotToBook, true));
 			set_debug('getBookingData() - $roomsNotToBookInReverse = ' . print_r($roomsNotToBookInReverse, true));
 			foreach($roomsNotToBook as $roomId => $datesUnavailable) {
-				if($numOfBedsBooked == $numOfPerson) {
+				if($numOfBedsBooked >= $numOfPerson) {
 					break;
 				}
 				$personToBook = ($roomType['type'] == 'PRIVATE' ? $roomType['num_of_beds'] : min($roomData['num_of_beds'], $numOfPerson-$numOfBedsBooked));
@@ -622,6 +624,40 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 					uasort($roomsNotToBookInReverse, "sortByArraySizeDesc");
 				}
 			}
+		} elseif($roomType['type'] == 'DORM') {
+			// Handle the overbookings for DORM: 
+			// for each booking iterate through the dates:
+			//   get the overbooking for that dorm room for that date
+			//   iterate through again the rooms
+			//     for the room with same roomtypeid, book the available beds until the overbooking is down to 0
+			foreach($toBook as $bookedRoomId => $bookData) {
+				if($rooms[$bookedRoomId]['room_type_id'] != $roomTypeId) {
+					continue;
+				}
+				for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', strtotime("$currDate +1 day"))) {
+					$availableBeds = getNumOfAvailBeds($rooms[$bookedRoomId], $currDate);
+					$overbooking = $bookData['num_of_person'] - $availableBeds;
+					if($overbooking > 0) {
+						set_debug("getBookingData() - for room: $bookedRoomId, date: $currDate, there are $overbooking overbookings.");
+						foreach($rooms as $roomId => $roomData) { 
+							if(($roomData['room_type_id'] != $roomTypeId) or ($roomId == $bookedRoomId)) {
+								continue;
+							}
+							$availableBeds = getNumOfAvailBeds($rooms[$roomId], $currDate);
+							if($availableBeds > 0) {
+								$numPersonInThisRoom = min($availableBeds, $overbooking);
+								set_debug("getBookingData() -	saving room change into room: $roomId, numOfPerson: $numPersonInThisRoom");
+								$roomChanges[$bookedRoomId][] = array('room_id' => $roomId, 'date' => $currDate, 'num_of_person' => $numPersonInThisRoom);
+								$overbooking = $overbooking - $numPersonInThisRoom;
+							}
+							if($overbooking < 1) {
+								break;
+							}
+						}
+					}
+				}
+			}
+
 		}
 	}
 	set_debug("getBookingData() - The toBook array's content: " . print_r($toBook, true));
@@ -655,7 +691,7 @@ function getNumOfNights($startDate, $endDate) {
 	return round(($ets - $sts) / (60*60*24)) + 1;
 }
 
-function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$roomTypes, &$specialOffers, $descriptionId, $link) {
+function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$roomTypes, &$specialOffers, $descriptionId, $link, $priceForRoomType = null) {
 	$startDate = str_replace('/', '-', $startDate);
 	$endDate = str_replace('/', '-', $endDate);
 	list($startYear, $startMonth, $startDay) = explode('-', $startDate);
@@ -672,60 +708,101 @@ function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$ro
 	$bookingIds = array();
 	$roomIdToBookingId = array();
 	foreach($toBook as $roomId => $roomData) {
-		$roomType = $roomTypes[$rooms[$roomId]['room_type_id']];
+		$roomTypeId = $rooms[$roomId]['room_type_id'];
+		$roomType = $roomTypes[$roomTypeId];
 		$type = $roomData['type'];
 		$numOfPerson = $roomData['num_of_person'];
-		$payment = getPriceForInterval($startDate, $endDate, $type, $rooms[$roomId]);
-		if($type == 'BED') {
-			$payment = $payment * $numOfPerson;
-		}
-
-		$discount = 0;
-		$selectedSo = null;
-		foreach($specialOffers as $so) {
-			if(specialOfferApplies($so, $roomType, getNumOfNights($startDate, $endDate), $startDate) and $so['discount_pct'] > $discount) {
-				$discount = $so['discount_pct'];
-				$selectedSo = $so;
-			}
-		}
-		// apply special offer
 		$specialOfferId = 'NULL';
-		$discountedPayment = $payment;
-		if($discount > 0) {
-			$discountedPayment = $payment * (100 - $discount) / 100;
-			$specialOfferId = $selectedSo['id'];
+		if(is_null($priceForRoomType) or !isset($priceForRoomType[$roomTypeId])) {
+			$payment = getPriceForInterval($startDate, $endDate, $type, $rooms[$roomId]);
+			if($type == 'BED') {
+				$payment = $payment * $numOfPerson;
+			}	
+			$discount = 0;
+			$selectedSo = null;
+			foreach($specialOffers as $so) {
+				if(specialOfferApplies($so, $roomType, getNumOfNights($startDate, $endDate), $startDate) and $so['discount_pct'] > $discount) {
+					$discount = $so['discount_pct'];
+					$selectedSo = $so;
+				}
+			}
+			// apply special offer
+			$discountedPayment = $payment;
+			if($discount > 0) {
+				$discountedPayment = $payment * (100 - $discount) / 100;
+				$specialOfferId = $selectedSo['id'];
+			}
+		} else {
+			$discountedPayment = $priceForRoomType[$roomTypeId];
 		}
-
 
 		$time = date('Y-m-d H:i:s');
-		$sql = "INSERT INTO bookings (booking_type, num_of_person, room_payment, room_id, description_id, creation_time, special_offer_id) VALUES ('$type', '$numOfPerson', '$discountedPayment', $roomId, $descriptionId, '$time', $specialOfferId)";
-		set_debug($sql);
-
-		if(!mysql_query($sql, $link)) {
-			trigger_error("Cannot save booking: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
-			set_error('Could not save booking for room: ' . $rooms[$roomId]['name']);
+		if($type == 'ROOM') {
+			set_debug('creating room booking');
+			$id = createBooking($type, $numOfPerson, $discountedPayment, $roomId, $descriptionId, $time, $specialOfferId, $link, $rooms);
+			if($id) {
+				$roomIdToBookingId[$roomId] = $id;
+				$bookingIds[] = $id;
+			}
 		} else {
-			$id = mysql_insert_id($link);
-			$roomIdToBookingId[$roomId] = $id;
-			$bookingIds[] = $id;
+			// The dorm booking must be saved as one booking for each bed this way the room changes 
+			// can happen for individuals as well
+			set_debug('creating bed booking');
+			$roomIdToBookingId[$roomId] = array();
+			for($i = 0; $i < $numOfPerson; $i++) {
+				$id = createBooking($type, 1, $discountedPayment/$numOfPerson, $roomId, $descriptionId, $time, $specialOfferId, $link, $rooms);
+				if($id) {
+					$roomIdToBookingId[$roomId][] = $id;
+					$bookingIds[] = $id;
+				}
+			}
 		}
 	}
 
+	set_debug('roomIdToBookingId: ' . print_r($roomIdToBookingId, true));
 	foreach($roomChanges as $roomId => $arr) {
 		$bookingId = $roomIdToBookingId[$roomId];
 		foreach($arr as $oneChange) {
 			$dateOfRoomChange = str_replace('-', '/', $oneChange['date']);
 			$rid = $oneChange['room_id'];
-			$sql = "INSERT INTO booking_room_changes (booking_id, date_of_room_change, new_room_id) VALUES ($bookingId, '$dateOfRoomChange', $rid)";
-			set_debug($sql);
-			if(!mysql_query($sql, $link)) {
-				trigger_error("Cannot save booking's room change: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
-				set_error('Could not save booking\'s room change for room: ' . $rooms[$roomId]['name']);
+			$type = $toBook[$roomId]['type'];
+			if($type == 'ROOM') {
+				createBookingRoomChange($bookingId, $dateOfRoomChange, $rid, $link, $rooms);
+			} else {
+				// If the booking is per bed (DORM), then create one room change per person up until num_of_person
+				// in this case $bookingId will be an array of bookings ids (one booking per one person)
+				$numOfPerson = $oneChange['num_of_person'];
+				for($i = 0; $i < $numOfPerson; $i++) {
+					createBookingRoomChange($bookingId[$i], $dateOfRoomChange, $rid, $link, $rooms);
+				}
 			}
 		}
 	}
 
 	return $bookingIds;
+}
+
+
+function createBooking($type, $numOfPerson, $discountedPayment, $roomId, $descriptionId, $time, $specialOfferId, $link, &$rooms) {
+	$sql = "INSERT INTO bookings (booking_type, num_of_person, room_payment, room_id, description_id, creation_time, special_offer_id) VALUES ('$type', '$numOfPerson', '$discountedPayment', $roomId, $descriptionId, '$time', $specialOfferId)";
+	set_debug($sql);
+	if(!mysql_query($sql, $link)) {
+		trigger_error("Cannot save booking: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+		set_error('Could not save booking for room: ' . $rooms[$roomId]['name']);
+		return false;
+	}
+	$id = mysql_insert_id($link);
+	set_debug("Returning $id");
+	return $id;
+}
+
+function createBookingRoomChange($bookingId, $dateOfRoomChange, $rid, $link, &$rooms) {
+	$sql = "INSERT INTO booking_room_changes (booking_id, date_of_room_change, new_room_id) VALUES ($bookingId, '$dateOfRoomChange', $rid)";
+	set_debug($sql);
+	if(!mysql_query($sql, $link)) {
+		trigger_error("Cannot save booking's room change: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+		set_error('Could not save booking\'s room change for room: ' . $rooms[$roomId]['name']);
+	}
 }
 
 function __getNormalizedDate($dt) {
