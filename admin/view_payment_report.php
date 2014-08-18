@@ -86,7 +86,7 @@ if(isset($_REQUEST['rooms'])) {
 $selectAllRooms = in_array('', $selectedRooms);
 $roomIdToName = array();
 $roomNames = array();
-$rooms = '<option value=""' .  ($selectAllRooms ? ' selected' : '') . '>All rooms<option>';
+$rooms = '<option value=""' .  ($selectAllRooms ? ' selected' : '') . '>All rooms</option>';
 $sql = "SELECT r.id, r.name as room_name FROM rooms r ORDER BY r.name";
 $result = mysql_query($sql, $link);
 if(!$result) {

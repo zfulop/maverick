@@ -36,7 +36,7 @@ $result = mysql_query($sql, $link);
 while($row = mysql_fetch_assoc($result)) {
 	$key = str_replace('/','-',$row['price_set_date']) . '|' . str_replace('/','-',$row['price_unset_date']);
 	if(strlen($row['price_unset_date']) < 1) {
-		$key = str_replace('/','-',$row['price_set_date']) . '|' . date('Y-m-d');
+		$key = str_replace('/','-',$row['price_set_date']) . '|' . date('Y-m-d H:i:s');
 	}
 	$prices[$key] = $row;
 }

@@ -19,7 +19,7 @@ $roomTypes = loadRoomTypesWithAvailableBeds($link, $startDate, $endDate);
 $rooms = loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link);
 
 
-$todaySlash = date('Y/m/d');
+$todaySlash = date('Y/m/d H:i:s');
 for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', strtotime($currDate . ' +1 day'))) {
 	$currDateSlash = str_replace('-','/',$currDate);
 	foreach($roomTypes as $roomTypeId => $roomTypeData) {

@@ -398,9 +398,9 @@ EOT;
 		$changeYesterday = null;
 		$changeToday = null;
 		foreach($changes as $oneChange) {
-			if($oneChange['date_of_room_change'] == $today && $oneChange['bd_first_night'] != $today) {
+			if(($oneChange['date_of_room_change'] == $today) && ($oneChange['bd_first_night'] != $today)) {
 				$changeToday = $oneChange;
-			} else if($oneChange['date_of_room_change'] == $yesterday && $oneChange['bd_last_night'] != $yesterday) {
+			} else if(($oneChange['date_of_room_change'] == $yesterday) && ($oneChange['bd_last_night'] != $yesterday)) {
 				$changeYesterday = $oneChange;
 			}
 		}

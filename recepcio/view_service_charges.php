@@ -170,6 +170,10 @@ echo <<<EOT
 		</td>
 	</tr>
 	<tr>
+		<td style="width: 100px;">Mode: </td>
+		<td><select name="pay_mode" style="width: 100px;"><option value="CASH">Cash</option><option value="CASH2">Cash2</option></select></td>
+	</tr>
+	<tr>
 		<td>Comment: </td>
 		<td>
 			<input name="comment"> 

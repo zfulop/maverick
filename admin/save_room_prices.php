@@ -50,7 +50,7 @@ if(strlen($endDay) < 2)
 
 $startDate = "$startYear-$startMonth-$startDay";
 $endDate = "$endYear-$endMonth-$endDay";
-$todaySlash = date('Y/m/d');
+$todaySlash = date('Y/m/d H:i:s');
 for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', strtotime($currDate . ' +1 day'))) {
 	$currDayOfWeek = date('N', strtotime($currDate));
 	if(!in_array($currDayOfWeek, $days)) {

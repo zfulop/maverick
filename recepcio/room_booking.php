@@ -546,7 +546,7 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 	$roomChanges = array(); // contains the rooms where some days has to be spent in another room
 	foreach($numOfPersonForRoomType as $roomTypeId => $numOfPerson) {
 		$roomType = $roomTypes[$roomTypeId];
-		set_debug("getBookingData() - Checking room type: " . $roomType['name'] . ". There are $numOfPerson  person for that room(s)");
+		set_debug("getBookingData() - Checking room type: " . $roomType['name'] . " (id: $roomTypeId). There are $numOfPerson  person for that room(s)");
 		if($numOfPerson < 1) {
 			continue;
 		}
@@ -739,7 +739,7 @@ function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$ro
 		$time = date('Y-m-d H:i:s');
 		if($type == 'ROOM') {
 			set_debug('creating room booking');
-			$id = createBooking($type, $numOfPerson, $discountedPayment, $roomId, $descriptionId, $time, $specialOfferId, $link, $rooms);
+			$id = createDbBooking($type, $numOfPerson, $discountedPayment, $roomId, $descriptionId, $time, $specialOfferId, $link, $rooms);
 			if($id) {
 				$roomIdToBookingId[$roomId] = $id;
 				$bookingIds[] = $id;
@@ -750,7 +750,7 @@ function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$ro
 			set_debug('creating bed booking');
 			$roomIdToBookingId[$roomId] = array();
 			for($i = 0; $i < $numOfPerson; $i++) {
-				$id = createBooking($type, 1, $discountedPayment/$numOfPerson, $roomId, $descriptionId, $time, $specialOfferId, $link, $rooms);
+				$id = createDbBooking($type, 1, $discountedPayment/$numOfPerson, $roomId, $descriptionId, $time, $specialOfferId, $link, $rooms);
 				if($id) {
 					$roomIdToBookingId[$roomId][] = $id;
 					$bookingIds[] = $id;
@@ -767,13 +767,13 @@ function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$ro
 			$rid = $oneChange['room_id'];
 			$type = $toBook[$roomId]['type'];
 			if($type == 'ROOM') {
-				createBookingRoomChange($bookingId, $dateOfRoomChange, $rid, $link, $rooms);
+				createDbBookingRoomChange($bookingId, $dateOfRoomChange, $rid, $link, $rooms);
 			} else {
 				// If the booking is per bed (DORM), then create one room change per person up until num_of_person
 				// in this case $bookingId will be an array of bookings ids (one booking per one person)
 				$numOfPerson = $oneChange['num_of_person'];
 				for($i = 0; $i < $numOfPerson; $i++) {
-					createBookingRoomChange($bookingId[$i], $dateOfRoomChange, $rid, $link, $rooms);
+					createDbBookingRoomChange($bookingId[$i], $dateOfRoomChange, $rid, $link, $rooms);
 				}
 			}
 		}
@@ -783,7 +783,7 @@ function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$ro
 }
 
 
-function createBooking($type, $numOfPerson, $discountedPayment, $roomId, $descriptionId, $time, $specialOfferId, $link, &$rooms) {
+function createDbBooking($type, $numOfPerson, $discountedPayment, $roomId, $descriptionId, $time, $specialOfferId, $link, &$rooms) {
 	$sql = "INSERT INTO bookings (booking_type, num_of_person, room_payment, room_id, description_id, creation_time, special_offer_id) VALUES ('$type', '$numOfPerson', '$discountedPayment', $roomId, $descriptionId, '$time', $specialOfferId)";
 	set_debug($sql);
 	if(!mysql_query($sql, $link)) {
@@ -796,7 +796,7 @@ function createBooking($type, $numOfPerson, $discountedPayment, $roomId, $descri
 	return $id;
 }
 
-function createBookingRoomChange($bookingId, $dateOfRoomChange, $rid, $link, &$rooms) {
+function createDbBookingRoomChange($bookingId, $dateOfRoomChange, $rid, $link, &$rooms) {
 	$sql = "INSERT INTO booking_room_changes (booking_id, date_of_room_change, new_room_id) VALUES ($bookingId, '$dateOfRoomChange', $rid)";
 	set_debug($sql);
 	if(!mysql_query($sql, $link)) {

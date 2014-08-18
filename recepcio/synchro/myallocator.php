@@ -68,8 +68,13 @@ class MyAllocatorBooker extends Booker {
 				'roomName' => 'Mr Green',
 				'roomIds' => array(42),
 				'remoteRoomId' => '9132'
-				)
 			),
+			array(
+				'roomName' => 'HW 4 bedded extra private ensuite',
+				'roomIds' => array(63),
+				'remoteRoomId' => '10032'
+			)
+		),
 		'LODGE' => array(
 			array(
 				'roomName' => 'Double Private Room',
@@ -295,7 +300,7 @@ EOT;
 		$body = trim(curl_exec($curl));
 		$matches = array();
 		preg_match('/<Success>([^<]*)<\/Success>/', $body, $matches);
-		$success = $matches[1];
+		$success = count($matches) > 0 ? $matches[1] : '';
 		if($success == 'true') {
 			echo "<b>Update Successful!</b><br>\n";
 		} else {
