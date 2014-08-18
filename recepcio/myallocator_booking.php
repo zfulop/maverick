@@ -12,7 +12,7 @@ $SOURCES = array(
 	'hw2' => 'hostelworld',
 	'hb2' => 'hostelbookers',
 	'boo' => 'booking.com',
-	'ago' => 'agoda',
+	'ago' => 'Agoda',
 	'exp' => array('Hotel Collect Booking' => 'Expedia - Hotel Collect', 'Expedia Collect Booking' => 'Expedia - Expedia Collect')
 );
 
