@@ -13,7 +13,7 @@ require('booker.php');
 
 
 define('CUSTOMER_ID','maverick');
-define('CUSTOMER_PASSWORD','Palesz11');
+define('CUSTOMER_PASSWORD','Palesz22');
 define('PROPERTY_ID_HOSTEL','1650');
 define('PROPERTY_ID_LODGE','1748');
 define('VENDOR_ID','maverickhostel');

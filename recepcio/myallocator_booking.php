@@ -206,11 +206,6 @@ function cancelBooking($myAllocatorId, $link) {
 	}
 	$row = mysql_fetch_assoc($result);
 	$descrId = $row['id'];
-	list($year, $month, $day) = explode('/', $row['first_night']);
-	if(time() > strtotime("$year-$month-$day + 2 day")) {
-		respond('53', false, 'Cannot cancel booking (Name: ' . $row['name'] . ') because the 1st night is less than 2 days away (first night: ' . $row['first_night'] . ')');
-		return false;
-	}
 
 	$sql = "UPDATE booking_descriptions SET cancelled=1,cancel_type='guest' WHERE id=$descrId";
 	$result = mysql_query($sql, $link);
@@ -376,9 +371,13 @@ function createBooking($bookingData, $link) {
 
 	}
 
-	if(isset($bookingData['Deposit']) and isset($bookingData['DepositCurrency'])) {
+	if(isset($bookingData['Deposit'])) {
 		$amount = doubleval($bookingData['Deposit']);
-		$curr = $bookingData['DepositCurrency'];
+		if(isset($bookingData['DepositCurrency'])) {
+			$curr = $bookingData['DepositCurrency'];
+		} else {
+			$curr = 'EUR';
+		}
 		$bdid = $bookingDescriptionIds[0];
 		$nowTime = date('Y-m-d H:i:s');
 		set_debug("Setting deposit to $amount $curr");
@@ -493,7 +492,7 @@ function canCombineRooms(&$rooms) {
 	return true;
 }
 
-function containsDates($roomDatesForOneRoom, $arriveDate, $lastNight)) {
+function containsDates($roomDatesForOneRoom, $arriveDate, $lastNight) {
 	foreach($roomDatesForOneRoom as $startEndDate) {
 		if($arriveDate == $startEndDate[0] and $lastNigh == $startEndDate[1]) {		
 			return true;

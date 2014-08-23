@@ -12,9 +12,9 @@ $priceChangeDateSlash = str_replace('-','/', $priceChangeDate);
 html_start("Maverick Admin - Price changes for $priceChangeDate");
 
 $sql =<<<EOT
-SELECT pfd.price_per_room, pfd.price_per_bed, pfd.date, rt.name, rt.type FROM prices_for_date pfd INNER JOIN room_types rt ON pfd.room_type_id=rt.id WHERE pfd.price_set_date='$priceChangeDateSlash'
+SELECT pfd.price_per_room, pfd.price_per_bed, pfd.date, rt.name, rt.type FROM prices_for_date pfd INNER JOIN room_types rt ON pfd.room_type_id=rt.id WHERE pfd.price_set_date like '$priceChangeDateSlash%'
 UNION ALL
-SELECT pfdh.price_per_room, pfdh.price_per_bed, pfdh.date, rt.name, rt.type FROM prices_for_date_history pfdh INNER JOIN room_types rt ON pfdh.room_type_id=rt.id WHERE pfdh.price_set_date='$priceChangeDateSlash'
+SELECT pfdh.price_per_room, pfdh.price_per_bed, pfdh.date, rt.name, rt.type FROM prices_for_date_history pfdh INNER JOIN room_types rt ON pfdh.room_type_id=rt.id WHERE pfdh.price_set_date like '$priceChangeDateSlash%'
 EOT;
 
 $result = mysql_query($sql, $link);
