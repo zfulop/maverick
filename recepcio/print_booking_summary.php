@@ -58,7 +58,7 @@ $arrivalTime = $bookingDescription['arrival_time'];
 
 $deposit = '';
 $depositCurrency = '';
-$sql = "SELECT * FROM payments WHERE booking_description_id=$descrId AND comment='booking deposit'";
+$sql = "SELECT * FROM payments WHERE booking_description_id=$descrId AND comment='*booking deposit*'";
 $result = mysql_query($sql, $link);
 if(mysql_num_rows($result) == 1) {
 	$row = mysql_fetch_assoc($result);
@@ -75,7 +75,7 @@ if($numOfNights < 1) {
 }
 
 $payments = array();
-$sql = "SELECT * FROM payments WHERE booking_description_id=$descrId AND storno<>1";
+$sql = "SELECT * FROM payments WHERE booking_description_id=$descrId AND storno<>1 AND pay_mode<>'CASH3'";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	$err = "Cannot get payment(s) of booking (with description_id: $descrId).";
@@ -271,7 +271,7 @@ if(count($payments) > 0) {
 	$paymentTotal = sprintf("%.2f", $paymentTotal);
 }
 
-$balance = $roomTotal + $serviceChargeTotal - $paymentTotal;
+$balance = $roomTotal + $serviceChargeTotal - $paymentTotal- $deposit;
 $balanceHuf = convertAmount($balance, 'EUR', 'HUF', date('Y-m-d'));
 $balance = intval($balance);
 $balanceHuf = floor($balanceHuf/100) * 100;

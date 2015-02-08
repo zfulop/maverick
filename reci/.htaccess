@@ -1,0 +1,12 @@
+AuthUserFile  /var/hosting/web/mavericklodges.com/website/recepcio/.htpasswd
+AuthName "Maverick City Lodge - Recepcio"
+AuthType Basic
+<Limit GET POST>
+require valid-user
+</Limit>
+
+<Files "myallocator_booking.php">
+   Deny from all
+   Allow from all
+   Satisfy any
+</Files>

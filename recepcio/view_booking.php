@@ -10,6 +10,76 @@ foreach($_SESSION as $code => $val) {
 	}
 }
 
+$fromDate = date('Y-m-d');
+$toDate = date('Y-m-d');
+$name = '';
+$source = '';
+$bookingRef = '';
+$confirmedSelected = false;
+$confirmed = false;
+$cancelledSelected = false;
+$cancelled = false;
+$checkedinSelected = false;
+$checkedin = false;
+$paidSelected = false;
+$paid = false;
+
+
+if(isset($_REQUEST['new_search'])) {
+	$fromDate = $_REQUEST['from_date'];
+	$toDate = $_REQUEST['to_date'];
+	$name = $_REQUEST['booker_name'];
+	$source = $_REQUEST['source'];
+	$bookingRef = $_REQUEST['booking_ref'];
+	$confirmedSelected = isset($_REQUEST['confirmed_selected']);
+	$confirmed = isset($_REQUEST['confirmed']);
+	$cancelledSelected = isset($_REQUEST['cancelled_selected']);
+	$cancelled = isset($_REQUEST['cancelled']);
+	$checkedinSelected = isset($_REQUEST['checkedin_selected']);
+	$checkedin = isset($_REQUEST['checkedin']);
+	$paidSelected = isset($_REQUEST['paid_selected']);
+	$paid = isset($_REQUEST['paid']);
+	$_SESSION['view_booking_param_set'] = true;
+	$_SESSION['view_booking_from_date'] = $fromDate;
+	$_SESSION['view_booking_to_date'] = $toDate;
+	$_SESSION['view_booking_booker_name'] = $name;
+	$_SESSION['view_booking_booker_source'] = $source;
+	$_SESSION['view_booking_booking_ref'] = $bookingRef;
+	$_SESSION['view_booking_confirmed_selected'] = $confirmedSelected;
+	$_SESSION['view_booking_confirmed'] = $confirmed;
+	$_SESSION['view_booking_cancelled_selected'] = $cancelledSelected;
+	$_SESSION['view_booking_cancelled'] = $cancelled;
+	$_SESSION['view_booking_checkedin_selected'] = $checkedinSelected;
+	$_SESSION['view_booking_checkedin'] = $checkedin;
+	$_SESSION['view_booking_paid_selected'] = $paidSelected;
+	$_SESSION['view_booking_paid'] = $paid;
+} elseif(isset($_SESSION['view_booking_param_set'])) {
+	$fromDate = $_SESSION['view_booking_from_date'];
+	$toDate = $_SESSION['view_booking_to_date'];
+	$name = $_SESSION['view_booking_booker_name'];
+	$source = $_SESSION['view_booking_booker_source'];
+	$bookingRef = $_SESSION['view_booking_booking_ref'];
+	$confirmedSelected = $_SESSION['view_booking_confirmed_selected'];
+	$confirmed = $_SESSION['view_booking_confirmed'];
+	$cancelledSelected = $_SESSION['view_booking_cancelled_selected'];
+	$cancelled = $_SESSION['view_booking_cancelled'];
+	$checkedinSelected = $_SESSION['view_booking_checkedin_selected'];
+	$checkedin = $_SESSION['view_booking_checkedin'];
+	$paidSelected = $_SESSION['view_booking_paid_selected'];
+	$paid = $_SESSION['view_booking_paid'];
+}
+
+$confirmChecked = $confirmedSelected ? 'checked' : '';
+$cancelChecked = $cancelledSelected ? 'checked' : '';
+$checkinChecked = $checkedinSelected ? 'checked' : '';
+$paidChecked = $paidSelected ? 'checked' : '';
+
+$confirmValueChecked = $confirmed ? 'checked' : '';
+$cancelValueChecked = $cancelled ? 'checked' : '';
+$checkinValueChecked = $checkedin ? 'checked' : '';
+$paidValueChecked = $paid ? 'checked' : '';
+
+
 $link = db_connect();
 
 
@@ -17,7 +87,7 @@ $sql = "SELECT DISTINCT source FROM booking_descriptions ORDER BY source";
 $result = mysql_query($sql, $link);
 $sourceOptions = '';
 while($row = mysql_fetch_assoc($result)) {
-	$sourceOptions .= '<option value="' . $row['source'] . '">' . $row['source'] . '</option>';
+	$sourceOptions .= '<option value="' . $row['source'] . '"' . ($row['source'] == $source ? ' selected' : '') . '>' . $row['source'] . '</option>';
 }
 
 $extraHeader = <<<EOT
@@ -76,23 +146,24 @@ echo <<<EOT
 	<tr>
 		<td>&nbsp;</td><td>From:</td>
 		<td>
-			<input id="sb_from_date" name="from_date" size="10" maxlength="10" type="text" value=""><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'sb_from_date', 'chooserSpanSBF', 2008, 2025, 'Y-m-d', false);"> 
+			<input id="sb_from_date" name="from_date" value="$fromDate" size="10" maxlength="10" type="text" value=""><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'sb_from_date', 'chooserSpanSBF', 2008, 2025, 'Y-m-d', false);"> 
 			<div id="chooserSpanSBF" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div>
 		</td>
 	</tr>
 	<tr>
 		<td>&nbsp;</td><td>To:</td>
 		<td>
-			<input id="sb_to_date" name="to_date" size="10" maxlength="10" type="text" value=""><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'sb_to_date', 'chooserSpanSBT', 2008, 2025, 'Y-m-d', false);"> 
+			<input id="sb_to_date" name="to_date" value="$toDate" size="10" maxlength="10" type="text" value=""><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'sb_to_date', 'chooserSpanSBT', 2008, 2025, 'Y-m-d', false);"> 
 			<div id="chooserSpanSBT" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div>
 		</td>
 	</tr>
-	<tr><td>&nbsp;</td><td>Name of booker:</td><td><input name="booker_name"></td></tr>
+	<tr><td>&nbsp;</td><td>Name of booker:</td><td><input name="booker_name" value="$name"></td></tr>
 	<tr><td>&nbsp;</td><td>Source:</td><td><select name="source">$sourceOptions</select></td></tr>
-	<tr><td><input type="checkbox" name="confirmed_selected" value="1" id="confirmed_selected" onchange="updateSearchField('confirmed_selected', 'confirmed_label', 'confirmed_input');"><td id="confirmed_label" style="color: #aaaaaa;">Confirmed:</td><td><input type="checkbox"  id="confirmed_input" disabled="true" name="confirmed" value="1"></td></tr>
-	<tr><td><input type="checkbox" name="cancelled_selected" value="1" id="cancelled_selected" onchange="updateSearchField('cancelled_selected', 'cancelled_label', 'cancelled_input');"><td id="cancelled_label" style="color: #aaaaaa;">Cancelled:</td><td><input type="checkbox"  id="cancelled_input" disabled="true" name="cancelled" value="1"></td></tr>
-	<tr><td><input type="checkbox" name="checkedin_selected" value="1" id="checkedin_selected" onchange="updateSearchField('checkedin_selected', 'checkedin_label', 'checkedin_input');"><td id="checkedin_label" style="color: #aaaaaa;">Checked in:</td><td><input type="checkbox"  id="checkedin_input" disabled="true" name="checkedin" value="1"></td></tr>
-	<tr><td><input type="checkbox" name="paid_selected" value="1" id="paid_selected" onchange="updateSearchField('paid_selected', 'paid_label', 'paid_input');"><td id="paid_label" style="color: #aaaaaa;">Paid:</td><td><input type="checkbox"  id="paid_input" disabled="true" name="paid" value="1"></td></tr>
+	<tr><td>&nbsp;</td><td>Booking ref:</td><td><input name="booking_ref" value="$bookingRef"></td></tr>
+	<tr><td><input type="checkbox" name="confirmed_selected" value="1" $confirmChecked id="confirmed_selected" onchange="updateSearchField('confirmed_selected', 'confirmed_label', 'confirmed_input');"><td id="confirmed_label" style="color: #aaaaaa;">Confirmed:</td><td><input type="checkbox"  id="confirmed_input" disabled="true" name="confirmed" $confirmValueChecked value="1"></td></tr>
+	<tr><td><input type="checkbox" name="cancelled_selected" $cancelChecked value="1" id="cancelled_selected" onchange="updateSearchField('cancelled_selected', 'cancelled_label', 'cancelled_input');"><td id="cancelled_label" style="color: #aaaaaa;">Cancelled:</td><td><input type="checkbox"  id="cancelled_input" disabled="true" name="cancelled" value="1" $cancelValueChecked ></td></tr>
+	<tr><td><input type="checkbox" name="checkedin_selected" $checkinChecked value="1" id="checkedin_selected" onchange="updateSearchField('checkedin_selected', 'checkedin_label', 'checkedin_input');"><td id="checkedin_label" style="color: #aaaaaa;">Checked in:</td><td><input type="checkbox"  id="checkedin_input" disabled="true" name="checkedin" value="1" $checkinValueChecked></td></tr>
+	<tr><td><input type="checkbox" name="paid_selected" value="1" $paidChecked id="paid_selected" onchange="updateSearchField('paid_selected', 'paid_label', 'paid_input');"><td id="paid_label" style="color: #aaaaaa;">Paid:</td><td><input type="checkbox"  id="paid_input" disabled="true" name="paid" value="1" $paidValueChecked></td></tr>
 	<tr><td colspan="3"><input type="submit" value="Search"></td></tr>
 
 </table>
@@ -139,59 +210,6 @@ echo <<<EOT
 
 EOT;
 
-if(isset($_REQUEST['new_search'])) {
-	$fromDate = $_REQUEST['from_date'];
-	$toDate = $_REQUEST['to_date'];
-/*	$year = intval($_REQUEST['year']);
-	$month = intval($_REQUEST['month']);
-	$day = intval($_REQUEST['day']);*/
-	$name = $_REQUEST['booker_name'];
-	$source = $_REQUEST['source'];
-	$confirmedSelected = isset($_REQUEST['confirmed_selected']);
-	$confirmed = isset($_REQUEST['confirmed']);
-	$cancelledSelected = isset($_REQUEST['cancelled_selected']);
-	$cancelled = isset($_REQUEST['cancelled']);
-	$checkedinSelected = isset($_REQUEST['checkedin_selected']);
-	$checkedin = isset($_REQUEST['checkedin']);
-	$paidSelected = isset($_REQUEST['paid_selected']);
-	$paid = isset($_REQUEST['paid']);
-	$_SESSION['view_booking_param_set'] = true;
-	$_SESSION['view_booking_from_date'] = $fromDate;
-	$_SESSION['view_booking_to_date'] = $toDate;
-/*	$_SESSION['view_booking_year'] = $year;
-	$_SESSION['view_booking_month'] = $month;
-	$_SESSION['view_booking_day'] = $day;*/
-	$_SESSION['view_booking_booker_name'] = $name;
-	$_SESSION['view_booking_booker_source'] = $source;
-	$_SESSION['view_booking_confirmed_selected'] = $confirmedSelected;
-	$_SESSION['view_booking_confirmed'] = $confirmed;
-	$_SESSION['view_booking_cancelled_selected'] = $cancelledSelected;
-	$_SESSION['view_booking_cancelled'] = $cancelled;
-	$_SESSION['view_booking_checkedin_selected'] = $checkedinSelected;
-	$_SESSION['view_booking_checkedin'] = $checkedin;
-	$_SESSION['view_booking_paid_selected'] = $paidSelected;
-	$_SESSION['view_booking_paid'] = $paid;
-} elseif(isset($_SESSION['view_booking_param_set'])) {
-	$fromDate = $_SESSION['view_booking_from_date'];
-	$toDate = $_SESSION['view_booking_to_date'];
-	/*$year = $_SESSION['view_booking_year'];
-	$month = $_SESSION['view_booking_month'];
-	$day = $_SESSION['view_booking_day'];*/
-	$name = $_SESSION['view_booking_booker_name'];
-	$source = $_SESSION['view_booking_booker_source'];
-	$confirmedSelected = $_SESSION['view_booking_confirmed_selected'];
-	$confirmed = $_SESSION['view_booking_confirmed'];
-	$cancelledSelected = $_SESSION['view_booking_cancelled_selected'];
-	$cancelled = $_SESSION['view_booking_cancelled'];
-	$checkedinSelected = $_SESSION['view_booking_checkedin_selected'];
-	$checkedin = $_SESSION['view_booking_checkedin'];
-	$paidSelected = $_SESSION['view_booking_paid_selected'];
-	$paid = $_SESSION['view_booking_paid'];
-} else {
-	mysql_close($link);
-	return;
-}
-
 if(isset($_REQUEST['order'])) {
 	$_SESSION['view_booking_order'] = $_REQUEST['order'];
 } elseif(!isset($_SESSION['view_booking_order'])) {
@@ -215,8 +233,16 @@ if(strlen(trim($source)) > 0) {
 	$searchFor .= "<br>Source contains: $source";
 }
 if(strlen(trim($name)) > 0) {
-	$sql .= " AND booking_descriptions.name LIKE '%" . $name . "%'";
+	$name = str_replace(',', ' ', $name);
+	$name = str_replace('.', ' ', $name);
+	foreach(explode(' ', $name) as $namePart) {
+		$sql .= " AND booking_descriptions.name LIKE '%" . $namePart . "%'";
+	}
 	$searchFor .= "<br>Name contains: $name";
+}
+if(strlen(trim($bookingRef)) > 0) {
+	$sql .= " AND booking_descriptions.comment LIKE '%" . $bookingRef . "%'";
+	$searchFor .= "<br>booking ref is: $bookingRef";
 }
 if($confirmedSelected) {
 	$sql .= " AND booking_descriptions.confirmed=" . ($confirmed ? 1 : 0);
@@ -237,7 +263,7 @@ if($paidSelected) {
 
 
 
-$sql .= " ORDER BY $order";
+$sql .= " ORDER BY $order,booking_descriptions.id";
 
 $result = mysql_query($sql, $link);
 $cnt = 0;
@@ -263,6 +289,9 @@ if(!$result) {
 		}
 		$bookings[] = $row;
 		$bookingCounter += 1;
+	}
+	if(!is_null($rowsCell)) {
+		$rowsCell = $bookingCounter;
 	}
 }
 
@@ -323,16 +352,10 @@ if($order == 'telephone') {
 } else {
 	$telTitle = '<a href="view_booking.php?order=telephone">Telephone</a>';
 }
-if($order == 'room_name') {
-	$roomNameTitle = '<a href="view_booking.php?order=room_name" style="font-size: 130%;">Room Name</a>';
-} else {
-	$roomNameTitle = '<a href="view_booking.php?order=room_name">Room Name</a>';
-}
-
 
 
 if($cnt > 0)
-	echo "	<tr><th>$sourceTitle</th><th>$dateTitle</th><th>$nightsTitle</th><th>$nameTitle</th><th>Guest data</th><th>$nationalityTitle</th><th>$emailTitle</th><th>$telTitle</th><th>$roomNameTitle</th><th># of guests</th><th>Room payment</th><th>Status</th><th>Actions</th><th></th></tr>\n";
+	echo "	<tr><th>$sourceTitle</th><th>$dateTitle</th><th>$nightsTitle</th><th>$nameTitle</th><th>Guest data</th><th>$nationalityTitle</th><th>$emailTitle</th><th>$telTitle</th><th>Room Name</th><th># of guests</th><th>Room payment</th><th>Status</th><th>Actions</th><th></th></tr>\n";
 else
 	echo "	<tr><td><i>No record found.</i></td></tr>\n";
 

@@ -1,6 +1,7 @@
 <?php
 
 require('includes.php');
+require('includes/country_alias.php');
 require('room_booking.php');
 
 define('PROPERTY_ID_HOSTEL','1650');
@@ -60,8 +61,18 @@ $ROOM_MAP = array(
 			),
 		array(
 			'roomName' => 'HW 4 bedded extra private ensuite',
-			'roomIds' => 60,
+			'roomTypeId' => 60,
 			'remoteRoomId' => '10032'
+			),
+		array(
+			'roomName' => 'single private ensuite',
+			'roomTypeId' => 65,
+			'remoteRoomId' => '24369'
+			),
+		array(
+			'roomName' => '5 bed private ensuite mixed dorm',
+			'roomTypeId' => 64,
+			'remoteRoomId' => '9431'
 			)
 		),
 	'lodge' => array(
@@ -141,12 +152,22 @@ if(crypt($pwd, HASHED_PASSWORD) !=  HASHED_PASSWORD) {
 }
 
 $bookingJson = stripslashes($bookingJson);
-
+set_debug($bookingJson);
 $bookingData = json_decode($bookingJson, true);
+set_debug(print_r($bookingData,true));
+// sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Booking request in " . LOCATION, 'booking data: ' . print_r($bookingData,true) . "\n\nRaw data: \n" . stripslashes($_REQUEST['booking']));
 
-$propertyId = $bookingData['PropertyId'];
+if(!isset($bookingData['PropertyId'])) {
+	$matches = array();
+	preg_match('/"PropertyId":([^,]*),/', $bookingJson, $matches);
+	$propertyId = $matches[1];
+} else {
+	$propertyId = $bookingData['PropertyId'];
+}
+
 
 if($propertyId == PROPERTY_ID_HOSTEL and $_SERVER['HTTP_HOST'] != 'recepcio.maverickhostel.com') {
+	// sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Forward Booking to " . LOCATION, 'booking data: ' . print_r($bookingData,true) . "\n\nRaw data: \n" . stripslashes($_REQUEST['booking']));
 	$url = 'http://recepcio.maverickhostel.com/myallocator_booking.php';
 
 	$fields_string = '';
@@ -179,9 +200,14 @@ $link = db_connect();
 mysql_query("START TRANSACTION", $link);
 
 $result = null;
-if($bookingData['IsCancellation']) {
-	$result = cancelBooking($bookingData['MyAllocatorId'], $link);
+if(strpos($bookingJson, "\"IsCancellation\":true") > 0) {
+	$matches = array();
+	preg_match('/"MyallocatorId":"([^"]*)"/', $bookingJson, $matches);
+	$myallocId = $matches[1];
+	// sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Booking cancellation [$myallocId] for " . LOCATION, stripslashes($_REQUEST['booking']));
+	$result = cancelBooking($myallocId, $link);
 } else {
+	// sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Booking creation " . LOCATION, 'booking data: ' . print_r($bookingData,true) . "\n\nRaw data: \n" . stripslashes($_REQUEST['booking']));
 	$result = createBooking($bookingData, $link);
 }
 
@@ -207,12 +233,16 @@ function cancelBooking($myAllocatorId, $link) {
 	$row = mysql_fetch_assoc($result);
 	$descrId = $row['id'];
 
-	$sql = "UPDATE booking_descriptions SET cancelled=1,cancel_type='guest' WHERE id=$descrId";
-	$result = mysql_query($sql, $link);
-	if(!$result) {
-		respond('51', false, "Cannot cancel booking in admin interface: " . mysql_error($link) . " (SQL: $sql)");
-		return false;
+	if(intval($descrId) > 0) {
+		$sql = "UPDATE booking_descriptions SET cancelled=1,cancel_type='guest' WHERE id=$descrId";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			respond('51', false, "Cannot cancel booking in admin interface: " . mysql_error($link) . " (SQL: $sql)");
+			return false;
+		}
 	}
+
+	respond(null, true);
 
 	audit(AUDIT_CANCEL_BOOKING, $_REQUEST, 0, $descrId, $link, 'myallocator');
 	return true;
@@ -220,9 +250,11 @@ function cancelBooking($myAllocatorId, $link) {
 
 
 function createBooking($bookingData, $link) {
-	global $lang, $bookingJson, $locationName, $SOURCES, $ROOM_MAP, $MESSAGES;
+	global $lang, $bookingJson, $locationName, $SOURCES, $ROOM_MAP, $MESSAGES, $COUNTRY_ALIASES;
 	$nowTime = date('Y-m-d H:i:s');
 	if(!isset($bookingData['Rooms']) or !is_array($bookingData['Rooms']) or count($bookingData['Rooms']) < 1) {
+		set_debug("booking data:");
+		set_debug(print_r($bookingData, true));
 		respond('22', false, 'Rooms element not in the request or not an array or an empty array');
 		return false;
 	}
@@ -238,6 +270,7 @@ function createBooking($bookingData, $link) {
 		respond('51', false, "Cannot retrieve booking in admin interface when creating it: " . mysql_error($link) . " (SQL: $sql)");
 		return false;
 	}
+	$descrId = null;
 	if(mysql_num_rows($result) > 0) {
 		$row = mysql_fetch_assoc($result);
 		$descrId = $row['id'];
@@ -249,11 +282,16 @@ function createBooking($bookingData, $link) {
 		if(!mysql_query($sql, $link)) {
 			set_error("Cannot delete booking room changes when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
 		}
-		$sql = "DELETE FROM bookings WHERE booking_description_id=$descrId";
+		$sql = "DELETE FROM bookings WHERE description_id=$descrId";
 		if(!mysql_query($sql, $link)) {
 			set_error("Cannot delete bookings when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
 		}
 		$sql = "DELETE FROM booking_descriptions WHERE id=$descrId";
+		if(!mysql_query($sql, $link)) {
+			set_error("Cannot delete booking description when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
+		}
+
+		$sql = "DELETE FROM payments WHERE booking_description_id=$descrId AND comment='*booking deposit*'";
 		if(!mysql_query($sql, $link)) {
 			set_error("Cannot delete booking description when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
 		}
@@ -263,13 +301,16 @@ function createBooking($bookingData, $link) {
 
 	$currency = $bookingData['TotalCurrency'];
 	$customer = $bookingData['Customers'][0];
-	$firstname = $customer['CustomerFName'];
-	$lastname = $customer['CustomerLName'];
+	$firstname = mysql_escape_string($customer['CustomerFName']);
+	$lastname = mysql_escape_string($customer['CustomerLName']);
 	$email = $customer['CustomerEmail'];
 	$phone = '';
 	$nationality = isset($customer['CustomerCountry']) ? $customer['CustomerCountry'] : '';
-	$city = isset($customer['CustomerCity']) ? $customer['CustomerCity'] : '';
-	$country = isset($customer['CustomerCountry']) ? $customer['CustomerCountry'] : '';
+	if(isset($COUNTRY_ALIASES[$nationality])) {
+		$nationality = $COUNTRY_ALIASES[$nationality];
+	}
+	$city = isset($customer['CustomerCity']) ? mysql_escape_string($customer['CustomerCity']) : '';
+	$country = isset($customer['CustomerCountry']) ? mysql_escape_string($customer['CustomerCountry']) : '';
 	$address = $city . ', ' . $country;
 	$comment = mysql_escape_string(print_r($bookingData, true));
 
@@ -286,13 +327,16 @@ function createBooking($bookingData, $link) {
 
 	
 	if(canCombineRooms($bookingData['Rooms'])) {
+		set_debug("combining rooms");
 		$bookingData['Rooms'] = combineRooms($bookingData['Rooms']);
 	}
 
 	set_debug("after combine: <pre>" . print_r($bookingData['Rooms'], true) . "</pre>\n");
 
 	$allSameDate = isAllSameDate($bookingData['Rooms']);
+	set_debug("allSaveDate=" . $allSameDate);
 	if($allSameDate) {
+		set_debug("all same date");
 		$arriveDate = $bookingData['Rooms'][0]['StartDate'];
 		$lastNight = $bookingData['Rooms'][0]['EndDate'];
 		$arriveDateTs = strtotime($arriveDate);
@@ -344,6 +388,9 @@ function createBooking($bookingData, $link) {
 			}
 			$numOfPersonForRoomType[$roomTypeId] = $numOfPerson;
 			$priceForRoomType[$roomTypeId] = $roomData['Price'];
+			if($roomTypesData[$roomTypeId]['type'] == 'PRIVATE') {
+				$priceForRoomType[$roomTypeId] = $roomData['Price'] / $roomData['Units'];
+			}
 		}
 
 		if(!$allSameDate) {
@@ -356,6 +403,16 @@ function createBooking($bookingData, $link) {
 			$descriptionId = mysql_insert_id($link);
 			$bookingDescriptionIds[] = $descriptionId;
 		}
+
+		if(!is_null($descrId)) {
+			$newDescrId = $bookingDescriptionIds[0];
+			$sql = "UPDATE payments SET booking_description_id=$newDescrId WHERE booking_description_id=$descrId";
+			if(!mysql_query($sql, $link)) {
+				respond('51', false, 'Cannot move existing payments from old to new booking: ' . mysql_error($link) . " (SQL: $sql)");
+				return;
+			}
+		}
+
 
 		// echo "Num of person for room type: <pre>" . print_r($numOfPersonForRoomType, true) . "</pre>\n";
 
@@ -445,14 +502,15 @@ function findRoomTypeId($remoteRoomId) {
 }
 
 function isAllSameDate(&$rooms) {
-	$allSameDate = false;
+	$allSameDate = true;
 	$arriveDate = null;
 	$lastNight = null;
 	foreach($rooms as $roomData) {
 		if(is_null($arriveDate)) {
 			$arriveDate = $roomData['StartDate'];
 			$lastNight = $roomData['EndDate'];
-		} elseif($arriveDate != $roomData['StartDate'] or $lastNight != $roomData['EndDate']) {
+		} elseif(($arriveDate != $roomData['StartDate']) or ($lastNight != $roomData['EndDate'])) {
+			set_debug("Not all same: $arriveDate!=" . $roomData['StartDate'] . ", result: " . ($arriveDate != $roomData['StartDate']) . " and $lastNight!=" . $roomData['EndDate'] . ", result: " . ($lastNight != $roomData['EndDate']));
 			$allSameDate = false;
 			break;
 		}
@@ -477,6 +535,7 @@ function canCombineRooms(&$rooms) {
 			$roomDates[$rtId][] = array($arriveDate, $lastNight);
 		}
 	}
+	set_debug("room dates: " . print_r($roomDates, true));
 	foreach($roomDates as $rtId => $dates) {
 		usort($dates, 'sortDates');
 		$currDate = null;
@@ -494,7 +553,7 @@ function canCombineRooms(&$rooms) {
 
 function containsDates($roomDatesForOneRoom, $arriveDate, $lastNight) {
 	foreach($roomDatesForOneRoom as $startEndDate) {
-		if($arriveDate == $startEndDate[0] and $lastNigh == $startEndDate[1]) {		
+		if(($arriveDate == $startEndDate[0]) and ($lastNight == $startEndDate[1])) {		
 			return true;
 		}
 	}
@@ -517,14 +576,16 @@ function combineRooms($rooms) {
 		$arriveDate = $roomData['StartDate'];
 		$lastNight = $roomData['EndDate'];
 		$prc = $roomData['Price'];
-		$unit = $roomData['Unit'];
+		$unit = $roomData['Units'];
 		$rtId = $roomData['RoomTypeIds'][0];
 		if(!isset($roomDates[$rtId])) {
 			$roomDates[$rtId] = array($arriveDate, $lastNight, $prc, $unit);
 		} else {
+			if($roomDates[$rtId][1] == $lastNight) {
+				$roomDates[$rtId][3] += $unit;
+			}
 			$roomDates[$rtId][1] = $lastNight;
 			$roomDates[$rtId][2] += $prc;
-			$roomDates[$rtId][3] += $unit;
 		}
 	}
 	$newRooms = array();
@@ -537,7 +598,7 @@ function combineRooms($rooms) {
 		$roomData['StartDate'] = $roomDates[$rtId][0];
 		$roomData['EndDate'] = $roomDates[$rtId][1];
 		$roomData['Price'] = $roomDates[$rtId][2];
-		$roomData['Unit'] = $roomDates[$rtId][3];
+		$roomData['Units'] = $roomDates[$rtId][3];
 		$roomTypeIdsIncluded[] = $rtId;
 		$newRooms[] = $roomData;
 	}

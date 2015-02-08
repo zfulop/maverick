@@ -1,7 +1,7 @@
 <?php
 
 function loadRoomTypes($link, $lang = 'eng') {
-	$sql = "SELECT rt.id, rt.price_per_bed, rt.price_per_room, rt.type, rt.num_of_beds, lt1.value AS name, lt2.value AS description, lt3.value AS short_description, rt._order FROM room_types rt " . 
+	$sql = "SELECT rt.id, rt.price_per_bed, rt.price_per_room, rt.type, rt.num_of_beds, lt1.value AS name, lt2.value AS description, lt3.value AS short_description, rt._order, 0 AS num_of_beds_avail FROM room_types rt " . 
 	"INNER JOIN lang_text lt1 ON (lt1.table_name='room_types' AND lt1.column_name='name' AND lt1.row_id=rt.id AND lt1.lang='$lang') " . 
 	"INNER JOIN lang_text lt2 ON (lt2.table_name='room_types' AND lt2.column_name='description' AND lt2.row_id=rt.id AND lt2.lang='$lang') " . 
 	"LEFT OUTER JOIN lang_text lt3 ON (lt3.table_name='room_types' AND lt3.column_name='short_description' AND lt3.row_id=rt.id AND lt3.lang='$lang') ORDER BY rt._order";
@@ -17,6 +17,11 @@ function loadRoomTypes($link, $lang = 'eng') {
 
 function loadRoomTypesWithAvailableBeds($link, $startDate, $endDate, $lang = 'eng') {
 	$roomTypesData = loadRoomTypes($link, $lang);
+	foreach($roomTypesData as $rtId => $roomType) {
+		$roomType['available_beds'] = 0;
+		$roomType['num_of_rooms'] = 0;
+		$roomTypesData[$rtId] = $roomType;
+	}
 	$sql = "SELECT rt.id, COUNT(*)*rt.num_of_beds AS available_beds, COUNT(*) AS num_of_rooms FROM room_types rt INNER JOIN rooms r ON rt.id=r.room_type_id WHERE r.valid_from<='" . str_replace('-', '/', $startDate) . "' and r.valid_to>='" . str_replace('-', '/', $endDate) . "' GROUP BY rt.id";
 	$result = mysql_query($sql, $link);
 	if(!$result) {
@@ -50,7 +55,8 @@ function loadSpecialOffers($whereClause, $link, $lang = 'eng') {
 }
 
 
-function &loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link, $lang = 'eng') {
+
+function &loadOnlyRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link, $lang = 'eng') {
 	$startMonth = __getNormalizedDate($startMonth);
 	$startDay = __getNormalizedDate($startDay);
 	$endMonth = __getNormalizedDate($endMonth);
@@ -72,6 +78,20 @@ function &loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $en
 		$row['room_changes'] = array();
 		$rooms[$row['id']] = $row;
 	}
+
+	return $rooms;
+}
+
+function &loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link, $lang = 'eng') {
+	$startMonth = __getNormalizedDate($startMonth);
+	$startDay = __getNormalizedDate($startDay);
+	$endMonth = __getNormalizedDate($endMonth);
+	$endDay = __getNormalizedDate($endDay);
+
+	$arriveDate = "$startYear/$startMonth/$startDay";
+	$lastNightDate = "$endYear/$endMonth/$endDay";
+
+	$rooms = loadOnlyRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link, $lang);
 
 	$roomChanges = array();
 	$sql = "SELECT brc.*, bd.name, bd.name_ext, b.description_id, b.room_payment, b.booking_type, b.num_of_person, b.creation_time, bd.first_night, bd.last_night, bd.num_of_nights, bd.confirmed, bd.cancelled, bd.checked_in, bd.paid FROM booking_room_changes brc INNER JOIN bookings b ON brc.booking_id=b.id INNER JOIN booking_descriptions bd ON b.description_id=bd.id WHERE brc.date_of_room_change>='$arriveDate' AND brc.date_of_room_change<='$lastNightDate'";
@@ -346,7 +366,7 @@ function getNumOfOccupBeds(&$oneRoom, $oneDay, $excludeBookingWithId = null, $ex
 		if(isset($oneBooking['changes'])) {
 			$isThereRoomChangeForDay = false;
 			foreach($oneBooking['changes'] as $oneChange) {	
-				if($oneChange['date_of_room_change'] == $oneDay) {
+				if($oneChange['date_of_room_change'] == $oneDate) {
 					$isThereRoomChangeForDay = true;
 				}
 			}
@@ -355,12 +375,12 @@ function getNumOfOccupBeds(&$oneRoom, $oneDay, $excludeBookingWithId = null, $ex
 		}
 
 		if(($oneBooking['first_night'] <= $oneDay) and ($oneBooking['last_night'] >= $oneDay)) {
-			if($oneBooking['booking_type'] == 'BED')
+//			if($oneBooking['booking_type'] == 'BED')
 				$occupBeds += $oneBooking['num_of_person'];
-			else {
-				$occupBeds = $oneRoom['num_of_beds'];
-				break;
-			}
+//			else {
+//				$occupBeds = $oneRoom['num_of_beds'];
+//				break;
+//			}
 		}
 	}
 
@@ -377,12 +397,12 @@ function getNumOfOccupBeds(&$oneRoom, $oneDay, $excludeBookingWithId = null, $ex
 
 
 		if($oneRoomChange['date_of_room_change'] == $oneDay) {
-			if($oneRoomChange['booking_type'] == 'BED')
+//			if($oneRoomChange['booking_type'] == 'BED')
 				$occupBeds += $oneRoomChange['num_of_person'];
-			else {
-				$occupBeds = $oneRoom['num_of_beds'];
-				break;
-			}
+//			else {
+//				$occupBeds = $oneRoom['num_of_beds'];
+//				break;
+//			}
 		}
 	}
 
@@ -760,6 +780,7 @@ function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$ro
 	}
 
 	set_debug('roomIdToBookingId: ' . print_r($roomIdToBookingId, true));
+	$bedRoomChange = array();
 	foreach($roomChanges as $roomId => $arr) {
 		$bookingId = $roomIdToBookingId[$roomId];
 		foreach($arr as $oneChange) {
@@ -771,10 +792,18 @@ function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$ro
 			} else {
 				// If the booking is per bed (DORM), then create one room change per person up until num_of_person
 				// in this case $bookingId will be an array of bookings ids (one booking per one person)
+				// There can be for one day 2 room changes (when the original room is full and the team must be
+				// divided into two separate rooms $bedRoomChange holds for a given day how many booking have 
+				// changed rooms, so if there is a new room change for the same day it wouldn't reassign the 
+				// booking to a new room
 				$numOfPerson = $oneChange['num_of_person'];
-				for($i = 0; $i < $numOfPerson; $i++) {
-					createDbBookingRoomChange($bookingId[$i], $dateOfRoomChange, $rid, $link, $rooms);
+				if(!isset($bedRoomChange[$dateOfRoomChange])) {
+					$bedRoomChange[$dateOfRoomChange] = 0;
 				}
+				for($i = 0; $i < $numOfPerson; $i++) {
+					createDbBookingRoomChange($bookingId[$bedRoomChange[$dateOfRoomChange] + $i], $dateOfRoomChange, $rid, $link, $rooms);
+				}
+				$bedRoomChange[$dateOfRoomChange] += $numOfPerson;
 			}
 		}
 	}

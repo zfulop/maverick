@@ -11,44 +11,28 @@ foreach($_SESSION as $code => $val) {
 
 $link = db_connect();
 
-$selectedYear = date('Y');
-$selectedMonth = date('m');
-if(isset($_REQUEST['year']))
-	$_SESSION['view_availability_year'] = $_REQUEST['year'];
-if(isset($_SESSION['view_availability_year']))
-	$selectedYear = $_SESSION['view_availability_year'];
-else
-	$_SESSION['view_availability_year'] = $selectedYear;
-
-if(isset($_REQUEST['month']))
-	$_SESSION['view_availability_month'] = $_REQUEST['month'];
-if(isset($_SESSION['view_availability_month']))
-	$selectedMonth = $_SESSION['view_availability_month'];
-else
-	$_SESSION['view_availability_month'] = $selectedMonth;
-
-if(strlen($selectedMonth) < 2) { 
-	$selectedMonth = '0' . $selectedMonth;
+if(isset($_REQUEST['start_date'])) {
+	$_SESSION['av_start_date'] = $_REQUEST['start_date'];
+}
+if(!isset($_SESSION['av_start_date'])) {
+	$_SESSION['av_start_date'] = date('Y-m-d', strtotime(date('Y-m-d') . ' -1 week'));
+}
+if(isset($_REQUEST['end_date'])) {
+	$_SESSION['av_end_date'] = $_REQUEST['end_date'];
+}
+if(!isset($_SESSION['av_end_date'])) {
+	$_SESSION['av_end_date'] = date('Y-m-d', strtotime(date('Y-m-d') . ' +1 week'));
 }
 
-
-$fd = mktime(1, 1, 1, $selectedMonth, 1, $selectedYear);
-$endDay = date('t', $fd);
-$previousMonthYear = $selectedYear;
-$previousMonthMonth = $selectedMonth - 1;
-if($previousMonthMonth < 1) {
-	$previousMonthMonth = 12;
-	$previousMonthYear = $previousMonthYear - 1;
-}
-$nextMonthYear = $selectedYear;
-$nextMonthMonth = $selectedMonth + 1;
-if($nextMonthMonth > 12) {
-	$nextMonthMonth = 1;
-	$nextMonthYear = $nextMonthYear + 1;
-}
+$avStartDate = $_SESSION['av_start_date'];
+$avEndDate = $_SESSION['av_end_date'];
 
 
-$rooms = loadRooms($selectedYear, $selectedMonth, '01', $selectedYear, $selectedMonth, $endDay, $link);
+$previousDate = date('Y-m-d', strtotime($avStartDate . ' -2 week')); 
+$nextEndDate = date('Y-m-d', strtotime($avEndDate . ' +2 week'));
+
+$rooms = loadRooms(	substr($avStartDate,0,4), substr($avStartDate,5,2), substr($avStartDate,8,2), 
+					substr($avEndDate,0,4), substr($avEndDate,5,2), substr($avEndDate,8,2),  $link);
 
 $sql = "SELECT DISTINCT source FROM booking_descriptions ORDER BY source";
 $result = mysql_query($sql, $link);
@@ -58,6 +42,41 @@ while($row = mysql_fetch_assoc($result)) {
 }
 
 mysql_close($link);
+
+$dates = array();
+for($currDate = $avStartDate; $currDate <= $avEndDate; $currDate = date('Y-m-d', strtotime("$currDate +1 day"))) {
+	$dates[] = $currDate;
+}
+
+
+$cellData = array();
+foreach($rooms as $roomId => $room) {
+	$roomName = $room['name'] . '<br>[' . $room['room_type_name'] . ']';
+	foreach($dates as $currDate) {
+		$oneCellData = '';
+		$avail = getNumOfAvailBeds($room, $currDate);
+		$occup = getNumOfOccupBeds($room, $currDate);
+		$htmlId = $currDate . '_' . $roomId;
+		$cellStyle = array();
+		$cellStyle['background'] = getCSSBackgroundColor($currDate, $room);
+		$cellStyle['color'] = 'black';
+		$cellStyle['text-decoration'] = 'none;';
+		if($occup > $room['num_of_beds']) {
+			$cellStyle['border'] = '3px dotted black';
+		}
+		$oneCellData .= "				$avail" . " / " . $room['num_of_beds'];
+		if($occup > $room['num_of_beds']) {
+			$oneCellData .= " (" . ($occup - $room['num_of_beds']) . ')';
+		}
+		$oneCellData .= "<br>\n";
+		foreach(getBookerNamesForDay($room, $currDate) as $oneBookerName) {
+			$oneCellData .= "				$oneBookerName\n";
+		}
+		$cellData[] = array('id' => $htmlId, 'style' => $cellStyle,'html' => $oneCellData);
+	}
+}
+
+$jsonCellData = json_encode($cellData);
 
 $extraHeader = <<<EOT
 
@@ -140,50 +159,78 @@ $extraHeader = <<<EOT
 		return false;
 	}
 
+	var tableData = $jsonCellData;
+	var currentTableIdx = 0;
+
+	function loadTable() {
+			new Ajax.Request('view_availability_load_data.php', {
+				method: 'post',
+				parameters: {start_date: '$avStartDate', end_date: '$avEndDate'},
+				onSuccess: function(transport) {
+					var avTable = document.getElementById('availabilityTable');
+					var data = JSON.parse(transport.responseText);
+					tableData = data;
+					setTimeout(setNextCell,1);
+				}
+			});
+	}
+
+	function setNextCell() {
+		if(currentTableIdx < tableData.length) {
+			var id = tableData[currentTableIdx].id;
+			$('td_' + id).setStyle(tableData[currentTableIdx].style);
+			$(id).update(tableData[currentTableIdx].html);
+			currentTableIdx += 1;
+			setTimeout(setNextCell,1);
+		}
+	}
 
 </script>
+
+<script type="text/javascript" src="js/prototype.js"></script>
+<script type="text/javascript" src="js/opentip-native.js"></script><!-- Change to the adapter you actually use -->
+<link href="opentip.css" rel="stylesheet" type="text/css" />
 
 
 EOT;
 
 
-$onloadScript = 'UpdateTableHeaders();jQuery(window).scroll(function() { UpdateTableHeaders(); });';
+$onloadScript = 'UpdateTableHeaders();jQuery(window).scroll(function() { UpdateTableHeaders(); });setNextCell();';
 
 
-html_start("Maverick Reception - Availability ($selectedYear/$selectedMonth)", $extraHeader, true, $onloadScript);
+html_start("Maverick Reception - Availability ($avStartDate - $avEndDate)", $extraHeader, true, $onloadScript);
 
-$thisyear = date('Y');
-
-$monthOptions = '';
-$va_monthOptions = '';
-for($i = 1; $i <= 12; $i++) {
-	$m = $i;
-	if(strlen($m) < 2)
-		$m = '0' . $m;
-	$monthOptions .= "			<option value=\"$m\">" . date('M', mktime(1,1,1, $i, 1, 2000)) . "</option>\n";
-	$va_monthOptions .= "			<option value=\"$m\"" . ($m == $selectedMonth ? ' selected' : '') . ">" . date('F', mktime(1,1,1, $i, 1, 2000)) . "</option>\n";
-}
 
 $syncStartDate = date('Y-m-d');
 $syncEndDate = date('Y-m-d', strtotime($syncStartDate . ' +7 day'));
 
+$selectedYear = date('Y');
+$selectedMonth = date('m');
+
 echo <<<EOT
 
 <div style="position: fixed;background: white; height: 20px;">
-	<input type="button" value="Show forms" id="show_forms_btn" onclick="$('avail_forms').show();$('show_forms_btn').hide();$('hide_forms_btn').show();">
-	<input type="button" value="Hide forms" style="display: none;" id="hide_forms_btn" onclick="$('avail_forms').hide();$('show_forms_btn').show();$('hide_forms_btn').hide();">
+	<input type="button" value="Show forms" id="show_forms_btn" onclick="$('avail_forms').show();$('show_forms_btn').hide();">
 </div>
 
-<div id="avail_forms" style="position: fixed;background: white; height: 225px; display: none; margin-top: 30px;">
+<div id="avail_forms" style="position: fixed;background: rgb(240,240,240); display: none; margin-top: 30px; border: 2px solid grey;">
 
 <form action="view_availability.php" method="POST" style="float: left;">
-<table style="border: 1px solid black; padding: 5px; margin: 10px;">
-	<tr><th colspan="2">View availability for a month</th></tr>
+<table style="border: 1px solid black; padding: 5px; margin: 10px;background:white;">
+	<tr><th colspan="2">View availability</th></tr>
 	<tr>
-		<td>Year</td><td><input name="year" size="4" value="$selectedYear"></td>
+		<td>From: </td>
+		<td>
+			<input id="start_date_av" name="start_date" size="10" maxlength="10" type="text" value="$avStartDate"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'start_date_av', 'chooserSpanSDAV', 2008, 2025, 'Y-m-d', false);"> 
+			<div id="chooserSpanSDAV" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div>
+		</td>
 	</tr>
 	<tr>
-		<td>Month</td><td><select name="month">$va_monthOptions</select></td>
+		<td>To: </td>
+		<td>
+			<input id="end_date_av" name="end_date" size="10" maxlength="10" type="text" value="$avEndDate"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'end_date_av', 'chooserSpanEDAV', 2008, 2025, 'Y-m-d', false);"> 
+			<div id="chooserSpanEDAV" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div>
+		</td>
 	</tr>
 	<tr><td colspan="2">
 		<input type="submit" value="View availability">
@@ -193,13 +240,13 @@ echo <<<EOT
 
 
 <form action="view_prices.php" method="POST" style="float: left;">
-<table style="border: 1px solid black; padding: 5px; margin: 10px;">
+<table style="border: 1px solid black; padding: 5px; margin: 10px;background:white;">
 	<tr><th colspan="2">View prices for a month</th></tr>
 	<tr>
 		<td>Year</td><td><input name="year" size="4" value="$selectedYear"></td>
 	</tr>
 	<tr>
-		<td>Month</td><td><select name="month">$va_monthOptions</select></td>
+		<td>Month</td><td><input name="month" size="2" value="$selectedMonth"></td>
 	</tr>
 	<tr><td colspan="2">
 		<input type="submit" value="View prices">
@@ -211,7 +258,7 @@ echo <<<EOT
 
 
 <form action="synchro/main.php" method="POST" style="float: left;">
-<table style="border: 1px solid black; padding: 5px; margin: 10px;">
+<table style="border: 1px solid black; padding: 5px; margin: 10px;background:white;">
 	<tr><th colspan="2">Synchronization with booker sites</th></tr>
 	<tr>
 		<td>From: </td>
@@ -244,7 +291,7 @@ echo <<<EOT
 
 
 <form action="edit_new_booking.php" method="POST" style="float: left;">
-<table style="border: 1px solid black; padding: 5px; margin: 10px;">
+<table style="border: 1px solid black; padding: 5px; margin: 10px;background:white;">
 	<tr><th colspan="4">Create new booking</th></tr>
 	<tr><td colspan="4"><input type="submit" value="New"></td></tr>
 
@@ -253,7 +300,7 @@ echo <<<EOT
 
 
 <form action="view_rearrange_bookings.php" method="GET" style="float: left;">
-<table style="border: 1px solid black; padding: 5px; margin: 10px;">
+<table style="border: 1px solid black; padding: 5px; margin: 10px;background:white;">
 	<tr><th colspan="2">Rearrange bookings</th></tr>
 	<tr>
 		<td>From: </td>
@@ -275,6 +322,10 @@ echo <<<EOT
 </table>
 </form>
 
+<form style="display:block;clear:left;padding:20px;">
+<input type="button" value="   Hide forms   " style="background:white;" onclick="$('avail_forms').hide();$('show_forms_btn').show();">
+</form>
+
 </div>
 
 
@@ -282,7 +333,7 @@ echo <<<EOT
 </div>
 
 
-<h2 style="margin-top: 60px;"><a class="next_month_btn" href="view_availability.php?year=$previousMonthYear&month=$previousMonthMonth" title="Previous month">&lt;</a> Room availability for: $selectedYear/$selectedMonth <a class="next_month_btn" href="view_availability.php?year=$nextMonthYear&month=$nextMonthMonth" title="Next month">&gt;</a></h2>
+<h2 style="margin-top: 60px;"><a class="next_month_btn" href="view_availability.php?start_date=$previousDate&end_date=$avStartDate" title="Previous 2 weeks">&lt;</a> Room availability for: $avStartDate - $avEndDate <a class="next_month_btn" href="view_availability.php?start_date=$avEndDate&end_date=$nextEndDate" title="Next 2 weeks">&gt;</a></h2>
 <div style="float:left;">Font size: </div>
 <form style="float: left; margin-bottom: 5px;">
 	<input type="button" value="+" onclick="increaseFontSize();" style="font-size: 14px; font-weight: bold;"> <input type="button" value="-" onclick="decreaseFontSize();" style="font-size: 14px; font-weight: bold;">
@@ -290,23 +341,16 @@ echo <<<EOT
 
 <div style="clear:both;"></div>
 
-	<table class="tableWithFloatingHeader" border="1">
+	<table class="tableWithFloatingHeader" border="1" id="availabilityTable">
 
 EOT;
-
-$startDate = "$selectedYear-$selectedMonth-01";
-$endDate = "$selectedYear-$selectedMonth-$endDay";
-$dates = array();
-for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', strtotime("$currDate +1 day"))) {
-	$dates[] = $currDate;
-}
 
 
 $cntr = 0;
 
 
 foreach($rooms as $roomId => $room) {
-	if($cntr % 6 === 0) {
+	if($cntr % 7 === 0) {
 		echo "		<tr><th></th>\n";
 		foreach($dates as $currDate) {
 			if(date('N', strtotime($currDate)) > 5) {
@@ -317,6 +361,7 @@ foreach($rooms as $roomId => $room) {
 		}
 		echo "	</tr>\n";
 	}
+	$cntr += 1;
 
 	$roomName = $room['name'] . '<br>[' . $room['room_type_name'] . ']';
 	echo <<<EOT
@@ -330,12 +375,14 @@ foreach($rooms as $roomId => $room) {
 
 EOT;
 	foreach($dates as $currDate) {
-		$avail = getNumOfAvailBeds($room, $currDate);
+		$htmlId = $currDate . '_' . $roomId;
+		echo "		<td id=\"td_$htmlId\"><a style=\"display:block;width:100%;height:100%;text-decoration:none;color:black;text-align:center;\" id=\"$htmlId\" href=\"view_availability_view_bookings_for_day.php?date=$currDate&roomId=$roomId\" data-ot=\"\" data-ot-group=\"tips\" data-ot-hide-trigger=\"tip\" data-ot-show-on=\"click\" data-ot-hide-on=\"click\" data-ot-fixed=\"true\" data-ot-ajax=\"true\"><img src=\"loading.gif\"></a></td>\n";
+/*		$avail = getNumOfAvailBeds($room, $currDate);
 		$occup = getNumOfOccupBeds($room, $currDate);
 		$htmlId = $currDate . '_' . $roomId;
 		$style = "background: " . getCSSBackgroundColor($currDate, $room) . ";";
 		if($occup > $room['num_of_beds']) {
-			$style .= 'border: 3px dotted black;';
+			$style .= "border: 3px dotted black;";
 		}
 		echo "		<td align=\"center\" style=\"$style\">\n";
 		$hasBooking = hasBookingForDay($room, $currDate);
@@ -355,7 +402,7 @@ EOT;
 		}
 //		printBookingsTooltipDivPerDay($room, $currDate, "bookings_per_day_per_room_$cntr");
 		echo "		</td>\n";
-		$cntr += 1;
+*/
 	}
 	echo "	</tr>\n";
 }
@@ -376,6 +423,8 @@ echo "</table>\n";
 
 
 html_end();
+
+
 
 
 function getCSSBackgroundColor($currDate, &$room) {
@@ -412,7 +461,6 @@ function getCSSBackgroundColor($currDate, &$room) {
 }
 
 
-
 function hasBookingForDay(&$room, $currDate) {
 	$currDate = str_replace('-', '/', $currDate);
 	$hasBooking = false;
@@ -438,8 +486,6 @@ function hasBookingForDay(&$room, $currDate) {
 }
 
 
-
-
 function getBookerNamesForDay(&$oneRoom, $oneDay) {
 	$names = array();
 	$oneDay = str_replace('-', '/', $oneDay);
@@ -461,11 +507,7 @@ function getBookerNamesForDay(&$oneRoom, $oneDay) {
 
 		if(($oneBooking['first_night'] <= $oneDay) and ($oneBooking['last_night'] >= $oneDay)) {
 			$count = 0;
-			if($oneBooking['booking_type'] == 'BED') {
-				$count = $oneBooking['num_of_person'];
-			} else {
-				$count = $oneRoom['num_of_beds'];
-			}
+			$count = $oneBooking['num_of_person'];
 			for($i = 0; $i < $count; $i++) {
 				$style = '';
 				if($oneBooking['confirmed'] == 1) {
@@ -488,11 +530,7 @@ function getBookerNamesForDay(&$oneRoom, $oneDay) {
 		}
 
 		if($oneRoomChange['date_of_room_change'] == $oneDay) {
-			if($oneRoomChange['booking_type'] == 'BED')
-				$count = $oneRoomChange['num_of_person'];
-			else {
-				$count = $oneRoom['num_of_beds'];
-			}
+			$count = $oneRoomChange['num_of_person'];
 			for($i = 0; $i < $count; $i++) {
 				$style = '';
 				if($oneRoomChange['confirmed'] == 1) {
@@ -512,6 +550,7 @@ function getBookerNamesForDay(&$oneRoom, $oneDay) {
 
 	return $names;
 }
+
 
 
 

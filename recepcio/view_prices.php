@@ -31,7 +31,19 @@ else
 $fd = mktime(1, 1, 1, $selectedMonth, 1, $selectedYear);
 $endDay = date('t', $fd);
 
-$rooms = loadRooms($selectedYear, $selectedMonth, '01', $selectedYear, $selectedMonth, $endDay, $link);
+$roomTypes = loadRoomTypes($link);
+$prices = array();
+foreach($roomTypes as $id => $data) {
+	$prices[$id] = array();
+}
+$sql = "SELECT * FROM prices_for_date WHERE date>='$selectedYear/$selectedMonth/1' AND date<='$selectedYear/$selectedMonth/$endDay'";
+$result = mysql_query($sql, $link);
+while($row = mysql_fetch_assoc($result)) {
+	$rtId = $row['room_type_id'];
+	$date = $row['date'];
+	$prices[$rtId][$date] = $row;
+}
+
 
 $extraHeader = <<<EOT
 
@@ -172,8 +184,8 @@ foreach($dates as $currDate) {
 }
 echo "	</tr>\n";
 $cntr = 0;
-foreach($rooms as $room) {
-	$roomName = $room['name'];
+foreach($roomTypes as $rtId => $roomType) {
+	$roomName = $roomType['name'];
 	echo <<<EOT
 	<tr>
 		<td style="width: 100px; background: rgb(49, 236, 243);">
@@ -185,32 +197,28 @@ foreach($rooms as $room) {
 
 EOT;
 	foreach($dates as $currDate) {
-		$currYear = substr($currDate, 0, 4);
-		$currMonth = substr($currDate, 5, 2);
-		$currDay = substr($currDate, 8, 2);
+		$currDateSlash = str_replace('-','/',$currDate);
 		$style="";
 		if(date('N', strtotime($currDate)) > 5) {
 			$style= 'background: rgb(240, 240, 240);';
 		}
-		echo "		<td align=\"center\" style=\"$style\">\n";
-		$bedPrice = getBedPrice($currYear, $currMonth, $currDay, $room);
-		$roomPrice = getRoomPrice($currYear, $currMonth, $currDay, $room);
-		echo "Bed:&nbsp;$bedPrice<br>Room:&nbsp;$roomPrice";
-		echo "		</td>\n";
+		$price = '';
+		echo "		<td align=\"center\" style=\"$style\">";
+		$column = 'price_per_room';
+		if($roomType['type'] == 'DORM') {
+			$column = 'price_per_bed';
+		}
+		if(isset($prices[$rtId][$currDateSlash]) and !is_null($prices[$rtId][$currDateSlash][$column])) {
+			$price = $prices[$rtId][$currDateSlash][$column];
+		} else {
+			$price = $roomType[$column];
+		}
+		echo $price . "</td>\n";
 		$cntr += 1;
 	}
 	echo "	</tr>\n";
 }
-echo "	<tr>\n";
-echo "		<th>Room name</th>\n";
-foreach($dates as $currDate) {
-	echo "		<th>" . substr($currDate, 8, 2) . "</th>\n";
-}
-echo "	</tr>\n";
-
 echo "</table>\n";
-
-
 
 mysql_close($link);
 

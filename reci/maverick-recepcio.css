@@ -1,0 +1,98 @@
+body {
+	line-height: 20px;
+}
+
+label {
+	display: block;
+	float: left;
+	width: 180px;
+}
+
+input {
+	display: block;
+	float: left;
+}
+
+select {
+	display: block;
+	float: left;
+	height: 20px;
+	line-height: 20px;
+}
+
+div.submenu {
+	border: 1px solid black;
+	text-align: left;
+	margin: 0px;
+	padding: 5px;
+	background: rgb(220, 220, 220);
+	position: absolute;
+	top: 25px;
+	display: none;
+}
+
+div.submenu ul {
+	list-style: none;
+	padding: 0px;
+	margin: 0px;
+}
+
+table.tableWithFloatingHeader {
+	font-size: 10px;
+}
+
+table.reception_schedule {
+	border-width: 1px; 
+	border-collapse: collapse; 
+	border-style: solid;
+}
+
+table.reception_schedule td {
+	border: 1px solid black;
+	font-weight: normal;
+	vertical-align: top;
+}
+
+table.reception_schedule th {
+	border: 1px solid black;
+	font-weight: normal;
+	font-size: 120%;
+	padding: 3px 6px;
+}
+
+table.schedule_inner_table td {
+	border: none;
+}
+
+table.one_day {
+	border-width: 0px; 
+}
+
+table.one_day td {
+	border: 0px;
+}
+
+table.one_day th {
+	text-align: left;
+	border: 0px;
+	font-size: 100%;
+}
+
+table.one_day th a {
+	text-decoration: none;
+	font-weight: bold;
+	border: dotted 1px black;
+}
+
+a.next_month_btn {
+	margin: 5px;
+	padding: 2px 7px;
+	border: 2px outset grey;
+	background-color: rgb(170, 170, 170);
+	font-weight: bold;
+	font-size: 120%;
+	font-decoration: none;
+	color: rgb(0,0,0);
+	font-familiy: Courier New;
+	text-decoration:none;
+}

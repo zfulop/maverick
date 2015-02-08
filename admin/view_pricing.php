@@ -302,15 +302,23 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 			$occupancy = round($avgNumOfBeds / $roomType['available_beds'] * 100);
 		} else {
 			$numOfRoomsBooked = count($bookings);
-			$occupancy = round($numOfRoomsBooked / $roomType['num_of_rooms'] * 100);
+			if($roomType['num_of_rooms'] < 1) {
+				$occupancy = 0;
+			} else {
+				$occupancy = round($numOfRoomsBooked / $roomType['num_of_rooms'] * 100);
+			}
 		}
 		$red = intval((4 - 3*$occupancy / 100.0) * 171);
 		$green = intval((4 - 3*$occupancy / 100.0) * 26);
 		$blue = intval((4 - 3*$occupancy / 100.0) * 11);
 		$price = admin_getRoomPrice($currDate, $rooms, $roomType);
 		$roomTypeDump = print_r($roomType, true);
+		$color = 'black';
+		if($occupancy >= 100) {
+			$color = 'white';
+		}
 		echo <<<EOT
-		<td class="$cssClass" style="background: rgb($red, $green, $blue);">
+		<td class="$cssClass" style="background: rgb($red, $green, $blue); color: $color;">
 			<!-- $roomTypeDump -->
 			<div style="float: right; font-size: 60%;">$occupancy%</div>
 			<div class="absolute_value" ><a href="view_pricing_detail.php?room_type_id=$roomTypeId&date=$currDate" data-ot="" data-ot-group="tips" data-ot-hide-trigger="tip" data-ot-show-on="click" data-ot-hide-on="click" data-ot-fixed="true" data-ot-ajax="true">$price &#8364;</a><a href="#" style="font-size: 70%;" onclick="$('setprice_$roomTypeId$currDate').show();return false;">▼</a></div>

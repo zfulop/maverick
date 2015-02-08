@@ -293,7 +293,7 @@ while($row = mysql_fetch_assoc($result)) {
 }
 
 $payments = array();
-$sql = "SELECT * FROM payments WHERE booking_description_id=$descrId";
+$sql = "SELECT * FROM payments WHERE booking_description_id=$descrId AND pay_mode<>'CASH3'";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	$err = "Cannot get payment(s) of booking (with description_id: $descrId).";
@@ -566,7 +566,7 @@ $roomTotal = 0;
 foreach($bookings as $booking) {
 	$bid = $booking['id'];
 	$rn = urlencode($booking['room_name']);
-	echo "				<tr><td>" . $booking['room_name'] . "</td><td>" . $booking['booking_type'] . "</td><td align=\"center\">" . $booking['num_of_person'] . "</td><td align=\"right\">" . floatval($booking['room_payment']) . " euro</td>";
+	echo "				<tr><td>" . $booking['room_name'] . "</td><td>" . $booking['booking_type'] . "</td><td align=\"center\">" . $booking['num_of_person'] . "</td><td align=\"right\">" . sprintf("%10.1f",$booking['room_payment']) . " euro</td>";
 	foreach($dates as $oneDate) {
 		$roomName = '';
 		$style = ($oneDate == $todayPer ? 'color:red;' : '') . "width: 50px;";
@@ -595,11 +595,11 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 }
 
 
-
+$roomTotalStr = sprintf("%.1f", $roomTotal);
 
 echo <<<EOT
 				<tr><td colspan="4"><hr></td></tr>
-				<tr><td colspan="3"><b>Total room price</b></td><td align="right">$roomTotal euro</td></tr>
+				<tr><td colspan="3"><b>Total room price</b></td><td align="right">$roomTotalStr euro</td></tr>
 			</table>
 		</td>
 		<td valign="top" style="padding-left: 10px;">
@@ -685,7 +685,7 @@ if($deposit > 0) {
 	$balance -= convertAmount($deposit, $depositCurrency, 'EUR', $fnight);
 }
 $balanceHuf = convertAmount($balance, 'EUR', 'HUF', date('Y-m-d'));
-$balance = sprintf("%.2f", $balance);
+$balance = sprintf("%.1f", $balance);
 $balanceHuf = intval($balanceHuf);
 echo "<h2>Balance: $balance euro ($balanceHuf Ft)</h2>\n\n";
 

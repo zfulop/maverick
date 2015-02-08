@@ -22,8 +22,8 @@ if(!$result) {
 } elseif(mysql_num_rows($result) > 0) {
 	$lastDayClose = mysql_fetch_assoc($result);
 	$lastDayCloseTime = $lastDayClose['time_of_day_close'];
-	$dayCloseHuf = $lastDayClose['casseHUF'];
 	$dayCloseEur = $lastDayClose['casseEUR'];
+	$dayCloseHuf = $lastDayClose['casseHUF'];
 	$dayCloseHuf2 = $lastDayClose['casseHUF2'];
 	$dayCloseEur2 = $lastDayClose['casseEUR2'];
 }
@@ -48,14 +48,16 @@ if(!$result) {
 		if($row['comment'] == '*booking deposit*')
 			continue;
 
-		$payments[] = $row;
-		if($row['pay_mode'] == 'CASH' and $row['storno'] != 1) {
+		if($row['pay_mode'] != 'CASH3') {
+			$payments[] = $row;
+		}
+		if(($row['pay_mode'] == 'CASH' or $row['pay_mode'] == 'CASH2') and $row['storno'] != 1) {
 			if($row['currency'] == 'EUR')
 				$eurCasse += $row['amount'];
 			else
 				$hufCasse += $row['amount'];
 		}
-		if($row['pay_mode'] == 'CASH2' and $row['storno'] != 1) {
+		if(($row['pay_mode'] == 'CASH3' or $row['pay_mode'] == 'CASH2') and $row['storno'] != 1) {
 			if($row['currency'] == 'EUR')
 				$eurCasse2 += $row['amount'];
 			else
@@ -76,19 +78,22 @@ if(!$result) {
 	trigger_error("Cannot get cashout at cash register: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 } else {
 	while($row = mysql_fetch_assoc($result)) {
-		$cashOuts[] = $row;
-		if($row['pay_mode'] == 'CASH' and $row['storno'] != 1) {
+		if($row['pay_mode'] != 'CASH3') {
+			$cashOuts[] = $row;
+		}
+		if(($row['pay_mode'] == 'CASH' or $row['pay_mode'] == 'CASH2') and $row['storno'] != 1) {
 			if($row['currency'] == 'EUR')
 				$eurCasse -= $row['amount'];
 			else
 				$hufCasse -= $row['amount'];
 		}
-		if($row['pay_mode'] == 'CASH2' and $row['storno'] != 1) {
+		if(($row['pay_mode'] == 'CASH3' or $row['pay_mode'] == 'CASH2') and $row['storno'] != 1) {
 			if($row['currency'] == 'EUR')
 				$eurCasse2 -= $row['amount'];
 			else
 				$hufCasse2 -= $row['amount'];
 		}
+
 	}
 }
 
@@ -103,19 +108,22 @@ if(!$result) {
 	trigger_error("Cannot get guest transfers at cash register: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 } else {
 	while($row = mysql_fetch_assoc($result)) {
-		$gtransfers[] = $row;
-		if($row['pay_mode'] == 'CASH' and $row['storno'] != 1) {
+		if($row['pay_mode'] != 'CASH3') {
+			$gtransfers[] = $row;
+		}
+		if(($row['pay_mode'] == 'CASH' or $row['pay_mode'] == 'CASH2') and $row['storno'] != 1) {
 			if($row['amount_currency'] == 'EUR')
 				$eurCasse += $row['amount_value'];
 			else
 				$hufCasse += $row['amount_value'];
 		}
-		if($row['pay_mode'] == 'CASH2' and $row['storno'] != 1) {
+		if(($row['pay_mode'] == 'CASH3' or $row['pay_mode'] == 'CASH2') and $row['storno'] != 1) {
 			if($row['amount_currency'] == 'EUR')
 				$eurCasse2 += $row['amount_value'];
 			else
 				$hufCasse2 += $row['amount_value'];
 		}
+
 	}
 }
 
@@ -180,7 +188,7 @@ $fromName = $_SERVER['PHP_AUTH_USER'];
 
 echo <<<EOT
 
-<form action="save_cash_out.php" method="POST" accept-charset='UTF-8' style="display: block; float: left;">
+<form action="save_cash_out.php" method="POST" accept-charset='UTF-8' style="display: block; float: right; clear: right;">
 <table style="border: 1px solid black; padding: 5px; margin: 10px;">
 	<tr><th colspan="2">Save Cashout</th></tr>
 	<tr>
@@ -211,9 +219,10 @@ echo <<<EOT
 		<input type="submit" value="Save cashout">
 	</td></tr>
 </table>
+
 </form>
 
-<form action="save_cash_in.php" method="POST" accept-charset='UTF-8' style="display: block; float: left;">
+<form action="save_cash_in.php" method="POST" accept-charset='UTF-8' style="display: block; float: right; clear: right;">
 <table style="border: 1px solid black; padding: 5px; margin: 10px;">
 	<tr><th colspan="2">Save Cash-in</th></tr>
 	<tr>
@@ -248,7 +257,7 @@ echo <<<EOT
 
 
 
-<form action="view_cash_register.php" method="GET" style="display: block; float: left;">
+<form action="view_cash_register.php" method="GET" style="display: block; float: right; clear: right;">
 <table style="border: 1px solid black; padding: 5px; margin: 10px;">
 	<tr><th colspan="2">View cash reg. for one day</th></tr>
 	<tr>
@@ -275,7 +284,7 @@ EOT;
 if(is_null($viewDay)) {
 	echo <<<EOT
 
-<form action="save_day_close.php" method="POST" accept-charset='UTF-8' style="display: block; float: left;">
+<form action="save_day_close.php" method="POST" accept-charset='UTF-8' style="display: block; float: right; clear: right;">
 <input type="hidden" name="casseHUF" value="$hufCasse">
 <input type="hidden" name="casseEUR" value="$eurCasse">
 <input type="hidden" name="casseHUF2" value="$hufCasse2">
@@ -306,14 +315,6 @@ if(is_null($viewDay)) {
 		<td style="width: 100px;">$hufCasse Ft</td>
 	</tr>
 	<tr>
-		<td style="width: 100px;">EUR2: </td>
-		<td style="width: 100px;">$eurCasse2 euro</td>
-	</tr>
-	<tr>
-		<td style="width: 100px;">HUF2: </td>
-		<td style="width: 100px;">$hufCasse2 Ft</td>
-	</tr>
-	<tr>
 		<td style="width: 100px;">Comment: </td>
 		<td><input style="width: 100px;" name="comment"></td>
 	</tr>
@@ -325,8 +326,6 @@ if(is_null($viewDay)) {
 
 EOT;
 }
-
-echo "<div style=\"clear: both;\"></div>\n";
 
 if(is_null($viewDay)) {
 	echo "<h2><span style=\"color: red;\">ACTIVE DAY</span> - List of payments and cash outs since <strong>$lastDayCloseTime</strong></h2>\n";
@@ -345,7 +344,7 @@ echo <<<EOT
 </form>
 
 <table class="cash_register">
-	<tr><th rowspan="2">Type</th><th rowspan="2">Date</th><th rowspan="2">Name</th><th rowspan="2">Comment</th><th colspan="2">Cash</th><th colspan="2">Cash 2</th></tr>
+	<tr><th rowspan="2">Type</th><th rowspan="2">Date</th><th rowspan="2">Name</th><th rowspan="2">Comment</th><th colspan="2">Received</th><th colspan="2">Cash Out</th></tr>
 	<tr><th>HUF</th><th>EUR</th><th>HUF</th><th>EUR</th></tr>
 
 EOT;
@@ -357,10 +356,10 @@ $takeGt = false;
 $pymtIdx = 0;
 $coIdx = 0;
 $gtIdx = 0;
-$cashEur = 0;
-$cashHuf = 0;
-$cashEur2 = 0;
-$cashHuf2 = 0;
+$paymentEur = 0;
+$paymentHuf = 0;
+$cashoutEur = 0;
+$cashoutHuf = 0;
 while(count($payments) > $pymtIdx or count($cashOuts) > $coIdx or count($gtransfers) > $gtIdx) {
 	$p = null;
 	$c = null;
@@ -399,37 +398,29 @@ while(count($payments) > $pymtIdx or count($cashOuts) > $coIdx or count($gtransf
 	$storno = false;
 	$style = '';
 	$cashTr = true;
-	$cash2Tr = true;
 
 	if($takePymt) {
 		$payment = $payments[$pymtIdx];
 		$id = $payment['id'];
 		$storno = $payment['storno'] == 1;
-		$cashTr = $payment['pay_mode'] == 'CASH';
-		$cash2Tr = $payment['pay_mode'] == 'CASH2';
+		$cashTr = (($payment['pay_mode'] == 'CASH') or ($payment['pay_mode'] == 'CASH2'));
 		$bdid = $payment['booking_description_id'];
-		if($cash2Tr and !$storno) {
-			if($payment['currency'] == 'EUR') {
-				$cashEur2 += $payment['amount'];
-				$amtColumns = getAmountColumns(null, null, null, sprintf('%.2f', $payment['amount']));
-			} else {
-				$cashHuf2 += $payment['amount'];
-				$amtColumns = getAmountColumns(null, null, sprintf('%.2f', $payment['amount']), null);
-			}
-		}
 		if($cashTr and !$storno) {
 			if($payment['currency'] == 'EUR') {
-				$cashEur += $payment['amount'];
-				$amtColumns = getAmountColumns(null, sprintf('%.2f', $payment['amount']), null, null);
+				$paymentEur += $payment['amount'];
 			} else {
-				$cashHuf += $payment['amount'];
-				$amtColumns = getAmountColumns(sprintf('%.2f', $payment['amount']), null, null, null);
+				$paymentHuf += $payment['amount'];
 			}
 		}
 		$type = "Payment";
 		$time = $payment['time_of_payment'];
 		$name = "<a href=\"edit_booking.php?description_id=" . $payment['booking_description_id'] . "\">" . $payment['name'] . "</a>";
 		$comment = $payment['comment'];
+		if($payment['currency'] == 'EUR') {
+			$amtColumns = "<td class=\"amount\">&nbsp;</td><td align=\"right\" class=\"amount\">" . sprintf('%.2f', $payment['amount']) . "&nbsp;EUR</td><td class=\"amount\">&nbsp;</td><td class=\"amount\">&nbsp;</td>\n";
+		} else {
+			$amtColumns = "<td align=\"right\" class=\"amount\">" . $payment['amount'] . "&nbsp;HUF</td><td class=\"amount\">&nbsp;</td><td class=\"amount\">&nbsp;</td><td class=\"amount\">&nbsp;</td>\n";
+		}
 		$stornoType = "payments";
 
 		$pymtIdx += 1;
@@ -437,72 +428,65 @@ while(count($payments) > $pymtIdx or count($cashOuts) > $coIdx or count($gtransf
 		$co = $cashOuts[$coIdx];
 		$id = $co['id'];
 		$storno = $co['storno'] == 1;
-		$cashTr = $co['pay_mode'] == 'CASH';
-		$cash2Tr = $co['pay_mode'] == 'CASH2';
+		$cashTr = (($co['pay_mode'] == 'CASH') or ($co['pay_mode'] == 'CASH2'));
 		$time = $co['time_of_payment'];
 		$name = $co['receiver'];
 		$type = $co['type'];
 		$comment = $co['comment'];
-		$type .=  ($co['amount'] < 0 ? ' (cash-in)' : ' (cash-out)');
-		if($co['currency'] == 'EUR') {
-			if(!$storno and $cash2Tr) {
-				$cashEur2 -= $co['amount'];
-				$amtColumns = getAmountColumns(null, null, null, sprintf('%.2f', -1 * $co['amount']));
+		if($co['amount'] < 0) {
+			$type .=  ' (cash-in)';
+			if($co['currency'] == 'EUR') {
+				if(!$storno and $cashTr) {
+					$paymentEur += abs($co['amount']);
+				}
+				$amtColumns = "<td class=\"amount\">&nbsp;</td><td align=\"right\" class=\"amount\">" . sprintf('%.2f', abs($co['amount'])) . "&nbsp;EUR</td>" ;
+			} else {
+				if(!$storno) {
+					$paymentHuf += abs($co['amount']);
+				}
+				$amtColumns = "<td align=\"right\" class=\"amount\">" . abs($co['amount']) . "&nbsp;HUF</td><td class=\"amount\">&nbsp;</td>";
 			}
-			if(!$storno and $cashTr) {
-				$cashEur -= $co['amount'];
-				$amtColumns = getAmountColumns(null, sprintf('%.2f', -1 * $co['amount']), null, null);
-			}
-		} else { // currency=HUF
-			if(!$storno and $cashTr) {
-				$cashHuf -= $co['amount'];
-				$amtColumns = getAmountColumns(sprintf('%.2f', -1 * $co['amount']), null, null, null);
-			}
-			if(!$storno and $cash2Tr) {
-				$cashHuf2 -= $co['amount'];
-				$amtColumns = getAmountColumns(null, null, sprintf('%.2f', -1 * $co['amount']), null);
+			$amtColumns .= "<td class=\"amount\">&nbsp;</td><td class=\"amount\">&nbsp;</td>";
+		} else {
+			$type .=  ' (cash-out)';
+			$amtColumns = "<td class=\"amount\">&nbsp;</td><td class=\"amount\">&nbsp;</td>";
+			if($co['currency'] == 'EUR') {
+				if(!$storno and $cashTr) {
+					$cashoutEur += abs($co['amount']);
+				}
+				$amtColumns .= "<td class=\"amount\">&nbsp;</td><td align=\"right\" class=\"amount\">" . sprintf('%.2f', abs($co['amount'])) . "&nbsp;EUR</td>" ;
+			} else {
+				if(!$storno and $cashTr) {
+					$cashoutHuf += abs($co['amount']);
+				}
+				$amtColumns .= "<td class=\"amount\" align=\"right\">" . abs($co['amount']) . "&nbsp;HUF</td><td class=\"amount\">&nbsp;</td>";
 			}
 		}
+
 		$stornoType = "cash_out";
 		$coIdx += 1;
 	} elseif($takeGt) {
 		$gt = $gtransfers[$gtIdx];
 		$id = $gt['id'];
 		$storno = $gt['storno'] == 1;
-		$cashTr = $gt['pay_mode'] == 'CASH';
-		$cash2Tr = $gt['pay_mode'] == 'CASH2';
-		if($cash2Tr and !$storno) {
-			if($gt['amount_currency'] == 'EUR') {
-				$cashEur2 += $gt['amount_value'];
-			} else {
-				$cashHuf2 += $gt['amount_value'];
-			}
-		}
+		$cashTr = (($gt['pay_mode'] == 'CASH') or ($gt['pay_mode'] == 'CASH2'));
 		if($cashTr and !$storno) {
 			if($gt['amount_currency'] == 'EUR') {
-				$cashEur += $gt['amount_value'];
+				$paymentEur += $gt['amount_value'];
 			} else {
-				$cashHuf += $gt['amount_value'];
+				$paymentHuf += $gt['amount_value'];
 			}
 		}
 		$type = "Guest transfer to " . $gt['destination'];
 		$time = $gt['time_of_enter'];
 		$name = $gt['name'];
 		$comment = $gt['comment'];
-		if($cashTr) {
-			if($gt['amount_currency'] == 'EUR') {
-				$amtColumns = getAmountColumns(null, sprintf('%.2f', $gt['amount_value']), null, null);
-			} else {
-				$amtColumns = getAmountColumns(sprintf('%.2f', $gt['amount_value']), null, null, null);
-			}
+		if($gt['amount_currency'] == 'EUR') {
+			$amtColumns = "<td class=\"amount\">&nbsp;</td><td align=\"right\" class=\"amount\">" . sprintf('%.2f',$gt['amount_value']) . "&nbsp;EUR</td>" ;
+		} else {
+			$amtColumns =  "<td class=\"amount\" align=\"right\">" . $gt['amount_value'] . "&nbsp;HUF</td><td class=\"amount\">&nbsp;</td>";
 		}
-		if($cash2Tr) {
-			if($gt['amount_currency'] == 'EUR') {
-				$amtColumns = getAmountColumns(null, null, null, sprintf('%.2f', $gt['amount_value']));
-			} else {
-				$amtColumns = getAmountColumns(null, null, sprintf('%.2f', $gt['amount_value']), null);
-			}
-		}
+		$amtColumns .= "<td class=\"amount\">&nbsp;</td><td class=\"amount\">&nbsp;</td>";
 		$stornoType = "guest_transfer";
 		$gtIdx += 1;
 	}
@@ -513,8 +497,7 @@ while(count($payments) > $pymtIdx or count($cashOuts) > $coIdx or count($gtransf
 		$rowClass .= " tr_storno";
 	}
 
-	if(!$cashTr and !$cash2Tr) {
-		$amtColumns =  getAmountColumns(null, null, null, null);
+	if(!$cashTr) {
 		$rowClass .= " tr_non_cash";
 		$style .= 'color: #999999;';
 	}
@@ -534,15 +517,14 @@ while(count($payments) > $pymtIdx or count($cashOuts) > $coIdx or count($gtransf
 	echo "	<tr class=\"$rowClass\" style=\"$style\"><td>$type</td><td>$time</td><td>$name</td><td>$comment</td>$amtColumns<td>$stornoUrl</td></tr>";
 }
 
-$cashEur = sprintf('%.2f', $cashEur);
-$cashEur2 = sprintf('%.2f', $cashEur2);
-$cashHuf = sprintf('%.2f', $cashHuf);
-$cashHuf2 = sprintf('%.2f', $cashHuf2);
+$paymentEur = sprintf('%.2f', $paymentEur);
+$cashoutEur = sprintf('%.2f', $cashoutEur);
+$dayCloseEur = sprintf('%.2f', $dayCloseEur);
 
 echo <<<EOT
 	<tr><td colspan="9"><hr></td></tr>
-	<tr><td colspan="4"><strong>Total</strong></td><td align="right" class="amount">$cashHuf&nbsp;HUF</td><td align="right" class="amount">$cashEur&nbsp;EUR</td><td align="right" class="amount">$cashHuf2&nbsp;HUF</td><td align="right" class="amount">$cashEur2&nbsp;EUR</td><td>&nbsp;</td></tr>
-	<tr><td colspan="4"><strong>Balance from previous day close</strong></td><td align="right" class="amount">$dayCloseHuf&nbsp;HUF</td><td align="right" class="amount">$dayCloseEur&nbsp;EUR</td><td align="right" class="amount">$dayCloseHuf2&nbsp;HUF</td><td align="right" class="amount">$dayCloseEur2&nbsp;EUR</td><td>&nbsp;</td></tr>
+	<tr><td colspan="4"><strong>Total</strong></td><td align="right" class="amount">$paymentHuf&nbsp;HUF</td><td align="right" class="amount">$paymentEur&nbsp;EUR</td><td align="right" class="amount">$cashoutHuf&nbsp;HUF</td><td align="right" class="amount">$cashoutEur&nbsp;EUR</td><td>&nbsp;</td></tr>
+	<tr><td colspan="4"><strong>Balance from previous day close</strong></td><td align="right" class="amount">$dayCloseHuf&nbsp;HUF</td><td align="right" class="amount">$dayCloseEur&nbsp;EUR</td><td align="right" class="amount">&nbsp;</td><td align="right" class="amount">&nbsp;</td><td>&nbsp;</td></tr>
 </table>
 
 
@@ -551,8 +533,6 @@ EOT;
 if(is_null($viewDay)) {
 	echo "<h2>Total HUF: $hufCasse Ft</h2>\n";
 	echo "<h2>Total EUR: $eurCasse euro</h2>\n";
-	echo "<h2>Total HUF 2: $hufCasse2 Ft</h2>\n";
-	echo "<h2>Total EUR 2: $eurCasse2 euro</h2>\n";
 }
 
 
@@ -561,11 +541,5 @@ mysql_close($link);
 html_end();
 
 
-function getAmountColumns($cashHuf, $cashEur, $cashHuf2, $cashEur2) {
-	return "<td class=\"amount\">" . (is_null($cashHuf) ? '&nbsp;' : $cashHuf . '&nbsp;HUF') . "</td>" .
-		"<td class=\"amount\">" . (is_null($cashEur) ? '&nbsp;' : $cashEur . '&nbsp;EUR') . "</td>" .
-		"<td class=\"amount\">" . (is_null($cashHuf2) ? '&nbsp;' : $cashHuf2 . '&nbsp;HUF') . "</td>" .
-		"<td class=\"amount\">" . (is_null($cashEur2) ? '&nbsp;' : $cashEur2 . '&nbsp;EUR') . "</td>";
-}
 
 ?>

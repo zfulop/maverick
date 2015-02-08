@@ -1,0 +1,28 @@
+body {
+	height: 20px;
+	line-height: 20px;
+}
+
+label {
+	display: block;
+	float: left;
+	width: 180px;
+}
+
+input {
+	display: block;
+	float: left;
+}
+
+select {
+	display: block;
+	float: left;
+	height: 20px;
+	line-height: 20px;
+}
+
+
+body {
+	height: 25px;
+	line-height: 25px;
+}
