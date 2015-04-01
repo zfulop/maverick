@@ -18,6 +18,13 @@ if(isset($_SESSION['booking_error'])) {
 	unset($_SESSION['booking_error']);
 }
 
+if(isset($_REQUEST['apartment'])) {
+	$_SESSION['apartment'] = $_REQUEST['apartment'];
+} elseif(!isset($_SESSION['apartment'])) {
+	$_SESSION['apartment'] = 'no';
+}
+
+
 $oneAwardHtml = '';
 $oneAwardJs = '';
 $sql = "SELECT a.*, d.value AS description FROM awards a INNER JOIN lang_text d ON (d.table_name='awards' AND d.column_name='description' AND d.row_id=a.id and d.lang='$lang')";
@@ -108,6 +115,9 @@ if((strtoupper(substr(PHP_OS, 0, 3)) == 'WIN')) {
 }
 foreach($specialOffers as $spId => $so) {
 	if($so['visible'] != 1) {
+		continue;
+	}
+	if(showApartments() !== isSOForApartment($so, $roomTypesData)) {
 		continue;
 	}
 	$title = $so['title'];
@@ -279,12 +289,15 @@ $gallery = GALLERY;
 
 $locationName = constant('LOCATION_NAME_' . strtoupper($location));
 foreach($roomTypesData as $roomTypeId => $roomType) {
-	$price = ($roomType['type'] == 'DORM' ? $roomType['price_per_bed'] : $roomType['price_per_room']);
+	if(showApartments() !== isApartment($roomType)) {
+		continue;
+	}
+	$price = (isDorm($roomType) ? $roomType['price_per_bed'] : $roomType['price_per_room']);
 	$name = $roomType['name'];
 	$descr = $roomType['description'];
 	$shortDescr = $roomType['short_description'];
 	$price = convertCurrency($price, 'EUR', getCurrency());
-	$priceStartingFrom = sprintf($roomType['type'] == 'DORM' ? PRICE_STARTING_FROM_PER_BED : PRICE_STARTING_FROM_PER_ROOM, formatMoney(convertCurrency($price, 'EUR', $currency), getCurrency()));
+	$priceStartingFrom = sprintf(isDorm($roomType) ? PRICE_STARTING_FROM_PER_BED : PRICE_STARTING_FROM_PER_ROOM, formatMoney(convertCurrency($price, 'EUR', $currency), getCurrency()));
 	$sql = "SELECT * FROM room_images WHERE room_type_id=$roomTypeId";
 	$result = mysql_query($sql, $link);
 	$roomImg = '';
@@ -292,10 +305,17 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 		while($row = mysql_fetch_assoc($result)) {
 			if(($row['default'] == 1) or (strlen($roomImg) < 1)) {
 				$host = '';
+				$baseDir = BASE_DIR;
 				if($location == 'hostel') {
 					$host = 'http://img.maverickhostel.com/';
+					$baseDir = HOSTEL_BASE_DIR;
 				}
-				$roomImg = $host . 'get_image.php?type=ROOM&width=587&height=387&file=' . $row['filename'];
+				$savedFileName = getFName($row['filename']) . '_587_387.' . getFExt($row['filename']);
+				if(file_exists($baseDir . 'img/rooms/' . $savedFileName)) {
+					$roomImg = $host . 'img/rooms/' . $savedFileName;
+				} else {
+					$roomImg = $host . 'get_image.php?type=ROOM&width=587&height=387&file=' . $row['filename'] . '&save_file=' . $savedFileName;
+				}
 			}
 		}
 	}
@@ -403,5 +423,23 @@ function getRoomTypeNames($roomTypeIds, &$roomTypesData) {
 
 	return $retVal;
 }
+
+
+function isSOForApartment($so, &$roomTypesData) {
+	$forApartment = false;
+	if(strlen($so['room_type_ids']) > 1) {
+		foreach(explode(",", $so['room_type_ids']) as $rtId) {
+			if(isApartment($roomTypesData[$rtId])) {
+				$forApartment = true;
+				break;
+			}
+		}
+	} else {
+		$forApartment = true;
+	}
+	return $forApartment;
+}
+
+
 
 ?>

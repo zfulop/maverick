@@ -5,9 +5,3 @@ AuthType Basic
 require valid-user
 </Limit>
 
-<Files "myallocator_booking.php">
-   Deny from all
-   Allow from all
-   Satisfy any
-</Files>
-

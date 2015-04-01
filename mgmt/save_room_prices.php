@@ -60,8 +60,10 @@ for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', str
 	$dateStr = str_replace('-', '/', $currDate);
 	if(isset($_REQUEST['price'])) {
 		$val = intval($_REQUEST['price']);
+		$dpb = intval($_REQUEST['discount_per_bed']);
 	} else {
-		$val = intval($_REQUEST["$dateStr"]);
+		$val = intval($_REQUEST[$dateStr]);
+		$dpb = intval($_REQUEST['dpb_' . $dateStr]);
 	}
 	if($val > 0) {
 		$sql = "SELECT * FROM prices_for_date WHERE room_type_id=$roomTypeId AND date='$dateStr'";
@@ -78,12 +80,12 @@ for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', str
 			$occupancy = round($avgNumOfBeds / $roomTypes[$roomTypeId]['available_beds'] * 100);
 
 			$priceRow = mysql_fetch_assoc($result);
-			$sql = "INSERT INTO prices_for_date_history (date, price_per_room, price_per_bed, room_type_id, price_set_date, price_unset_date, occupancy) VALUES ('" . $priceRow['date'] . "', " . 
+			$sql = "INSERT INTO prices_for_date_history (date, price_per_room, price_per_bed, room_type_id, price_set_date, price_unset_date, occupancy, discount_per_bed) VALUES ('" . $priceRow['date'] . "', " . 
 				(is_null($priceRow['price_per_room']) ? 'NULL' : $priceRow['price_per_room']) . ", " . 
 				(is_null($priceRow['price_per_bed']) ? 'NULL' : $priceRow['price_per_bed']) . ", " . 
 				$priceRow['room_type_id'] . ", " . 
 				(is_null($priceRow['price_set_date']) ? 'NULL' : '\''.$priceRow['price_set_date'].'\'') . ", " .
-				"'$todaySlash', $occupancy)";
+				"'$todaySlash', $occupancy, $dpb)";
 			$result = mysql_query($sql, $link);
 			if(!$result) {
 				trigger_error("Cannot create room prices history in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -97,7 +99,8 @@ for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', str
 			trigger_error("Cannot delete old room prices in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 		}
 
-		$sql = "INSERT INTO prices_for_date (room_type_id, date, price_per_room, price_per_bed,	price_set_date) VALUES ($roomTypeId, '$dateStr', " . ($roomType['type'] == 'PRIVATE' ? $val : 'NULL') . ", " . ($roomType['type'] == 'DORM' ? $val : 'NULL') . ", '$todaySlash')";
+		// For private and apartment set the room price, for dorm set the bed price.
+		$sql = "INSERT INTO prices_for_date (room_type_id, date, price_per_room, price_per_bed,	price_set_date, discount_per_bed) VALUES ($roomTypeId, '$dateStr', " . ($roomType['type'] != 'DORM' ? $val : 'NULL') . ", " . ($roomType['type'] == 'DORM' ? $val : 'NULL') . ", '$todaySlash', $dpb)";
 		if(!mysql_query($sql, $link)) {
 			trigger_error("Cannot save room price: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 			set_error("Cannot save price for day: $dateStr and room(s): " . $roomType['name']);

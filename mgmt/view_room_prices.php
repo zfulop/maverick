@@ -65,12 +65,12 @@ for($i = 1; $i <= 31; $i++) {
 }
 echo "</tr>\n";
 
-if($roomType['type'] == 'BOTH') {
-	echo "<strong style=\"font-size: 150%;\">Input format in each cell: 1st input - bed price, 2nd input room price</strong><br>";
-} elseif($roomType['type'] == 'DORM') {
+if($roomType['type'] == 'DORM') {
 	echo "<strong style=\"font-size: 150%;\">Prices are per BED</strong><br>";
 } elseif($roomType['type'] == 'PRIVATE') {
 	echo "<strong style=\"font-size: 150%;\">Prices are per ROOM</strong><br>";
+} elseif($roomType['type'] == 'APARTMENT') {
+	echo "<strong style=\"font-size: 150%;\">Input format in each cell: room price &lt;new line&gt; discount per bed</strong><br>";
 }
 
 for($i = 1; $i <= 12; $i++) {
@@ -88,8 +88,15 @@ for($i = 1; $i <= 12; $i++) {
 			$val = $type == 'DORM' ? $prices[$dateStr]['price_per_bed'] : $prices[$dateStr]['price_per_room'];
 		}
 		echo "<input style=\"width: 20px; font-size: 9px;\" name=\"$dateStr\" value=\"$val\">";
+		if($type == 'APARTMENT') {
+			echo "<br><input style=\"width: 20px; font-size: 9px;\" name=\"dpb_$dateStr\" value=\"$val\">";
+		}
 		echo "</td>\n";
 	}
+	if(date("t", $monthDt) < 31) {
+		echo "		<td colspan=\"" . (31 - date("t", $monthDt)) . "\"></td>\n";
+	}
+	echo "		<td>EUR&nbsp;for&nbsp;room<br>%&nbsp;discount&nbsp;per&nbsp;bed</td>\n";
 	echo "	</tr>\n";
 }
 

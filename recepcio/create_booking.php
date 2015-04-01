@@ -25,7 +25,7 @@ $depositCurrency = $_REQUEST['deposit_currency'];
 $comment = $_REQUEST['comment'];
 $source = $_REQUEST['source'];
 $arrivalTime = $_REQUEST['arrival_time'];
-$numOfNights = intval((strtotime(str_replace('/', '-', $lnight)) - strtotime(str_replace('/', '-', $fnight))) / (60*60*24)) + 1;
+$numOfNights = round((strtotime(str_replace('/', '-', $lnight)) - strtotime(str_replace('/', '-', $fnight))) / (60*60*24)) + 1;
 
 list($startYear, $startMonth, $startDay) = explode('/', $fnight);
 list($endYear, $endMonth, $endDay) = explode('/', $lnight);
@@ -65,11 +65,14 @@ if(count($overbookings) > 0) {
 			$datesUnavailableStr .= ", $currDate - there are only $availableBeds beds available";
 		}
 		$datesUnavailableStr = substr($datesUnavailableStr, 2);
-		if($roomTypes[$roomTypeId]['type'] == 'DORM') {
+		if(isDorm($roomTypes[$roomTypeId])) {
 			set_warning("Overbooking: For the dormitory room: $roomName and dates: $datesUnavailableStr. ");		
 			$warning = true;
-		} else {
+		} elseif(isPrivate($roomTypes[$roomTypeId])) {
 			set_error("Overbooking: For the private room: $roomName and dates: $datesUnavailableStr. The booking cannot be saved.");
+			$error = true;
+		} elseif(isApartment($roomTypes[$roomTypeId])) {
+			set_error("Overbooking: For the apartment: $roomName and dates: $datesUnavailableStr. The booking cannot be saved.");
 			$error = true;
 		}
 	}

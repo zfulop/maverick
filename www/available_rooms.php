@@ -208,6 +208,9 @@ echo <<<EOT
 EOT;
 
 foreach($roomTypesData as $roomTypeId => $roomType) {
+	if(showApartments() !== isApartment($roomType)) {
+		continue;
+	}
 	$name = $roomType['name'];
 	$descr = $roomType['description'];
 	$shortDescr = $roomType['short_description'];
@@ -216,7 +219,10 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 		$roomType['num_of_beds_avail'] = 0;
 	}
 	for($i = 0; $i <= $roomType['num_of_beds_avail']; $i++) {
-		if($roomType['type'] != 'DORM' and ($i % $roomType['num_of_beds'] != 0)) {
+		if(isPrivate($roomType) and ($i % $roomType['num_of_beds'] != 0)) {
+			continue;
+		}
+		if(isApartment($roomType) and ($i == 1)) {
 			continue;
 		}
 		$key = 'room_type_' . $location . '_' . $roomTypeId;
@@ -240,7 +246,7 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 	$price = $roomType['price'];
 	$oldPricePerNight = '';
 	if($discount > 0) {
-		$percentOff = sprintf(PERCENT_OFF, $discount);
+		$percentOff = '-' . $discount . '%';
 		$sale = <<<EOT
                     <p class="sale condensed">
                       <span>$percentOff</span>
@@ -248,9 +254,9 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 
 EOT;
 		$price = $price * (100 - $discount) / 100;
-		$oldPricePerNight = sprintf($roomType['type'] == 'DORM' ? PRICE_PER_NIGHT_PER_BED : PRICE_PER_NIGHT_PER_ROOM, formatMoney(convertCurrency($roomType['price'], 'EUR', $currency), $currency)) . '<br>';
+		$oldPricePerNight = sprintf(isDorm($roomType) ? PRICE_PER_NIGHT_PER_BED : PRICE_PER_NIGHT_PER_ROOM, formatMoney(convertCurrency($roomType['price'], 'EUR', $currency), $currency)) . '<br>';
 	}
-	$pricePerNight = sprintf($roomType['type'] == 'DORM' ? PRICE_PER_NIGHT_PER_BED : PRICE_PER_NIGHT_PER_ROOM, formatMoney(convertCurrency($price, 'EUR', $currency), $currency));
+	$pricePerNight = sprintf(isDorm($roomType) ? PRICE_PER_NIGHT_PER_BED : PRICE_PER_NIGHT_PER_ROOM, formatMoney(convertCurrency($price, 'EUR', $currency), $currency));
 
 	if($roomType['num_of_beds_avail'] > 0) {
 		$formName = "room_type_" . $location . "_" . $roomTypeId;
@@ -297,11 +303,19 @@ EOT;
 		while($row = mysql_fetch_assoc($result)) {
 			if(($row['default'] == 1) or (strlen($roomImg) < 1)) {
 				$host = '';
+				$baseDir = BASE_DIR;
 				if($location == 'hostel') {
 					$host = 'http://img.maverickhostel.com/';
+					$baseDir = HOSTEL_BASE_DIR;
 				}
-				$roomImg = $host . 'get_image.php?type=ROOM&width=587&height=387&file=' . $row['filename'];
+				$savedFileName = getFName($row['filename']) . '_587_387.' . getFExt($row['filename']);
+				if(file_exists($baseDir . 'img/rooms/' . $savedFileName)) {
+					$roomImg = $host . 'img/rooms/' . $savedFileName;
+				} else {
+					$roomImg = $host . 'get_image.php?type=ROOM&width=587&height=387&file=' . $row['filename'] . '&save_file=' . $savedFileName;
+				}
 			}
+
 		}
 	}
 	$extrasHtml = getExtrasHtml($location, $roomType['type']);
@@ -415,6 +429,7 @@ function sortRoomsByAvailOrder($rt1, $rt2) {
 		return 1;
 	}
 }
+
 
 
 ?>

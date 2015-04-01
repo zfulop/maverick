@@ -495,6 +495,7 @@ while($currDate <= $endDate) {
 		$currDate = date('Y-m-d', strtotime($currDate . " +1 day"));
 	} elseif($timeGroup == 'week') {
 		$dateCol = substr($currDate,0,4) . '/' . date('W',strtotime($currDate));
+		$dateCol = str_replace('/0', '/', $dateCol);
 		$currDate = date('Y-m-d', strtotime($currDate . " +7 day"));
 	} else { // month
 		$dateCol = substr($currDate, 0, 7);

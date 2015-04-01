@@ -1,6 +1,8 @@
 <?php
 
 require("includes.php");
+require("room_booking.php");
+
 $SOURCES = array();
 
 
@@ -583,12 +585,14 @@ foreach($bookings as $booking) {
 $roomsHtml = '';
 foreach($roomTypes as $roomTypeId => $roomType) {
 	$excludeNums = array();
-	if($roomType['type'] == 'PRIVATE') {
+	if(isPrivate($roomTyp)) {
 		for($i = 1; $i < $roomType['num_of_rooms'] * $roomType['num_of_beds']; $i++) {
 			if($i % $roomType['num_of_beds'] > 0) {
 				$excludeNums[] = $i;
 			}
 		}
+	} elseif(isApartment($roomType)) {
+		$excludeNums[] = 1;
 	}
 	$options = getOptions($roomType['num_of_rooms'] * $roomType['num_of_beds'], $excludeNums);
 	$roomsHtml .= "\t\t\t\t\t<tr><td>" . str_replace(" ", "&nbsp;", $roomType['name']) . "</td><td><select name=\"num_of_person_$roomTypeId\" id=\"num_of_person_$roomTypeId\" onchange=\"recalculatePayment();\">$options</select></td></tr>\n";

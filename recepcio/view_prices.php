@@ -36,7 +36,7 @@ $prices = array();
 foreach($roomTypes as $id => $data) {
 	$prices[$id] = array();
 }
-$sql = "SELECT * FROM prices_for_date WHERE date>='$selectedYear/$selectedMonth/1' AND date<='$selectedYear/$selectedMonth/$endDay'";
+$sql = "SELECT * FROM prices_for_date WHERE date>='$selectedYear/$selectedMonth/01' AND date<='$selectedYear/$selectedMonth/$endDay'";
 $result = mysql_query($sql, $link);
 while($row = mysql_fetch_assoc($result)) {
 	$rtId = $row['room_type_id'];
@@ -205,7 +205,7 @@ EOT;
 		$price = '';
 		echo "		<td align=\"center\" style=\"$style\">";
 		$column = 'price_per_room';
-		if($roomType['type'] == 'DORM') {
+		if(isDorm($roomType['type'])) {
 			$column = 'price_per_bed';
 		}
 		if(isset($prices[$rtId][$currDateSlash]) and !is_null($prices[$rtId][$currDateSlash][$column])) {

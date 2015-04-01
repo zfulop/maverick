@@ -66,7 +66,7 @@ function &loadOnlyRooms($startYear, $startMonth, $startDay, $endYear, $endMonth,
 	$lastNightDate = "$endYear/$endMonth/$endDay";
 
 	$rooms = array();
-	$sql = "SELECT r.id, r.room_type_id, r.name AS name, rt.name AS room_type_name, rt.type, rt.num_of_beds, rt.price_per_room, rt.price_per_bed, rt._order FROM rooms r INNER JOIN room_types rt ON (r.room_type_id=rt.id) WHERE r.valid_to>='$lastNightDate' AND r.valid_from<='$arriveDate'";
+	$sql = "SELECT r.id, r.room_type_id, r.name AS name, rt.name AS room_type_name, rt.type, rt.num_of_beds, rt.price_per_room, rt.price_per_bed, rt.discount_per_bed, rt._order FROM rooms r INNER JOIN room_types rt ON (r.room_type_id=rt.id) WHERE r.valid_to>='$lastNightDate' AND r.valid_from<='$arriveDate'";
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot get rooms: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -226,48 +226,14 @@ function isDorm(&$roomData) {
 	return $roomData['type'] == 'DORM';
 }
 
-
-/**
- * Get the price of a booking for the specified interval. If the type is ROOM, the
- * function returns the room price, if the booking is BED it returns the price
- * of a bed. Parameters: 
- *  - Start and End dates are in format yyyy-mm-dd
- *  - type is 'BED' or 'ROOM'
- *  - room is the array that is an element of the array returned from the loadRooms() function.
- */
-function getPriceForInterval($startDate, $endDate, $type, &$room) {
-	$startDate = str_replace('/', '-', $startDate);
-	$endDate = str_replace('/', '-', $endDate);
-	list($startYear, $startMonth, $startDay) = explode('-', $startDate);
-	list($endYear, $endMonth, $endDay) = explode('-', $endDate);
-	$startMonth = __getNormalizedDate($startMonth);
-	$startDay = __getNormalizedDate($startDay);
-	$endMonth = __getNormalizedDate($endMonth);
-	$endDay = __getNormalizedDate($endDay);
-	$startDate = "$startYear-$startMonth-$startDay";
-	$endDate = "$endYear-$endMonth-$endDay";
-	set_debug("getPriceInterval() start: $startDate, end: $endDate, room: " . $room['name']);
-	$payment = 0;
-	for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', strtotime("$currDate +1 day"))) {
-		$currYear = substr($currDate, 0, 4);
-		$currMonth = substr($currDate, 5, 2);
-		$currDay = substr($currDate, 8, 2);
-		if(strlen($currMonth) < 2) $currMonth = '0' . $currMonth;
-		if(strlen($currDay) < 2) $currDay = '0' . $currDay;
-		if($type == 'BED') {
-			$payment += getBedPrice($currYear, $currMonth, $currDay, $room);
-		} else {
-			$payment += getRoomPrice($currYear, $currMonth, $currDay, $room);
-		}
-		set_debug("getPriceInterval() - payment now: $payment");
-	}
-	return $payment;
+function isApartment(&$roomData) {
+	return $roomData['type'] == 'APARTMENT';
 }
 
 
-function getPrice($arriveTS, $nights, &$roomData) {
+
+function getPrice($arriveTS, $nights, &$roomData, $numOfPerson) {
 	$oneDayTS = $arriveTS;
-	$type = $roomData['type'];
 	$totalPrice = 0;
 	for($i = 0; $i < $nights; $i++) {
 		$currYear = date('Y', $oneDayTS);
@@ -275,10 +241,17 @@ function getPrice($arriveTS, $nights, &$roomData) {
 		$currDay = date('d', $oneDayTS);
 		$oneDay =  date('Y/m/d', $oneDayTS);
 		$oneDayTS += 24 * 60 * 60;
-		if($type == 'DORM') {
-			$totalPrice += getBedPrice($currYear, $currMonth, $currDay, $roomData);
-		} else {
+		if(isDorm($roomData)) {
+			$totalPrice += getBedPrice($currYear, $currMonth, $currDay, $roomData) * $numOfPerson;
+		} elseif(isPrivate($roomData)) {
 			$totalPrice += getRoomPrice($currYear, $currMonth, $currDay, $roomData);
+		} elseif(isApartment($roomData)) {
+			set_debug('get apartment price');
+			$price = getRoomPrice($currYear, $currMonth, $currDay, $roomData);
+			set_debug('room price: ' . $price);
+			set_debug('data: ' . print_r(array('num of person'=>$numOfPerson,'room beds'=>$roomData['num_of_beds'],'discount per bed'=>getDiscountPerBed($currYear, $currMonth, $currDay, $roomData)),true));
+			$price = $price - $price * ($roomData['num_of_beds'] - $numOfPerson) * getDiscountPerBed($currYear, $currMonth, $currDay, $roomData) / 100.0;
+			$totalPrice += $price;
 		}
 	}
 
@@ -329,6 +302,23 @@ function getRoomPrice($year, $month, $day, &$room) {
 }
 
 
+function getDiscountPerBed($year, $month, $day, &$room) {
+	$retVal = null;
+	$month = __getNormalizedDate($month);
+	$day = __getNormalizedDate($day);
+	$dt = $year . '/' . $month . '/' . $day;
+	if(isset($room['prices'][$dt])) {
+		if(!is_null($room['prices'][$dt]['discount_per_bed']))
+			$retVal = $room['prices'][$dt]['discount_per_bed'];
+		else
+			$retVal = $room['discount_per_bed'];
+	} else {
+		$retVal = $room['discount_per_bed'];
+	}
+	return $retVal;
+}
+
+
 
 
 
@@ -354,11 +344,9 @@ function getNumOfOccupBeds(&$oneRoom, $oneDay, $excludeBookingWithId = null, $ex
 		if($oneBooking['cancelled'] == 1) {
 			continue;
 		}
-
 		if($oneBooking['id'] == $excludeBookingWithId) {
 			continue;
 		}
-
 		if($oneBooking['description_id'] == $excludeBookingWithDescrId) {
 			continue;
 		}
@@ -374,6 +362,9 @@ function getNumOfOccupBeds(&$oneRoom, $oneDay, $excludeBookingWithId = null, $ex
 				continue;
 		}
 
+		// The real number of occupied beds will return regardless if the whole room is booked or not
+		// If this is a private room or an appartment, the overbooking calculation will see that not all
+		// beds are available and will make the whole room unavailable
 		if(($oneBooking['first_night'] <= $oneDay) and ($oneBooking['last_night'] >= $oneDay)) {
 //			if($oneBooking['booking_type'] == 'BED')
 				$occupBeds += $oneBooking['num_of_person'];
@@ -396,6 +387,9 @@ function getNumOfOccupBeds(&$oneRoom, $oneDay, $excludeBookingWithId = null, $ex
 		}
 
 
+		// The real number of occupied beds will return regardless if the whole room is booked or not
+		// If this is a private room or an appartment, the overbooking calculation will see that not all
+		// beds are available and will make the whole room unavailable
 		if($oneRoomChange['date_of_room_change'] == $oneDay) {
 //			if($oneRoomChange['booking_type'] == 'BED')
 				$occupBeds += $oneRoomChange['num_of_person'];
@@ -438,7 +432,11 @@ function getOverbookings($numOfPersonForRoomType, $startDate, $endDate, &$rooms)
 				if($roomData['room_type_id'] != $roomTypeId) {
 					continue;
 				}
-				$availableBeds += getNumOfAvailBeds($rooms[$roomId], $currDate);
+				$beds = getNumOfAvailBeds($rooms[$roomId], $currDate);
+				if((isPrivate($rooms[$roomId]) or isApartment($rooms[$roomId])) and $beds < $rooms[$roomId]['num_of_beds']) {
+					$beds = 0;
+				}
+				$availableBeds += $beds;
 			}
 			set_debug("getOverbookings() - Available beds: $availableBeds for date: $currDate");
 
@@ -482,12 +480,7 @@ function getBookingsWithDiscount($location, $arriveDateTs, $nights, &$roomTypesD
 			$name = $roomType['name'];
 			$rtId = $roomType['id'];
 			$roomData = getRoomData($rooms, $roomTypeId);
-			$price = getPrice($arriveDateTs, $nights, $roomData);
-			if($roomType['type'] == 'DORM') {
-				$price = $price * $numOfGuests;
-			} else {
-				$price = $price * ceil($numOfGuests / $roomType['num_of_beds']);
-			}
+			$price = getPrice($arriveDateTs, $nights, $roomData, $numOfGuests);
 			$discount = 0;
 			$selectedSo = null;
 			foreach($specialOffers as $so) {
@@ -570,13 +563,6 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 		if($numOfPerson < 1) {
 			continue;
 		}
-/*
-		if($roomType['type'] == 'DORM') {
-			$toBook[$roomIds[0]] = array('num_of_person' => $numOfPerson, 'type' => 'BED');
-		} elseif(count($roomIds) == 1) {
-			$toBook[$roomIds[0]] = array('num_of_person' => $roomType['num_of_beds'], 'type' => 'ROOM');
-		} else {
-*/
 
 		$roomsNotToBook = array();
 		for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', strtotime("$currDate +1 day"))) {
@@ -585,7 +571,7 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 					continue;
 				}
 				$availableBeds = getNumOfAvailBeds($roomData, $currDate);
-				if($roomType['type'] == 'PRIVATE' and $availableBeds != $roomType['num_of_beds']) {
+				if((isPrivate($roomType) or isApartment($roomType)) and $availableBeds != $roomType['num_of_beds']) {
 					$roomsNotToBook[$roomId][] = $currDate;
 				}
 			}
@@ -600,10 +586,10 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 				break;
 			}
 			if(!isset($roomsNotToBook[$roomId])) {
-				if($roomType['type'] == 'PRIVATE') {
+				if(isPrivate($roomType) or isApartment($roomType)) {
 					$toBook[$roomId] = array('num_of_person' => $roomData['num_of_beds'], 'type' => 'ROOM');
 					$numOfBedsBooked += $roomData['num_of_beds'];
-				} elseif($roomType['type'] == 'DORM') {
+				} elseif(isDorm($roomType)) {
 					$numOfPersonInDorm = $numOfPerson-$numOfBedsBooked;
 					$toBook[$roomId] = array('num_of_person' => $numOfPersonInDorm, 'type' => 'BED');
 					$numOfBedsBooked += $numOfPersonInDorm;
@@ -614,7 +600,7 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 		// If there is no room that would be free for all the days, find the room that is the least booked, 
 		// and add 'roomChanges' for the days that is booked, that is: it will find another room for the days where 
 		// the mostly free room is booked.
-		if($roomType['type'] == 'PRIVATE' and $numOfBedsBooked < $numOfPerson) {
+		if(isPrivate($roomType) and $numOfBedsBooked < $numOfPerson) {
 			$roomsNotToBookInReverse = $roomsNotToBook;
 			// sort the $roomsNotToBook in the order of the number of dates unavailable (ascending)
 			uasort($roomsNotToBook, "sortByArraySize");
@@ -627,8 +613,8 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 				if($numOfBedsBooked >= $numOfPerson) {
 					break;
 				}
-				$personToBook = ($roomType['type'] == 'PRIVATE' ? $roomType['num_of_beds'] : min($roomData['num_of_beds'], $numOfPerson-$numOfBedsBooked));
-				$toBook[$roomId] = array('num_of_person' => $personToBook, 'type' => ($roomType['type'] == 'PRIVATE' ? 'ROOM' : 'BED'));
+				$personToBook = (isPrivate($roomType) ? $roomType['num_of_beds'] : min($roomData['num_of_beds'], $numOfPerson-$numOfBedsBooked));
+				$toBook[$roomId] = array('num_of_person' => $personToBook, 'type' => (isPrivate($roomType) ? 'ROOM' : 'BED'));
 
 				$numOfBedsBooked += $personToBook;
 				// add roomChanges for the dates unavailable
@@ -644,8 +630,8 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 					uasort($roomsNotToBookInReverse, "sortByArraySizeDesc");
 				}
 			}
-		} elseif($roomType['type'] == 'DORM') {
-			// Handle the overbookings for DORM: 
+		} elseif(isDorm($roomType['type'])) {
+			// Handle the overbookings for dorm: 
 			// for each booking iterate through the dates:
 			//   get the overbooking for that dorm room for that date
 			//   iterate through again the rooms
@@ -722,6 +708,8 @@ function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$ro
 	$endDay = __getNormalizedDate($endDay);
 	$startDate = "$startYear-$startMonth-$startDay";
 	$endDate = "$endYear-$endMonth-$endDay";
+	$numOfNights = round((strtotime($endDate) - strtotime($startDate)) / (60*60*24)) + 1;
+
 
 	set_debug("saveBooking() - start: $startDate, end: $endDate");
 
@@ -734,10 +722,7 @@ function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$ro
 		$numOfPerson = $roomData['num_of_person'];
 		$specialOfferId = 'NULL';
 		if(is_null($priceForRoomType) or !isset($priceForRoomType[$roomTypeId])) {
-			$payment = getPriceForInterval($startDate, $endDate, $type, $rooms[$roomId]);
-			if($type == 'BED') {
-				$payment = $payment * $numOfPerson;
-			}	
+			$payment = getPrice(strtotime($startDate), $numOfNights, $rooms[$roomId], $numOfPerson);
 			$discount = 0;
 			$selectedSo = null;
 			foreach($specialOffers as $so) {
@@ -790,7 +775,7 @@ function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$ro
 			if($type == 'ROOM') {
 				createDbBookingRoomChange($bookingId, $dateOfRoomChange, $rid, $link, $rooms);
 			} else {
-				// If the booking is per bed (DORM), then create one room change per person up until num_of_person
+				// If the booking is per bed (dormitory), then create one room change per person up until num_of_person
 				// in this case $bookingId will be an array of bookings ids (one booking per one person)
 				// There can be for one day 2 room changes (when the original room is full and the team must be
 				// divided into two separate rooms $bedRoomChange holds for a given day how many booking have 

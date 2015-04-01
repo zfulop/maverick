@@ -38,7 +38,8 @@ while($row = mysql_fetch_assoc($result)) {
 
 $TYPES = array(
 	'DORM' => 0,
-	'PRIVATE' => 1);
+	'PRIVATE' => 1,
+	'APARTMENT' => 2);
 
 $thisYear =  date('Y');
 $nextYear = $thisYear + 1;
@@ -119,11 +120,13 @@ echo <<<EOT
 	<tr><td><label>Type</label></td><td><select name="type" id="type" style="width: 200px; font-size: 11px;">
 		<option value="DORM">Dormitory</option>
 		<option value="PRIVATE">Private</option>
+		<option value="APARTMENT">Apartment</option>
 	</select></td></tr>
 	<tr><td><label>Number of beds</label></td><td><input name="num_of_beds" id="num_of_beds" style="width: 40px;"></td></tr>
 	<tr><td><label>Number of extra beds</label></td><td><input name="num_of_extra_beds" id="num_of_extra_beds" style="width: 40px;"></td></tr>
 	<tr><td><label>Price per room</label></td><td><input name="price_per_room" id="price_per_room" style="width: 40px;"> <span>Euro</span></td></tr>
 	<tr><td><label>Price per bed</label></td><td><input name="price_per_bed" id="price_per_bed" style="width: 40px;"> <span>Euro</span></td></tr>
+	<tr><td><label>Discount per bed (for apartments)</label></td><td><input name="discount_per_bed" id="discount_per_bed" style="width: 40px;"><span>%</span></td></tr>
 	<tr><td><label>Order</label></td><td><input name="order" id="order" style="width: 40px;"></td></tr>
 
 EOT;
@@ -199,15 +202,16 @@ $endYearOptions
 $endMonthOptions
 </select>/<input name="end_day" value="$endDayValue" size="2" style="display: inline; float: none;"></td></tr>
 <tr><td>Days</td><td>
-	<div>Mon <input style="float: left; display: block;" type="checkbox" name="days[]" value="1" $monChecked></div>
-	<div>Tue <input style="float: left; display: block;" type="checkbox" name="days[]" value="2" $tueChecked></div>
-	<div>Wed <input style="float: left; display: block;" type="checkbox" name="days[]" value="3" $wedChecked></div>
-	<div>Thu <input style="float: left; display: block;" type="checkbox" name="days[]" value="4" $thuChecked></div>
-	<div>Fri <input style="float: left; display: block;" type="checkbox" name="days[]" value="5" $friChecked></div>
-	<div>Sat <input style="float: left; display: block;" type="checkbox" name="days[]" value="6" $satChecked></div>
-	<div>Sun <input style="float: left; display: block;" type="checkbox" name="days[]" value="7" $sunChecked></div>
+	<div style="clear: left;">Mon <input style="float: left; display: block;" type="checkbox" name="days[]" value="1" $monChecked></div>
+	<div style="clear: left;">Tue <input style="float: left; display: block;" type="checkbox" name="days[]" value="2" $tueChecked></div>
+	<div style="clear: left;">Wed <input style="float: left; display: block;" type="checkbox" name="days[]" value="3" $wedChecked></div>
+	<div style="clear: left;">Thu <input style="float: left; display: block;" type="checkbox" name="days[]" value="4" $thuChecked></div>
+	<div style="clear: left;">Fri <input style="float: left; display: block;" type="checkbox" name="days[]" value="5" $friChecked></div>
+	<div style="clear: left;">Sat <input style="float: left; display: block;" type="checkbox" name="days[]" value="6" $satChecked></div>
+	<div style="clear: left;">Sun <input style="float: left; display: block;" type="checkbox" name="days[]" value="7" $sunChecked></div>
 </td></tr>
 <tr><td>Bed or Room Price: </td><td><input name="price" size="4"></td></tr>
+<tr><td>Discount per bed (for apartments): </td><td><input name="discount_per_bed" size="4"></td></tr>
 <tr><td colspan="2">
 	<input type="submit" value="Set price(s)">
 	<input type="button" onclick="document.getElementById('price_form').style.display='none'; document.getElementById('price_btn').style.display='block'; return false;" value="Cancel">
@@ -222,7 +226,7 @@ $endMonthOptions
 
 EOT;
 if(count($roomTypes) > 0)
-	echo "	<tr><th>Order</th><th>Name</th><th>Type</th><th>Price per bed</th><th>Price per room</th><th># of beds</th><th># of extra beds</th><th></th></tr>\n";
+	echo "	<tr><th>Order</th><th>Name</th><th>Type</th><th>Price per bed</th><th>Price per room</th><th>Discount per bed</th><th># of beds</th><th># of extra beds</th><th></th></tr>\n";
 else
 	echo "	<tr><td><i>No record found.</i></td></tr>\n";
 
@@ -246,6 +250,7 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 	echo "		document.getElementById('room_type_name').value='" . $roomType['name'] . "';\n";
 	echo "		document.getElementById('price_per_room').value='" . $roomType['price_per_room'] . "';\n";
 	echo "		document.getElementById('price_per_bed').value='" . $roomType['price_per_bed'] . "';\n";
+	echo "		document.getElementById('discount_per_bed').value='" . $roomType['discount_per_bed'] . "';\n";
 	echo "		document.getElementById('num_of_beds').value='" . $roomType['num_of_beds'] . "';\n";
 	echo "		document.getElementById('num_of_extra_beds').value='" . $roomType['num_of_extra_beds'] . "';\n";
 	echo "		document.getElementById('type').selectedIndex=" . $TYPES[$roomType['type']] . ";\n";
@@ -266,6 +271,7 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 	echo "<td>" . $roomType['type'] . "</td>";
 	echo "<td>" . $roomType['price_per_bed'] . "</td>";
 	echo "<td>" . $roomType['price_per_room'] . "</td>";
+	echo "<td>" . $roomType['discount_per_bed'] . "</td>";
 	echo "<td>" . $roomType['num_of_beds'] . "</td>";
 	echo "<td>" . $roomType['num_of_extra_beds'] . "</td>";
 	echo "<td>\n";

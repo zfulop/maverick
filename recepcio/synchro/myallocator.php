@@ -46,22 +46,22 @@ class MyAllocatorBooker extends Booker {
 				),
 			array(
 				'roomName' => 'Double_room_private_bathroom_ensuites_with_NEW_rooms',
-				'roomIds' => array(46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58),
+				'roomIds' => array(46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 66, 67, 68, 69, 75),
 				'remoteRoomId' => '9134'
 				),
 			array(
 				'roomName' => 'NEW_Maverick_ensuite_3_Bed',
-				'roomIds' => array(59),
+				'roomIds' => array(59, 62, 73),
 				'remoteRoomId' => '9135'
 				),
 			array(
 				'roomName' => 'NEW_Maverick_ensuite_4_Bed',
-				'roomIds' => array(60),
+				'roomIds' => array(60, 71, 72),
 				'remoteRoomId' => '9136'
 				),
 			array(
 				'roomName' => 'NEW_Maverick_ensuite_5_Bed',
-				'roomIds' => array(61),
+				'roomIds' => array(61, 74),
 				'remoteRoomId' => '9137'
 			),
 			array(
@@ -73,6 +73,16 @@ class MyAllocatorBooker extends Booker {
 				'roomName' => 'HW 4 bedded extra private ensuite',
 				'roomIds' => array(63),
 				'remoteRoomId' => '10032'
+			),
+			array(
+				'roomName' => '5 bed Dorm with private bathroom',
+				'roomIds' => array(64),
+				'remoteRoomId' => '9431'
+			),
+			array(
+				'roomName' => 'Single room ensuite',
+				'roomIds' => array(65),
+				'remoteRoomId' => '24369'
 			)
 		),
 		'LODGE' => array(
@@ -103,12 +113,12 @@ class MyAllocatorBooker extends Booker {
 				),
 			array(
 				'roomName' => '6 bed mixed dorm',
-				'roomIds' => array(67,68,69,70,71,72,73),
+				'roomIds' => array(67,68,69,70,71,72),
 				'remoteRoomId' => '10067'
 				),
 			array(
 				'roomName' => '8 bed mixed dorm',
-				'roomIds' => array(66,77),
+				'roomIds' => array(77),
 				'remoteRoomId' => '10068'
 				),
 			array(

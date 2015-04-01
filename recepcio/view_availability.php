@@ -377,32 +377,6 @@ EOT;
 	foreach($dates as $currDate) {
 		$htmlId = $currDate . '_' . $roomId;
 		echo "		<td id=\"td_$htmlId\"><a style=\"display:block;width:100%;height:100%;text-decoration:none;color:black;text-align:center;\" id=\"$htmlId\" href=\"view_availability_view_bookings_for_day.php?date=$currDate&roomId=$roomId\" data-ot=\"\" data-ot-group=\"tips\" data-ot-hide-trigger=\"tip\" data-ot-show-on=\"click\" data-ot-hide-on=\"click\" data-ot-fixed=\"true\" data-ot-ajax=\"true\"><img src=\"loading.gif\"></a></td>\n";
-/*		$avail = getNumOfAvailBeds($room, $currDate);
-		$occup = getNumOfOccupBeds($room, $currDate);
-		$htmlId = $currDate . '_' . $roomId;
-		$style = "background: " . getCSSBackgroundColor($currDate, $room) . ";";
-		if($occup > $room['num_of_beds']) {
-			$style .= "border: 3px dotted black;";
-		}
-		echo "		<td align=\"center\" style=\"$style\">\n";
-		$hasBooking = hasBookingForDay($room, $currDate);
-		if($hasBooking) {
-			echo "			<a id=\"$htmlId\" href=\"#\" onclick=\"showTooltip('$currDate','$roomId', '$htmlId');return false;\" style=\"display: block;text-decoration: none; color: black;\">\n";
-		}
-		echo "				$avail" . " / " . $room['num_of_beds'];
-		if($occup > $room['num_of_beds']) {
-			echo " (" . ($occup - $room['num_of_beds']) . ')';
-		}
-		echo "<br>\n";
-		foreach(getBookerNamesForDay($room, $currDate) as $oneBookerName) {
-			echo "				$oneBookerName\n";
-		}
-		if($hasBooking) {
-			echo "			</a>\n";
-		}
-//		printBookingsTooltipDivPerDay($room, $currDate, "bookings_per_day_per_room_$cntr");
-		echo "		</td>\n";
-*/
 	}
 	echo "	</tr>\n";
 }
@@ -442,7 +416,7 @@ function getCSSBackgroundColor($currDate, &$room) {
 		$g = 0;
 		$b = 0;
 	} elseif($avail < $room['num_of_beds']) {
-		if($room['type'] == 'PRIVATE') {
+		if(isApartment($room) or isPrivate($room)) {
 			$r = 255;
 			$g = 0;
 			$b = 0;

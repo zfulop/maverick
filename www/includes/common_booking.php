@@ -19,6 +19,15 @@ $extras = array(
 			array('img' => '/img/icon/svc_icon_air_conditioning.png', 'name' => AIR_CONDITIONING),
 			array('img' => '/img/icon/svc_icon_air_hair_dryer_in_bath.png', 'name' => HAIR_DRYER_IN_BATH),
 			array('img' => '/img/icon/svc_icon_towel_included.png', 'name' => LINEN_AND_TOWEL_INCLUDED),
+		),
+		'APARTMENT' => array(
+			array('img' => '/img/icon/svc_icon_free_wifi.png', 'name' => FREE_WIFI),
+			array('img' => '/img/icon/svc_icon_flat_screen_tv.png', 'name' => FLAT_SCREEN_TV),
+			array('img' => '/img/icon/svc_icon_reading_lights.png', 'name' => READING_LIGHTS),
+			array('img' => '/img/icon/svc_icon_smoke_fee_environment.png', 'name' => SMOKE_FREE_ENVIRONMENT),
+			array('img' => '/img/icon/svc_icon_air_conditioning.png', 'name' => AIR_CONDITIONING),
+			array('img' => '/img/icon/svc_icon_air_hair_dryer_in_bath.png', 'name' => HAIR_DRYER_IN_BATH),
+			array('img' => '/img/icon/svc_icon_towel_included.png', 'name' => LINEN_AND_TOWEL_INCLUDED),
 		)
 	),
 	'HOSTEL' => array(
@@ -32,6 +41,14 @@ $extras = array(
 			array('img' => '/img/icon/svc_icon_air_hair_dryer_for_request.png', 'name' => HAIR_DRYER_FOR_REQUEST)
 		),
 		'PRIVATE' => array(
+			array('img' => '/img/icon/svc_icon_free_wifi.png', 'name' => FREE_WIFI),
+			array('img' => '/img/icon/svc_icon_reading_lights.png', 'name' => READING_LIGHTS),
+			array('img' => '/img/icon/svc_icon_smoke_fee_environment.png', 'name' => SMOKE_FREE_ENVIRONMENT),
+			array('img' => '/img/icon/svc_icon_cable_tv.png', 'name' => CABLE_TV),
+			array('img' => '/img/icon/svc_icon_air_hair_dryer_for_request.png', 'name' => HAIR_DRYER_FOR_REQUEST),
+			array('img' => '/img/icon/svc_icon_towel_included.png', 'name' => LINEN_AND_TOWEL_INCLUDED)
+		),
+		'APARTMENT' => array(
 			array('img' => '/img/icon/svc_icon_free_wifi.png', 'name' => FREE_WIFI),
 			array('img' => '/img/icon/svc_icon_reading_lights.png', 'name' => READING_LIGHTS),
 			array('img' => '/img/icon/svc_icon_smoke_fee_environment.png', 'name' => SMOKE_FREE_ENVIRONMENT),
@@ -185,5 +202,26 @@ function getBookedServices($services, $location) {
 	}
 	return $retVal;
 }
+
+function showApartments() {
+	return ($_SESSION['apartment'] == 'yes');
+}
+
+
+function getFName($file) {
+	$parts = explode('.', $file);
+	return $parts[0];
+}
+
+function getFExt($file) {
+	$parts = explode('.', $file);
+	if(count($parts) > 1) {
+		return $parts[1];
+	} else {
+		return '';
+	}
+}
+
+
 
 ?>

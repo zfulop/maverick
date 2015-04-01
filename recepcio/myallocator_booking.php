@@ -14,6 +14,7 @@ $SOURCES = array(
 	'hb2' => 'hostelbookers',
 	'boo' => 'booking.com',
 	'ago' => 'Agoda',
+	'bnw' => 'BookNow - Tripadvisor',
 	'exp' => array('Hotel Collect Booking' => 'Expedia - Hotel Collect', 'Expedia Collect Booking' => 'Expedia - Expedia Collect')
 );
 
@@ -383,13 +384,18 @@ function createBooking($bookingData, $link) {
 				return false;
 			}
 			$numOfPerson = $roomData['Units'];
-			if($roomTypesData[$roomTypeId]['type'] == 'PRIVATE') {
+			if(isPrivate($roomTypesData[$roomTypeId])) {
 				$numOfPerson = $numOfPerson * $roomTypesData[$roomTypeId]['num_of_beds'];
 			}
 			$numOfPersonForRoomType[$roomTypeId] = $numOfPerson;
-			$priceForRoomType[$roomTypeId] = $roomData['Price'];
-			if($roomTypesData[$roomTypeId]['type'] == 'PRIVATE') {
-				$priceForRoomType[$roomTypeId] = $roomData['Price'] / $roomData['Units'];
+			$price = $roomData['Price'];
+//			if(isset($bookingData['TotalTaxes'])) {
+//				$price = $price + $bookingData['TotalTaxes'] / count($bookingData['Rooms']);
+//			}
+			if(isPrivate($roomTypesData[$roomTypeId])) {
+				$priceForRoomType[$roomTypeId] = $price / floatval($roomData['Units']);
+			} else {
+				$priceForRoomType[$roomTypeId] = $price;
 			}
 		}
 

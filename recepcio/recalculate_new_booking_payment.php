@@ -28,6 +28,8 @@ if(count($arr) != 3) {
 list($endYear, $endMonth, $endDay) = $arr;
 $startDate = $startYear . '-' . $startMonth . '-' . $startDay;
 $endDate = $endYear . '-' . $endMonth . '-' . $endDay;
+$nights = round((strtotime($endDate) - strtotime($startDate)) / (60*60*24)) + 1;
+
 
 $roomTypes = array();
 $sql = "SELECT rt.*, count(*) as num_of_rooms FROM room_types rt inner join rooms r on (rt.id=r.room_type_id) group by rt.id";
@@ -54,8 +56,9 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 		}
 	}
 	if(isset($_REQUEST['num_of_person_' . $roomTypeId]) and $_REQUEST['num_of_person_' . $roomTypeId] > 0) {
-		$info .= "for room: " . $roomType['name'] . " there are $numOfPerson people. ";
-		$roomPayment += getPriceForInterval($startDate, $endDate, 'BED', $rooms[$oneRoomId]) * $numOfPerson;
+		$info .= "for room: " . $roomType['name'] . " there are $numOfPerson people and the booking is for $nights nights. ";
+		$price = getPrice(strtotime($startDate), $nights, $rooms[$oneRoomId], $numOfPerson);
+		$roomPayment += $price;
 	}
 }
 

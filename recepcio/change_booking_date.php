@@ -13,7 +13,7 @@ $fnight = $_REQUEST['first_night'];
 $lnight = $_REQUEST['last_night'];
 $oldFnight = $_REQUEST['old_first_night'];
 $oldLnight = $_REQUEST['old_last_night'];
-$numOfNights = intval((strtotime(str_replace('/', '-', $lnight)) - strtotime(str_replace('/', '-', $fnight))) / (60*60*24)) + 1;
+$numOfNights = round((strtotime(str_replace('/', '-', $lnight)) - strtotime(str_replace('/', '-', $fnight))) / (60*60*24)) + 1;
 
 set_debug("Changing booking dates from: $oldFnight - $oldLnight to: $fnight - $lnight");
 
@@ -145,10 +145,7 @@ foreach($roomChanges as $bookingId => $changes) {
 
 foreach($bookings as $roomId => $oneBooking) {
 	$numOfPerson = $oneBooking['num_of_person'];
-	$prc = getPriceForInterval($fnight, $lnight, $oneBooking['booking_type'], $rooms[$roomId]);
-	if($oneBooking['booking_type'] == 'BED') {
-		$prc = $prc * $numOfPerson;
-	}
+	$prc = getPrice(strtotime(str_replace('/','-',$fnight)), $numOfNights, $rooms[$roomId], $numOfPerson);
 	$sql = "UPDATE bookings SET room_payment='$prc' WHERE id=" . $oneBooking['id'];
 	if(!mysql_query($sql, $link)) {
 		trigger_error("Cannot update booking's room payment: " . mysql_error($link) . " (SQL: $sql)");

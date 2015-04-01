@@ -18,10 +18,40 @@ if(file_exists('captcha/hrs.txt')) {
 	unlink('captcha/hrs.txt');
 }
 
+$loadHrs = '';
+$loadMyAllocator = '';
 
-list($startYear, $startMonth, $startDay) = explode('-', $_REQUEST['start_date']);
-list($endYear, $endMonth, $endDay) = explode('-', $_REQUEST['end_date']);
+$startDate = $_REQUEST['start_date'];
+$endDate = $_REQUEST['end_date'];
+$paramsArray = array();
+$datesArray = array();
+$currDate = $startDate;
+$currEndDate = min($endDate, date('Y-m-d', strtotime($startDate . ' +1 month')));
+$cntr = 0;
+while($currDate < $endDate) {
+	list($startYear, $startMonth, $startDay) = explode('-', $currDate);
+	list($endYear, $endMonth, $endDay) = explode('-', $currEndDate);
+	if(strlen($startDay) == 1)
+		$startDay = '0' . $startDay;
+	if(strlen($startMonth) == 1)
+		$startMonth = '0' . $startMonth;
+	if(strlen($endDay) == 1)
+		$endDay = '0' . $endDay;
+	if(strlen($endMonth) == 1)
+		$endMonth = '0' . $endMonth;
+	$params = "start_year=$startYear&start_month=$startMonth&start_day=$startDay&end_year=$endYear&end_month=$endMonth&end_day=$endDay";
+	$paramsArray[] = $params;
+	$datesArray[] = "$currDate - $currEndDate";
+	$currDate = date('Y-m-d', strtotime($currEndDate . ' +1 day'));
+	$currEndDate = min($endDate, date('Y-m-d', strtotime($currDate . ' +1 month')));
+	$loadHrs .= in_array('hrs', $_REQUEST['sites']) ? "loadFrame('hrs$cntr', 'hrs.php?$params');\n" : '';
+	$loadMyAllocator .= in_array('myallocator', $_REQUEST['sites']) ? "loadFrame('myallocator$cntr', 'myallocator.php?$params');\n" : '';
 
+}
+$diff = strtotime($endDate) - strtotime($startDate);
+
+list($startYear, $startMonth, $startDay) = explode('-', $startDate);
+list($endYear, $endMonth, $endDay) = explode('-', $endDate);
 if(strlen($startDay) == 1)
 	$startDay = '0' . $startDay;
 if(strlen($startMonth) == 1)
@@ -31,12 +61,9 @@ if(strlen($endDay) == 1)
 if(strlen($endMonth) == 1)
 	$endMonth = '0' . $endMonth;
 
-
-
 $link = db_connect();
 $rooms = loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link);
 
-$params = "start_year=$startYear&start_month=$startMonth&start_day=$startDay&end_year=$endYear&end_month=$endMonth&end_day=$endDay";
 /*
 $loadHW = in_array('hw', $_REQUEST['sites']) ? 'true' : 'false';
 $loadMyallocator = in_array('myallocator', $_REQUEST['sites']) ? 'true' : 'false';
@@ -47,8 +74,6 @@ $loadBookings = in_array('bookings', $_REQUEST['sites']) ? 'true' : 'false';
 $loadLaterooms = in_array('laterooms', $_REQUEST['sites']) ? 'true' : 'false';
 $loadAgoda = in_array('agoda', $_REQUEST['sites']) ? 'true' : 'false';
 */
-$loadHrs = in_array('hrs', $_REQUEST['sites']) ? "loadFrame('hrs', 'hrs.php?$params');" : '';
-$loadMyAllocator = in_array('myallocator', $_REQUEST['sites']) ? "loadFrame('myallocator', 'myallocator.php?$params');" : '';
 
 $extraHeader = <<<EOT
 
@@ -70,6 +95,7 @@ $onloadScript = 'init();';
 html_start("Maverick Recepcio - Room availability synchronization", $extraHeader, true, $onloadScript);
 
 echo "<h1>Synchronization from $startYear-$startMonth-$startDay to $endYear-$endMonth-$endDay</h1>\n";
+;
 
 /*
 echo "<h2>HostelWorld.com</h2>\n";
@@ -78,15 +104,27 @@ echo "<iframe id=\"hostelworld\" width=\"90%\" height=\"200\" style=\"margin: 10
 echo "</iframe>\n";
  */
 
-echo "<h2>hotelservice.hrs.com</h2>\n";
-echo "<a href=\"#\" onclick=\"document.getElementById('hrs').src='hrs.php?$params';return false; \">Reload</a><br>\n";
-echo "<iframe id=\"hrs\" width=\"90%\" height=\"200\" style=\"margin: 10px; background: rgb(200, 200, 200); border: 1px dotted black;\">\n";
-echo "</iframe>\n";
+if(in_array('hrs', $_REQUEST['sites'])) {
+	for($i = 0; $i < count($paramsArray); $i++) {
+		$params = $paramsArray[$i];
+		$dates = $datesArray[$i];
+		echo "<h2>hotelservice.hrs.com $dates</h2>\n";
+		echo "<a href=\"#\" onclick=\"document.getElementById('hrs$i').src='hrs.php?$params';return false; \">Reload</a><br>\n";
+		echo "<iframe id=\"hrs$i\" width=\"90%\" height=\"200\" style=\"margin: 10px; background: rgb(200, 200, 200); border: 1px dotted black;\">\n";
+		echo "</iframe>\n";
+	}
+}
 
-echo "<h2>MyAllocator.com</h2>\n";
-echo "<a href=\"#\" onclick=\"document.getElementById('myallocator').src='myallocator.php?$params'; return false; \">Reload</a><br>\n";
-echo "<iframe id=\"myallocator\" width=\"90%\" height=\"200\" style=\"margin: 10px; background: rgb(200, 200, 200); border: 1px dotted black;\">\n";
-echo "</iframe>\n";
+if(in_array('myallocator', $_REQUEST['sites'])) {
+	for($i = 0; $i < count($paramsArray); $i++) {
+		$params = $paramsArray[$i];
+		$dates = $datesArray[$i];
+		echo "<h2>MyAllocator.com $dates</h2>\n";
+		echo "<a href=\"#\" onclick=\"document.getElementById('myallocator$i').src='myallocator.php?$params'; return false; \">Reload</a><br>\n";
+		echo "<iframe id=\"myallocator$i\" width=\"90%\" height=\"200\" style=\"margin: 10px; background: rgb(200, 200, 200); border: 1px dotted black;\">\n";
+		echo "</iframe>\n";
+	}
+}
 
 /*
 echo "<h2>HostelBookers.com</h2>\n";
