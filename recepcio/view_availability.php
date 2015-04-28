@@ -91,6 +91,8 @@ $extraHeader = <<<EOT
 <link rel="stylesheet" type="text/css" href="js/datechooser/select-free.css"/>
 <![endif]-->
 
+<script type="text/javascript" src="js/opentip-native.js"></script><!-- Change to the adapter you actually use -->
+<link href="opentip.css" rel="stylesheet" type="text/css" />
 
 <script type="text/javascript">
 

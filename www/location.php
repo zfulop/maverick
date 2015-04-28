@@ -45,7 +45,7 @@ if(mysql_num_rows($result) > 0) {
 
 
 
-html_start(constant('LOCATION_NAME_' . strtoupper($location)), $oneAwardJs, $onloadScript);
+html_start(getLocationName($location, showApartments()), $oneAwardJs, $onloadScript);
 
 $checkin = CHECKIN;
 $checkinDate = CHECKIN_DATE;
@@ -69,14 +69,29 @@ $checkAvailability = CHECK_AVAILABILITY;
 $aboutLocation = constant('ABOUT_' . strtoupper($location));
 $aboutLocationDescr = constant('ABOUT_' . strtoupper($location) . '_DESCRIPTION');
 $aboutLocationDescrExtra = constant('ABOUT_' . strtoupper($location) . '_DESCRIPTION_EXTRA');
+$directionsToLocation = constant('DIRECTIONS_TO_' . strtoupper($location));
+$addressValue = constant('ADDRESS_VALUE_' . strtoupper($location));
+// constants are defined in config.php
+$contactPhone = constant('CONTACT_PHONE_' . strtoupper($location));
+$contactEmail = constant('CONTACT_EMAIL_' . strtoupper($location));
+$contactFax = constant('CONTACT_FAX_' . strtoupper($location));
+if(showApartments()) {
+	$aboutLocation = constant('ABOUT_APARTMENT');
+	$aboutLocationDescr = constant('ABOUT_APARTMENT_DESCRIPTION');
+	$aboutLocationDescrExtra = constant('ABOUT_APARTMENT_DESCRIPTION_EXTRA');
+	$directionsToLocation = constant('DIRECTIONS_TO_APARTMENT');
+	$addressValue = constant('ADDRESS_VALUE_APARTMENT');
+	// constants are defined in config.php
+	$contactPhone = constant('CONTACT_PHONE_APARTMENT');
+	$contactEmail = constant('CONTACT_EMAIL_APARTMENT');
+	$contactFax = constant('CONTACT_FAX_APARTMENT');
+}
 $nights = NIGHTS;
 $locationTitle = LOCATION_TITLE;
 $howToGetHere = HOW_TO_GET_HERE;
 $directions = DIRECTIONS;
-$directionsToLocation = constant('DIRECTIONS_TO_' . strtoupper($location));
 $onlineRoutePlanner = ONLINE_ROUTE_PLANNER;
 $addressTitle = ADDRESS_TITLE;
-$addressValue = constant('ADDRESS_VALUE_' . strtoupper($location));
 $publicTransport = PUBLIC_TRANSPORT;
 $railwayStations = RAILWAY_STATIONS;
 $airport = AIRPORT;
@@ -102,7 +117,7 @@ $contactPhone = constant('CONTACT_PHONE_' . strtoupper($location));
 $contactEmail = constant('CONTACT_EMAIL_' . strtoupper($location));
 $contactFax = constant('CONTACT_FAX_' . strtoupper($location));
 
-$slides = getCarousel($location, $lang);
+$slides = getCarousel($location, $lang, showApartments());
 
 $roomTypesData = loadRoomTypes($link, $lang);
 
@@ -287,17 +302,26 @@ $facilities = FACILITIES;
 $close = CLOSE;
 $gallery = GALLERY;
 
-$locationName = constant('LOCATION_NAME_' . strtoupper($location));
+$locationName = getLocationName($location, showApartments());
 foreach($roomTypesData as $roomTypeId => $roomType) {
 	if(showApartments() !== isApartment($roomType)) {
 		continue;
 	}
-	$price = (isDorm($roomType) ? $roomType['price_per_bed'] : $roomType['price_per_room']);
+	if(isDorm($roomType)) {
+		$price = $roomType['price_per_bed'];
+		$priceStartingFrom = sprintf(PRICE_STARTING_FROM_PER_BED, formatMoney(convertCurrency($price, 'EUR', $currency), getCurrency()));
+	} elseif(isPrivate($roomType)) {
+		$price = $roomType['price_per_room'];
+		$priceStartingFrom = sprintf(PRICE_STARTING_FROM_PER_ROOM, formatMoney(convertCurrency($price, 'EUR', $currency), getCurrency()));
+	} elseif(isApartment($roomType)) {
+		// the price of apartment for 2 people
+		// room price - (num of beds-2)*discount per bed*room price
+		$price = $roomType['price_per_room'] - $roomType['price_per_room'] * ($roomType['num_of_beds'] - 2) * $roomType['discount_per_bed'] / 100.0;
+		$priceStartingFrom = sprintf(PRICE_STARTING_FROM_PER_APARTMENT, formatMoney(convertCurrency($price, 'EUR', $currency), getCurrency()));
+	}
 	$name = $roomType['name'];
 	$descr = $roomType['description'];
 	$shortDescr = $roomType['short_description'];
-	$price = convertCurrency($price, 'EUR', getCurrency());
-	$priceStartingFrom = sprintf(isDorm($roomType) ? PRICE_STARTING_FROM_PER_BED : PRICE_STARTING_FROM_PER_ROOM, formatMoney(convertCurrency($price, 'EUR', $currency), getCurrency()));
 	$sql = "SELECT * FROM room_images WHERE room_type_id=$roomTypeId";
 	$result = mysql_query($sql, $link);
 	$roomImg = '';

@@ -39,7 +39,7 @@ if(isset($_REQUEST['gt_destination'])) {
 	$gtDest = $_REQUEST['gt_destination'];
 }
 
-$payMode = '';
+$payMode = array();
 if(isset($_REQUEST['pay_mode'])) {
 	$payMode = $_REQUEST['pay_mode'];
 }
@@ -52,7 +52,7 @@ if(isset($_REQUEST['tables'])) {
 }
 
 
-$filterTypes = '<option value="">[no type filter]</option>';
+$filterTypes = '';
 $sql = "SELECT * FROM cashout_type ORDER BY type";
 $result = mysql_query($sql, $link);
 if(!$result) {
@@ -75,9 +75,9 @@ if(!$result) {
 }
 
 
-$payModeOptions = '<option value="">[paymode irrelevant]]</option>';
-foreach(array('CASH','CASH2','BANK_TRANSFER','CREDIT_CARD') as $pm) {
-	$payModeOptions .= '<option value="' . $pm . '"' . ($pm == $payMode ? ' selected' : '') . '>' . ucwords(strtolower($pm)) . '</option>';
+$payModeOptions = '';
+foreach(array('CASH','CASH2','CASH3','BANK_TRANSFER','CREDIT_CARD') as $pm) {
+	$payModeOptions .= '<option value="' . $pm . '"' . (in_array($pm,$payMode) ? ' selected' : '') . '>' . ucwords(strtolower($pm)) . '</option>';
 }
 
 $tablesOption = '';
@@ -88,12 +88,12 @@ foreach($tables as $key => $desc) {
 
 $cashOuts = array();
 if(in_array('CIO', $tablesSelected)) {
-	$sql = "SELECT c.type AS type, c.time_of_payment, c.receiver, c.comment, c.currency, c.amount FROM cash_out c WHERE SUBSTR(c.time_of_payment,1,10)>='$startDate' AND SUBSTR(c.time_of_payment,1,10)<='$endDate' AND c.storno<>1";
+	$sql = "SELECT c.type AS type, c.time_of_payment, c.pay_mode, c.receiver, c.comment, c.currency, c.amount FROM cash_out c WHERE SUBSTR(c.time_of_payment,1,10)>='$startDate' AND SUBSTR(c.time_of_payment,1,10)<='$endDate' AND c.storno<>1";
 	if(strlen($comment) > 0) {
 		$sql .= " AND c.comment LIKE '%$comment%'";
 	}
-	if(strlen($payMode) > 0 and (($payMode == 'CASH') or ($payMode == 'CASH2'))) {
-		$sql .= " AND c.pay_mode='$payMode'";
+	if(count($payMode) > 0) {
+		$sql .= " AND c.pay_mode IN ('" . implode("','",$payMode) . "')";
 	}
 	if(count($type) > 0) {
 		$sql .= " AND c.type IN ('" . implode("','", $type) . "')";
@@ -110,15 +110,15 @@ if(in_array('CIO', $tablesSelected)) {
 
 $payments = array();
 if(in_array('P', $tablesSelected)) {
-	$sql = "SELECT p.type AS type, p.time_of_payment, p.comment, p.currency, p.amount FROM payments p WHERE SUBSTR(p.time_of_payment,1,10)>='$startDate' AND SUBSTR(p.time_of_payment,1,10)<='$endDate' AND p.storno<>1";
+	$sql = "SELECT p.type AS type, p.time_of_payment, p.pay_mode, p.comment, p.currency, p.amount FROM payments p WHERE SUBSTR(p.time_of_payment,1,10)>='$startDate' AND SUBSTR(p.time_of_payment,1,10)<='$endDate' AND p.storno<>1";
 	if(strlen($comment) > 0) {
 		$sql .= " AND p.comment LIKE '%$comment%'";
 	}
 	if(count($type) > 0) {
 		$sql .= " AND p.type IN ('" . implode("','", $type) . "')";
 	}
-	if(strlen($payMode) > 0) {
-		$sql .= " AND p.pay_mode='$payMode'";
+	if(count($payMode) > 0) {
+		$sql .= " AND p.pay_mode IN ('" . implode("','",$payMode) . "')";
 	}
 	$sql .= " ORDER BY time_of_payment";
 	$result = mysql_query($sql, $link);
@@ -140,6 +140,9 @@ if(in_array('SC', $tablesSelected)) {
 	if(count($type) > 0) {
 		$sql .= " AND sc.type IN ('" . implode('\',\'', $type) . "')";
 	}
+	if(count($payMode) > 0) {
+		$sql .= " AND 1=0";
+	}
 	$sql .= " ORDER BY time_of_service";
 	$result = mysql_query($sql, $link);
 	if(!$result) {
@@ -160,8 +163,8 @@ if(in_array('GT', $tablesSelected)) {
 	if(strlen($gtDest) > 0) {
 		$sql .= " AND destination='$gtDest'";
 	}
-	if(strlen($payMode) > 0) {
-		$sql .= " AND p.pay_mode='$payMode'";
+	if(count($payMode) > 0) {
+		$sql .= " AND pay_mode IN ('" . implode("','",$payMode) . "')";
 	}
 	$sql .= " ORDER BY time_of_enter";
 	$result = mysql_query($sql, $link);
@@ -237,7 +240,7 @@ echo <<<EOT
 	</tr>
 	<tr>
 		<td>Pay mode</td>
-		<td><select name="pay_mode">$payModeOptions</select></td>
+		<td><select name="pay_mode[]" size="6" multiple="multiple" style="height: 100px;">$payModeOptions</select></td>
 	</tr>
 	<tr>
 		<td>From</td>
@@ -269,7 +272,7 @@ echo <<<EOT
 
 
 <table class="report">
-	<tr><th>Entity</th><th>Type</th><th>Date</th><th>Name</th><th>Comment</th><th>Amount EUR</th><th>Amount HUF</th></tr>
+	<tr><th>Entity</th><th>Type</th><th>Date</th><th>Name</th><th>Pay mode</th><th>Comment</th><th>Amount EUR</th><th>Amount HUF</th></tr>
 
 EOT;
 
@@ -340,6 +343,7 @@ while(count($scharges) > $scIdx or count($cashOuts) > $coIdx or count($payments)
 		$time = $scharge['time_of_service'];
 		$comment = $scharge['comment'];
 		$name = '';
+		$paymode = '';
 		$scIdx += 1;
 	} elseif($takeCo) {
 		$co = $cashOuts[$coIdx];
@@ -352,6 +356,7 @@ while(count($scharges) > $scIdx or count($cashOuts) > $coIdx or count($payments)
 		$time = $co['time_of_payment'];
 		$name = $co['receiver'];
 		$comment = $co['comment'];
+		$paymode = $co['pay_mode'];
 		if($co['currency'] == 'EUR') {
 			$amountEur += (-1 * $co['amount']);
 			$eurCell = sprintf('%.2f', (-1 * $co['amount']));
@@ -366,6 +371,7 @@ while(count($scharges) > $scIdx or count($cashOuts) > $coIdx or count($payments)
 		$type = $p['type'];
 		$time = $p['time_of_payment'];
 		$name = '';
+		$paymode = $p['pay_mode'];
 		$comment = $p['comment'];
 		if($p['currency'] == 'EUR') {
 			$amountEur += $p['amount'];
@@ -388,6 +394,7 @@ while(count($scharges) > $scIdx or count($cashOuts) > $coIdx or count($payments)
 		$type = "Destination: " . $gt['destination'];
 		$time = $gt['time_of_enter'];
 		$name = $gt['name'];
+		$paymode = $gt['pay_mode'];
 		$comment = $gt['comment'];
 		$gtIdx += 1;
 	}
@@ -398,7 +405,7 @@ while(count($scharges) > $scIdx or count($cashOuts) > $coIdx or count($payments)
 		$name = '&nbsp;';
 	}
 
-	echo "	<tr><td>$table</td><td>$type</td><td>$time</td><td>$name</td><td>$comment</td><td class=\"amount\">$eurCell</td><td class=\"amount\">$hufCell</td></tr>";
+	echo "	<tr><td>$table</td><td>$type</td><td>$time</td><td>$name</td><td>$paymode</td><td>$comment</td><td class=\"amount\">$eurCell</td><td class=\"amount\">$hufCell</td></tr>";
 }
 
 $amountEur = sprintf('%.2f', $amountEur);

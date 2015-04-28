@@ -16,10 +16,6 @@ $extraHeader = <<<EOT
 <link rel="stylesheet" type="text/css" href="js/datechooser/select-free.css"/>
 <![endif]-->
 
-<!--
-<link rel="stylesheet" type="text/css" href="js/tooltip/themes/1/tooltip.css"/>
-<script type="text/javascript" src="js/tooltip/themes/1/tooltip.js"></script>
--->
 
 <script type="text/javascript" src="js/prototype.js"></script>
 <script type="text/javascript" src="js/opentip-native.js"></script><!-- Change to the adapter you actually use -->
@@ -241,6 +237,9 @@ while($currDateTs <= $endDateTs) {
 echo "</tr>\n";
 
 foreach($roomTypes as $roomTypeId => $roomType) {
+	if($roomType['num_of_rooms'] < 1) {
+		continue;
+	}
 	echo "\t<tr><th>" . $roomType['name'] . "</th><td>" . $roomType['available_beds'] . "</td>";
 	$currDateTs = strtotime($startDate);
 	$cssClass = 'odd';

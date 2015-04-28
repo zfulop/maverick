@@ -8,13 +8,16 @@ function html_start($title = "Maverick Mgmt", $extraHeader = '', $showMenu = tru
 	$index = MGMT_ROOT_URL . 'index.php';
 	$receptionists = MGMT_ROOT_URL . 'view_receptionists.php';
 	$report = MGMT_ROOT_URL . 'view_money_report.php';
+	$cashBookings = MGMT_ROOT_URL . 'view_cash_bookings.php';
 	$cleaners = MGMT_ROOT_URL . 'view_cleaners.php';
 	$shifts = MGMT_ROOT_URL . 'view_shifts.php';
+	$vacations = MGMT_ROOT_URL . 'view_vacations.php';
 	$lists = MGMT_ROOT_URL . 'view_lists.php';
 	$photos = MGMT_ROOT_URL . 'view_room_images.php';
 	$videos = MGMT_ROOT_URL . 'view_videos.php';
 	$rooms = MGMT_ROOT_URL . 'view_rooms.php';
 	$texts = MGMT_ROOT_URL . 'view_site_text.php';
+	$audit = MGMT_ROOT_URL . 'view_audit.php';
 
 	$tooltipJs = MGMT_ROOT_URL . 'js/wz_tooltip.js';
 
@@ -70,14 +73,17 @@ EOT;
 	<div style="text-align: center; border-style: solid; height: 25px; position: relative; background: rgb(220, 220, 220);">
 		<a href="$index" style="float: left; font-size: 14px; padding-left: 20px; padding-right: 20px;">Home</a>
 		<a href="$report" style="float: left; font-size: 14px; padding-right: 20px;">Money Report</a>
+		<a href="$cashBookings" style="float: left; font-size: 14px; padding-right: 20px;">Booking cash payment</a>
 		<a href="$receptionists" style="float: left; font-size: 14px; padding-right: 20px;">Receptionists</a>
 		<a href="$cleaners" style="float: left; font-size: 14px; padding-right: 20px;">Cleaners</a>
 		<a href="$shifts" style="float: left; font-size: 14px; padding-right: 20px;">Work Shifts</a>
+		<a href="$vacations" style="float: left; font-size: 14px; padding-right: 20px;">Vacations</a>
 		<a href="$lists" style="float: left; font-size: 14px; padding-right: 20px;">Lists</a>
 		<a href="$photos" style="float: left; font-size: 14px; padding-right: 20px;">Room images</a>
 		<a href="$videos" style="float: left; font-size: 14px; padding-right: 20px;">Videos</a>
 		<a href="$rooms" style="float: left; font-size: 14px; padding-right: 20px;">Rooms</a>
 		<a href="$texts" style="float: left; font-size: 14px; padding-right: 20px;">Site texts</a>
+		<a href="$audit" style="float: left; font-size: 14px; padding-right: 20px;">Audit</a>
 	</div>
 </div>
 <div style="height: 60px;">

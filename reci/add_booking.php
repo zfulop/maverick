@@ -37,7 +37,15 @@ $specialOffers = loadSpecialOffers("start_date<='$startDate' AND end_date>='$end
 //
 $numOfPersonForRoomType = array();
 foreach($roomTypes as $roomTypeId => $roomType) {
-	$numOfPersonForRoomType[$roomTypeId] = $_REQUEST['num_of_person_' . $roomTypeId];
+	if(isApartment($roomType)) {
+		for($i = 2; $i <= $roomType['num_of_beds']; $i++) {
+			if(isset($_REQUEST['num_of_person_' . $roomTypeId . '_' . $i]) {
+				$numOfPersonForRoomType[$roomTypeId . '_' . $i] = $_REQUEST['num_of_person_' . $roomTypeId . '_' . $i];
+			}
+		}
+	} else {
+		$numOfPersonForRoomType[$roomTypeId] = $_REQUEST['num_of_person_' . $roomTypeId];
+	}
 }
 $overbookings = getOverbookings($numOfPersonForRoomType, $startDate, $endDate, $rooms);
 $error = false;
@@ -51,11 +59,14 @@ if(count($overbookings) > 0) {
 			$datesUnavailableStr .= ", $currDate - there are only $availableBeds beds available";
 		}
 		$datesUnavailableStr = substr($datesUnavailableStr, 2);
-		if($roomTypes[$roomTypeId]['type'] == 'DORM') {
+		if(isDorm($roomTypes[$roomTypeId])) {
 			set_warning("Overbooking: For the dormitory room: $roomName and dates: $datesUnavailableStr. ");		
 			$warning = true;
-		} else {
+		} elseif(isPrivate($roomTypes[$roomTypeId])) {
 			set_error("Overbooking: For the private room: $roomName and dates: $datesUnavailableStr. The booking cannot be saved.");
+			$error = true;
+		} elseif(isApartment($roomTypes[$roomTypeId])) {
+			set_error("Overbooking: For the apartment: $roomName and dates: $datesUnavailableStr. The booking cannot be saved.");
 			$error = true;
 		}
 	}

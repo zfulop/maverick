@@ -47,6 +47,9 @@ if(!$rooms) {
 
 $info = "";
 foreach($roomTypes as $roomTypeId => $roomType) {
+	if(!isset($_REQUEST['num_of_person_' . $roomTypeId]) or intval($_REQUEST['num_of_person_' . $roomTypeId]) < 1) {
+		continue;
+	}
 	$numOfPerson = $_REQUEST['num_of_person_' . $roomTypeId];
 	$oneRoomId = null;
 	foreach($rooms as $roomId => $roomData) {
@@ -55,11 +58,12 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 			break;
 		}
 	}
-	if(isset($_REQUEST['num_of_person_' . $roomTypeId]) and $_REQUEST['num_of_person_' . $roomTypeId] > 0) {
-		$info .= "for room: " . $roomType['name'] . " there are $numOfPerson people. ";
-		$price = getPrice(strtotime($startDate), $nights, $rooms[$oneRoomId], $numOfPerson);
-		$roomPayment += $price;
+	$info .= "for room: " . $roomType['name'] . " there are $numOfPerson people and the booking is for $nights nights. ";
+	$price = getPrice(strtotime($startDate), $nights, $rooms[$oneRoomId], $numOfPerson);
+	if(isPrivate($roomType)) {
+		$price = $price * ceil($numOfPerson/$roomType['num_of_beds']);
 	}
+	$roomPayment += $price;
 }
 
 

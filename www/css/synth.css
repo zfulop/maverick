@@ -3,18 +3,18 @@
  * **************** synth.css *************************
 
  Purpose: Cover changes for each issue in trello
- Author: Pioneers.hu
+ Author: Pioneers.hu Needs to be includeed in html_frame.php
  * */
 
-/* Special offers - 6 darab kiférjen + csúnya most! */
+/* Special offers - 6 to fit ina  row + make it nicer! */
 
 /* Spacial offers fixed height removed */ 
 
-#special-offers li{
+/*#special-offers li{
 	height:auto;
 }
-
-/* Mobil: foglalási oldalon a change dates filter a content mellé floatol */
+*/
+/* Mobil: on booking page change dates filter floats besides the content */
 
 @media (max-width:460px){
 	#booking-filter h1{
@@ -29,7 +29,7 @@
 	
 }
 
-/* Mobil: foglalási oldalon egymásra íródnak a szoba szövegek */
+/* Mobil: on booking page lines appear on each other in rooms text */
 
 @media (max-width:380px){
 	.booking .rooms .card h2{
@@ -41,7 +41,7 @@
 	}
 }
 
-/* Mobil: Home-nál EUR és nyíl egymáson jelenik meg */
+/* Mobil: In Home EUR and arrow appears overlaaping */
 
 #header .fake-select select {
 		min-width:40px;
@@ -63,3 +63,518 @@
 	
 }
 
+/* Have facilities icons appear nicer */
+
+.rooms .extra .extras li{
+	width:100px;
+}
+
+/* have the icons appear in the same height */
+
+.rooms .extra .extras li{
+	margin-top:0;
+	vertical-align:top;	
+}
+
+/* Prevent close button of overlay overlaap title text, fix lineheight in title */
+
+#overlay .title{
+	padding: 20px 52px 20px 12px;
+	line-height:1em
+}
+
+/* Prevent rows collapsing in availability */
+
+@media (min-width:1024px){
+	.rooms .card img{
+		height:138px;
+	}
+}
+
+/* ATTEMPT to fix galaxy  ace 3 line overlap bug */
+
+#booking-filter h1{
+	overflow: auto;
+	line-height: 1.2em;
+	margin-bottom: 20px;
+}
+
+/* footer badge fix *required html change in html_frame.php */
+
+
+@media (max-width:510px){	
+	
+	a.famoushostels{
+		right: 0px!important;
+		top: -180px!important;
+	}
+
+}
+
+/* Prevent Famous Hostels logo come above Booking summary */
+
+#booking-summary{
+	position:fixed;
+	z-index:1000;
+}
+
+/* Prevent Special offer cards from collapsing at 1280 - 1500 */
+
+@media (min-width:1280px) and (max-width:1400px){
+	
+	#special-offers li{
+		height:auto;
+	}
+	
+}
+
+/* Booking summary mobile fix */
+	@media (max-width:480px){
+		
+		#booking-summary{
+		position:absolute!important;
+		top:150px!important;
+		margin-top:0!important;
+		width:100%;
+	}
+		
+	.fluid-wrapper.booking{
+		margin-top:250px!important;
+	}
+}
+
+
+
+/* ///////////////////////////////////////////////////////
+ * ////////////////// IOS Fixes /////////////////////////
+ * //////////////////////////////////////////////////////
+ */
+
+/* Prevent booking filter overlaping rooms */
+
+.booking-filter{
+	overflow:auto;
+}
+
+/* Prevent special offers text overflow problem  UNTESTED! */
+/*#special-offers li{
+	overflow:auto;
+}*/
+
+/* Rooms language labeling overflow fix TEMPORARY */
+
+/*
+@media (min-width:1024px){
+	
+	.data .condensed{
+	 	position:static!important;
+	 	margin-left:0!important;
+	 }
+	 
+	 .data .type {
+	 	margin-top:-20px!important;
+	 }
+
+}*/
+
+ 
+ h1.arrive{
+ 	text-align:left!important;
+ 	margin-top:20px;
+ }
+
+.open-filter{
+	padding:10px 20px;
+	color:#fff!important;
+	font:700 14px 'Oswald',arial,sans-serif;
+	text-decoration:none!important;
+	text-transform:uppercase;
+	background-color: #3e0854;
+	background-image: -webkit-gradient(linear,left top,left bottom,from(#3e0854),to(#310643));
+	background-image: -webkit-linear-gradient(top,#3e0854,#310643);
+	background-image: -moz-linear-gradient(top,#3e0854,#310643);
+	background-image: -o-linear-gradient(top,#3e0854,#310643);
+	background-image: -ms-linear-gradient(top,#3e0854,#310643);
+	background-image: linear-gradient(top,#3e0854,#310643);
+	filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,StartColorStr="#3e0854", EndColorStr="#310643");
+}
+
+
+/*  Langage select fix */
+
+#header .fake-select {
+	width:100px;
+	display:block;
+	position:relative;
+	padding-right:20px;
+	float:none!important;
+	margin:10px 0px 20px 20px!important;
+}
+
+#header .fake-select .value{
+
+}
+
+
+#header .fake-select .open-select{
+	position:absolute;
+	top:0;
+	right:0;
+	width:15px;	
+}
+
+/* positioning language select */
+
+@media (min-width:1024px){
+	.local{
+		position:absolute;
+		bottom:0;
+	}
+}
+
+
+/* text and button overlap fix */
+
+
+@media(min-width: 1024px) {
+/*	
+	.rooms .card h2{
+		line-height:70px;
+	}
+	
+	.rooms .card .data{
+		
+	}
+	
+	.rooms .card .type {
+		position:static;
+		float:left;
+	}
+	.rooms .card .price {
+		position:static;
+		margin-left:0;
+	}
+	
+	p.type.condensed{
+		max-width:300px;
+	}
+	
+	*/
+	
+	/*
+	p.type.condensed strong{
+		max-width:150px;
+		display:block!important;
+		white-space: nowrap;
+  		overflow: hidden;
+		text-overflow: ellipsis;
+		padding-top:20px;
+		top: 12px;
+		position: relative;
+	}*/
+	
+	.rooms .card .details{
+		top:20px;
+	}
+	
+	.rooms .card .fake-select{
+		bottom:60px;
+	}
+}
+
+/* Booking summary number visibility fix */
+
+@media (max-width: 480px){
+	
+	#booking-summary {
+		max-width:85%;
+	}
+	
+	.fluid-wrapper.booking {
+		margin-top: 275px!important;
+	}
+}
+/* special offer fix */
+
+.rooms .card .special-offer{
+	height:auto;
+	line-height:1.5em;
+	padding:5px 5px;
+} 
+
+
+/* 2015 */
+
+/* Smaller card titles*/
+
+@media (min-width:1024px){
+	.rooms .card h2{
+		font-size:20px!important;
+	}
+	
+	/* maximum width for room details */
+	
+	.rooms .card .type strong {
+		max-width: 220px;
+		margin-bottom: 0px;
+	}
+}
+
+/* to prevent room cards from extending */
+@media (min-width:1400px){
+		
+	.rooms ul li{
+		max-width: 820px;
+	}
+
+}
+
+/* prevent footer famous hostels logo 1024 overlay */
+
+@media (min-width:1024px) and (max-width:1280px){
+	a.famoushostels{
+		right:0!important;
+		top:-30px!important;
+	}
+}
+
+/* prevent overlay title 3 row in mobile size */
+
+@media (max-width:520px){
+	#overlay h1.title{
+		font-size:22px;
+	}
+}
+
+/* prevent location and direction overlay */
+
+@media (max-width:480px){
+	#location h1{
+		padding-bottom:40px;
+	}
+}
+
+/* Booking summary position on mobile */
+
+@media (max-width:1024px){
+	#booking-summary{
+		position: static!important;
+	}
+	
+	.fluid-wrapper.booking{
+		margin-top: 20px!important;
+	}
+}
+
+
+
+/* to have the NEXT be above the best hostel label */
+
+#booking-summary .next{
+	z-index:10000;
+}
+
+
+@media only screen and (min-width: 1024px){
+	.rooms .card .booked {
+		top:10px;
+		bottom:auto;
+		background:#3e0854;
+		padding:2px 10px;
+		color:#fff;
+	}	
+}
+
+/* change date button fades when open */
+
+#booking-filter.opened .open-filter{
+	color:#222!important;
+}
+
+
+
+/*These changes made By Bálint Gáspár 2015.02.22*/
+
+#location-list ul li
+{
+	width: 100% !important;
+	float:none;
+	
+}
+
+
+#location-list h2 img
+{
+	visibility: visible;
+}
+
+#location-list h2 .title strong
+{
+	font-size: 40px;
+}
+
+@media only screen and (min-width: 768px){
+	#location-list ul li
+	{
+		width: 33.333333333% !important;
+		float:left;
+		display: block;
+		
+	}
+	#location-list ul li + li
+	{
+		margin-left: 0%;
+	}
+	
+	#location-list .info p
+	{
+		padding: 20px;
+	}
+	
+	#location-list h2, #location-list .map
+	{
+		margin: auto !important;
+	}
+	
+	.fluid-wrapper.columns
+	{
+		margin-left: 0px !important;
+		margin-right: 0px !important;
+	}
+	
+}
+
+@media only screen and (min-width: 1024px){
+
+	#location-list ul li
+	{
+		width: 30.6% !important;
+		float:left;
+		
+	}
+	
+	#location-list h2, #location-list .map
+	{
+		margin-left: 0px !important;
+		margin-right: 0px !important;
+	}
+	
+	.fluid-wrapper.columns
+	{
+		margin-left: 30px !important;
+		margin-right: 30px !important;
+	}
+	
+	#location-list ul li + li
+	{
+		margin-left: 4%;
+	}
+	
+	#location-list .info p
+	{
+		padding: 10px;
+	}
+
+}
+
+
+
+
+@media only screen and (min-width: 1150px){
+	#location-list h2 .title strong
+	{
+		font-size: 50px;
+	}
+}
+
+@media only screen and (max-width: 767px){
+	#location-list h2 .title strong
+	{
+		font-size: 80px;
+	}
+	
+	#location-list h2 .title
+	{
+		text-align: center;
+		bottom: auto;
+		left: 50%;
+		margin: auto;
+		position: absolute;
+		text-align: center;
+		top: 50%;
+		z-index: 999;
+		max-width: 90%;
+		transform: translate(-50% ,-50%);
+		-webkit-transform: translate(-50% ,-50%);
+	}
+}
+
+
+
+
+#carousel
+{
+	height: 220px !important;
+	
+	.slider-image
+	{
+		width: 100%;
+	}
+}
+
+@media only screen and (min-width: 768px)
+{
+	#carousel
+	{
+		height: 320px !important;
+	}
+	
+}
+
+@media only screen and (min-width: 1024px)
+{
+	#carousel
+	{
+		height: 491.4px !important;
+	}
+}
+
+
+/*Room Gallery*/
+.gallery.opened .close
+{
+background: url("../img/close.png") no-repeat 50% 50%;
+height: 39px;
+position: absolute;
+right: 17px;
+top: 23px;
+width: 39px;
+}
+@media only screen and (max-width: 480px)
+{
+
+	.gallery.opened .title
+	{
+		display: none;
+	}
+	
+	.gallery.opened .close
+	{
+		background: url("../img/close.png") no-repeat 50% 50%;
+		height: 39px;
+		position: absolute;
+		right: 4px;
+		top: 4px;
+		width: 39px;
+		z-index: 40000;
+	}
+	
+	#overlay .content
+	{
+		top: 10px;
+		z-index: 39000;
+		
+	}
+}
+
+/*These changes made By Bálint Gáspár 2015.02.22 END*/

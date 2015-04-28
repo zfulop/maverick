@@ -122,8 +122,8 @@ class MyAllocatorBooker extends Booker {
 				'remoteRoomId' => '10068'
 				),
 			array(
-				'roomName' => '107 Female',
-				'roomIds' => array(117),
+				'roomName' => 'Female 6 bed dorm',
+				'roomIds' => array(117,118),
 				'remoteRoomId' => '16475'
 				)
 			)

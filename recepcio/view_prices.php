@@ -205,7 +205,7 @@ EOT;
 		$price = '';
 		echo "		<td align=\"center\" style=\"$style\">";
 		$column = 'price_per_room';
-		if(isDorm($roomType['type'])) {
+		if(isDorm($roomType)) {
 			$column = 'price_per_bed';
 		}
 		if(isset($prices[$rtId][$currDateSlash]) and !is_null($prices[$rtId][$currDateSlash][$column])) {

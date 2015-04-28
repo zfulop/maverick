@@ -12,12 +12,15 @@ $slides = getCarousel('home', $lang);
 
 $lodgeShortDescription = LODGE_DESCRIPTION_HOME;
 $hostelShortDescription = HOSTEL_DESCRIPTION_HOME;
+$apartmentShortDescription = APARTMENT_DESCRIPTION_HOME;
 $locations = LOCATIONS;
 $addressTitle = ADDRESS_TITLE;
 $addressValueHostel = ADDRESS_VALUE_HOSTEL;
 $addressValueHostelGeneral = ADDRESS_VALUE_HOSTEL_GENERAL;
 $addressValueLodge = ADDRESS_VALUE_LODGE;
 $addressValueLodgeGeneral = ADDRESS_VALUE_LODGE_GENERAL;
+$addressValueApartment = ADDRESS_VALUE_APARTMENT;
+$addressValueApartmentGeneral = ADDRESS_VALUE_APARTMENT_GENERAL;
 $phone = PHONE;
 $email = EMAIL;
 $fax = FAX;
@@ -123,6 +126,43 @@ $slides
                 <p>
                   <strong>$fax</strong>
                   $faxLodge
+				</p>
+-->
+              </div>
+            </li>
+            <li class="apartments">
+              <a href="maverick_apartments.php">
+                <h2>
+                  <img width="470" height="470" src="/img/location-apartment.jpg">
+                  <span class="title">$addressValueApartmentGeneral</span>
+                </h2>
+                
+                <div class="map">
+                  <img width="470" height="181" src="http://maps.googleapis.com/maps/api/staticmap?center=47.496666,19.058404&amp;zoom=12&amp;size=470x181&amp;maptype=roadmap&amp;markers=icon:http://www.mavericklodges.com/img/poi-hostel-small.png%7C$hostelLatitude,$hostelLongitude&amp;sensor=false&amp;style=feature:poi.business|visibility:off">
+                </div>
+              </a>
+              
+              <div class="info">
+				<p>
+                  $apartmentShortDescription
+                </p>
+<!--
+                <br>
+                <p class="condensed">
+                  <strong>$addressTitle</strong>
+                  $addressValueHostel
+                </p>
+                <p>
+                  <strong>$phone</strong>
+                  $phoneHostel
+                </p>
+                <p>
+                  <strong>$email</strong>
+                  <a href="mailto:$emailHostel">$emailHostel</a>
+                </p>
+                <p>
+                  <strong>$fax</strong>
+                  $faxHostel
 				</p>
 -->
               </div>

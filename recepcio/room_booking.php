@@ -1,7 +1,7 @@
 <?php
 
 function loadRoomTypes($link, $lang = 'eng') {
-	$sql = "SELECT rt.id, rt.price_per_bed, rt.price_per_room, rt.type, rt.num_of_beds, lt1.value AS name, lt2.value AS description, lt3.value AS short_description, rt._order, 0 AS num_of_beds_avail FROM room_types rt " . 
+	$sql = "SELECT rt.id, rt.price_per_bed, rt.price_per_room, rt.discount_per_bed, rt.type, rt.num_of_beds, lt1.value AS name, lt2.value AS description, lt3.value AS short_description, rt._order, 0 AS num_of_beds_avail FROM room_types rt " . 
 	"INNER JOIN lang_text lt1 ON (lt1.table_name='room_types' AND lt1.column_name='name' AND lt1.row_id=rt.id AND lt1.lang='$lang') " . 
 	"INNER JOIN lang_text lt2 ON (lt2.table_name='room_types' AND lt2.column_name='description' AND lt2.row_id=rt.id AND lt2.lang='$lang') " . 
 	"LEFT OUTER JOIN lang_text lt3 ON (lt3.table_name='room_types' AND lt3.column_name='short_description' AND lt3.row_id=rt.id AND lt3.lang='$lang') ORDER BY rt._order";
@@ -469,6 +469,7 @@ function getBookingsWithDiscount($location, $arriveDateTs, $nights, &$roomTypesD
 	$retVal = array();
 	foreach($roomTypesData as $roomTypeId => $roomType) {
 		$numOfGuests = 0;
+		//$numOfGuestsArr = array();
 		$key = 'room_type_' . $location . '_' . $roomTypeId;
 		if(isset($_REQUEST[$key])) {
 			$_SESSION[$key] = $_REQUEST[$key];
@@ -476,38 +477,67 @@ function getBookingsWithDiscount($location, $arriveDateTs, $nights, &$roomTypesD
 		if(isset($_SESSION[$key])) {
 			$numOfGuests = $_SESSION[$key];
 		}
+		/*if(isApartment($roomType)) {
+			for($i = 2; $i <= $roomType['num_of_beds']; $i++) {
+				$key = 'room_type_' . $location . '_' . $roomTypeId . '_' . $i;
+				if(isset($_REQUEST[$key])) {
+					$_SESSION[$key] = $_REQUEST[$key];
+				}
+				if(isset($_SESSION[$key])) {
+					$numOfGuests += $_SESSION[$key];
+					$numOfGuestsArr[$i] = $_SESSION[$key];
+				}
+			}
+		}*/
 		if($numOfGuests > 0) {
 			$name = $roomType['name'];
 			$rtId = $roomType['id'];
 			$roomData = getRoomData($rooms, $roomTypeId);
-			$price = getPrice($arriveDateTs, $nights, $roomData, $numOfGuests);
-			$discount = 0;
-			$selectedSo = null;
-			foreach($specialOffers as $so) {
-				if(specialOfferApplies($so, $roomType, $nights, $arriveDate) and $so['discount_pct'] > $discount ) {
-					$discount = $so['discount_pct'];
-					$selectedSo = $so;
-				}
+			if(!isApartment($roomType)) {
+				$oneRoom = getBookingRoomData($arriveDateTs, $nights, $roomData, $roomType['num_of_beds'], $roomType, $arriveDate, $numOfGuests, $specialOffers);
+				$retVal[$rtId] = $oneRoom;
+			} else {
+				$oneRoom = getBookingRoomData($arriveDateTs, $nights, $roomData, $numOfGuests, $roomType, $arriveDate, $numOfGuests/*Ap*/, $specialOffers);
+				$retVal[$rtId] = $oneRoom;
 			}
-			// apply special offer
-			$discountedPrice = $price;
-			if($discount > 0) {
-				$discountedPrice = $price * (100 - $discount) / 100;
-			}
-
-			$oneRoom = array('roomName' => $name, 'roomTypeId' => $rtId, 'numOfGuests' => $numOfGuests, 'price' => $price, 'discountedPrice' => $discountedPrice);
-				
-			if(!is_null($selectedSo)) {
-				$oneRoom['specialOfferId'] = $selectedSo['id'];
-			}
-			$retVal[$rtId] = $oneRoom;
 		}
 	}
 
 	return $retVal;
 }
 
-function specialOfferApplies($specialOffer, $roomType, $nights, $arriveDate) {
+//
+// caled from getBookingsWithDiscount()
+// returns the assoc array that contains a booking based on the REQUEST data coming from the www site.
+function getBookingRoomData($arriveDateTs, $nights, $roomData, $numOfBeds, $roomType, $arriveDate, $numOfGuests, $specialOffers) {
+	$price = getPrice($arriveDateTs, $nights, $roomData, $numOfBeds);
+	$price = $numOfGuests/$numOfBeds*getPrice($arriveDateTs, $nights, $roomData, $numOfBeds);
+	list($discount, $selectedSo) = findSpecialOffer($specialOffers, $roomType, $nights, $arriveDate, $numOfBeds);
+	// apply special offer
+	$discountedPrice = $price;
+	if($discount > 0) {
+		$discountedPrice = $price * (100 - $discount) / 100;
+	}
+	$oneRoom = array('roomName' => $roomType['name'], 'roomTypeId' => $roomType['id'], 'numOfGuests' => $numOfGuests, 'price' => $price, 'discountedPrice' => $discountedPrice);
+	if(!is_null($selectedSo)) {
+		$oneRoom['specialOfferId'] = $selectedSo['id'];
+	}
+	return $oneRoom;
+}
+
+function findSpecialOffer($specialOffers, $roomType, $nights, $arriveDate, $numOfBeds) {
+	$discount = 0;
+	$selectedSo = null;
+	foreach($specialOffers as $so) {
+		if(specialOfferApplies($so, $roomType, $nights, $arriveDate, $numOfBeds) and $so['discount_pct'] > $discount ) {
+			$discount = $so['discount_pct'];
+			$selectedSo = $so;
+		}
+	}
+	return array($discount, $selectedSo);
+}
+
+function specialOfferApplies($specialOffer, $roomType, $nights, $arriveDate, $numOfBedsInRoom = null) {
 	set_debug("Checking if special offer applies to arrive date: $arriveDate, nights: $nights, roomType: " . print_r($roomType, true) . ", special offer: " . print_r($specialOffer, true));
 	if(!is_null($specialOffer['room_type_ids']) and strpos($specialOffer['room_type_ids'],$roomType['id']) === false) {
 		return false;
@@ -558,8 +588,15 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 	$toBook = array();
 	$roomChanges = array(); // contains the rooms where some days has to be spent in another room
 	foreach($numOfPersonForRoomType as $roomTypeId => $numOfPerson) {
+		/*$numOfPersonPerApt = 0;
+		if(strpos($roomTypeId, '_') > 0) {
+			list($roomTypeId, $numOfPersonPerApt) = explode('_', $roomTypeId);
+		}*/
 		$roomType = $roomTypes[$roomTypeId];
 		set_debug("getBookingData() - Checking room type: " . $roomType['name'] . " (id: $roomTypeId). There are $numOfPerson  person for that room(s)");
+		if(isApartment($roomType)) {
+			set_debug("getBookingData() - in this apartment there are " . $roomType['num_of_beds'] . " beds and the apartment is booked for " . $numOfPerson/*PerApt*/ . " person per apartment");
+		}
 		if($numOfPerson < 1) {
 			continue;
 		}
@@ -586,9 +623,12 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 				break;
 			}
 			if(!isset($roomsNotToBook[$roomId])) {
-				if(isPrivate($roomType) or isApartment($roomType)) {
+				if(isPrivate($roomType)) {
 					$toBook[$roomId] = array('num_of_person' => $roomData['num_of_beds'], 'type' => 'ROOM');
 					$numOfBedsBooked += $roomData['num_of_beds'];
+				} elseif(isApartment($roomType)) {
+					$toBook[$roomId] = array('num_of_person' => $numOfPerson/*PerApt*/, 'type' => 'ROOM');
+					$numOfBedsBooked += $numOfPerson/*PerApt*/;
 				} elseif(isDorm($roomType)) {
 					$numOfPersonInDorm = $numOfPerson-$numOfBedsBooked;
 					$toBook[$roomId] = array('num_of_person' => $numOfPersonInDorm, 'type' => 'BED');
@@ -600,21 +640,21 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 		// If there is no room that would be free for all the days, find the room that is the least booked, 
 		// and add 'roomChanges' for the days that is booked, that is: it will find another room for the days where 
 		// the mostly free room is booked.
-		if(isPrivate($roomType) and $numOfBedsBooked < $numOfPerson) {
+		if((isPrivate($roomType) or isApartment($roomType)) and $numOfBedsBooked < $numOfPerson) {
 			$roomsNotToBookInReverse = $roomsNotToBook;
 			// sort the $roomsNotToBook in the order of the number of dates unavailable (ascending)
 			uasort($roomsNotToBook, "sortByArraySize");
 			// sort the $roomsNotToBookInReverse in the order of the number of dates unavailable (descending)
 			uasort($roomsNotToBookInReverse, "sortByArraySizeDesc");
 
-			set_debug('getBookingData() - $roomsNotToBook = ' . print_r($roomsNotToBook, true));
-			set_debug('getBookingData() - $roomsNotToBookInReverse = ' . print_r($roomsNotToBookInReverse, true));
+			set_debug('getBookingData(PRIVATE) - $roomsNotToBook = ' . print_r($roomsNotToBook, true));
+			set_debug('getBookingData(PRIVATE) - $roomsNotToBookInReverse = ' . print_r($roomsNotToBookInReverse, true));
 			foreach($roomsNotToBook as $roomId => $datesUnavailable) {
 				if($numOfBedsBooked >= $numOfPerson) {
 					break;
 				}
-				$personToBook = (isPrivate($roomType) ? $roomType['num_of_beds'] : min($roomData['num_of_beds'], $numOfPerson-$numOfBedsBooked));
-				$toBook[$roomId] = array('num_of_person' => $personToBook, 'type' => (isPrivate($roomType) ? 'ROOM' : 'BED'));
+				$personToBook = (isPrivate($roomType) ? $roomType['num_of_beds'] : $numOfPerson/*PerApt*/);
+				$toBook[$roomId] = array('num_of_person' => $personToBook, 'type' => 'ROOM');
 
 				$numOfBedsBooked += $personToBook;
 				// add roomChanges for the dates unavailable
@@ -630,7 +670,7 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 					uasort($roomsNotToBookInReverse, "sortByArraySizeDesc");
 				}
 			}
-		} elseif(isDorm($roomType['type'])) {
+		} elseif(isDorm($roomType)) {
 			// Handle the overbookings for dorm: 
 			// for each booking iterate through the dates:
 			//   get the overbooking for that dorm room for that date
@@ -644,7 +684,7 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 					$availableBeds = getNumOfAvailBeds($rooms[$bookedRoomId], $currDate);
 					$overbooking = $bookData['num_of_person'] - $availableBeds;
 					if($overbooking > 0) {
-						set_debug("getBookingData() - for room: $bookedRoomId, date: $currDate, there are $overbooking overbookings.");
+						set_debug("getBookingData(DORM) - for room: $bookedRoomId, date: $currDate, there are $overbooking overbookings.");
 						foreach($rooms as $roomId => $roomData) { 
 							if(($roomData['room_type_id'] != $roomTypeId) or ($roomId == $bookedRoomId)) {
 								continue;
@@ -652,7 +692,7 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 							$availableBeds = getNumOfAvailBeds($rooms[$roomId], $currDate);
 							if($availableBeds > 0) {
 								$numPersonInThisRoom = min($availableBeds, $overbooking);
-								set_debug("getBookingData() -	saving room change into room: $roomId, numOfPerson: $numPersonInThisRoom");
+								set_debug("getBookingData(DORM) - saving room change into room: $roomId, numOfPerson: $numPersonInThisRoom");
 								$roomChanges[$bookedRoomId][] = array('room_id' => $roomId, 'date' => $currDate, 'num_of_person' => $numPersonInThisRoom);
 								$overbooking = $overbooking - $numPersonInThisRoom;
 							}
@@ -723,14 +763,7 @@ function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$ro
 		$specialOfferId = 'NULL';
 		if(is_null($priceForRoomType) or !isset($priceForRoomType[$roomTypeId])) {
 			$payment = getPrice(strtotime($startDate), $numOfNights, $rooms[$roomId], $numOfPerson);
-			$discount = 0;
-			$selectedSo = null;
-			foreach($specialOffers as $so) {
-				if(specialOfferApplies($so, $roomType, getNumOfNights($startDate, $endDate), $startDate) and $so['discount_pct'] > $discount) {
-					$discount = $so['discount_pct'];
-					$selectedSo = $so;
-				}
-			}
+			list($discount, $selectedSo) = findSpecialOffer($specialOffers, $roomType, $numOfNights, $startDate, $numOfPerson);
 			// apply special offer
 			$discountedPayment = $payment;
 			if($discount > 0) {

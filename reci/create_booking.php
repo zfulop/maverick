@@ -22,10 +22,10 @@ $fnight = $_REQUEST['first_night'];
 $lnight = $_REQUEST['last_night'];
 $deposit = $_REQUEST['deposit'];
 $depositCurrency = $_REQUEST['deposit_currency'];
-$comment = '';
-$source = '';
+$comment = $_REQUEST['comment'];
+$source = $_REQUEST['source'];
 $arrivalTime = $_REQUEST['arrival_time'];
-$numOfNights = intval((strtotime(str_replace('/', '-', $lnight)) - strtotime(str_replace('/', '-', $fnight))) / (60*60*24)) + 1;
+$numOfNights = round((strtotime(str_replace('/', '-', $lnight)) - strtotime(str_replace('/', '-', $fnight))) / (60*60*24)) + 1;
 
 list($startYear, $startMonth, $startDay) = explode('/', $fnight);
 list($endYear, $endMonth, $endDay) = explode('/', $lnight);
@@ -50,7 +50,15 @@ while($row = mysql_fetch_assoc($result)) {
 //
 $numOfPersonForRoomType = array();
 foreach($roomTypes as $roomTypeId => $roomType) {
-	$numOfPersonForRoomType[$roomTypeId] = $_REQUEST['num_of_person_' . $roomTypeId];
+	/*if(isApartment($roomType)) {
+		for($i = 2; $i <= $roomType['num_of_beds']; $i++) {
+			if(isset($_REQUEST['num_of_person_' . $roomTypeId . '_' . $i]) {
+				$numOfPersonForRoomType[$roomTypeId . '_' . $i] = $_REQUEST['num_of_person_' . $roomTypeId . '_' . $i];
+			}
+		}
+	} else {*/
+		$numOfPersonForRoomType[$roomTypeId] = $_REQUEST['num_of_person_' . $roomTypeId];
+	//}
 }
 $overbookings = getOverbookings($numOfPersonForRoomType, $startDate, $endDate, $rooms);
 $error = false;
@@ -65,11 +73,14 @@ if(count($overbookings) > 0) {
 			$datesUnavailableStr .= ", $currDate - there are only $availableBeds beds available";
 		}
 		$datesUnavailableStr = substr($datesUnavailableStr, 2);
-		if($roomTypes[$roomTypeId]['type'] == 'DORM') {
+		if(isDorm($roomTypes[$roomTypeId])) {
 			set_warning("Overbooking: For the dormitory room: $roomName and dates: $datesUnavailableStr. ");		
 			$warning = true;
-		} else {
+		} elseif(isPrivate($roomTypes[$roomTypeId])) {
 			set_error("Overbooking: For the private room: $roomName and dates: $datesUnavailableStr. The booking cannot be saved.");
+			$error = true;
+		} elseif(isApartment($roomTypes[$roomTypeId])) {
+			set_error("Overbooking: For the apartment: $roomName and dates: $datesUnavailableStr. The booking cannot be saved.");
 			$error = true;
 		}
 	}
@@ -93,6 +104,13 @@ set_debug("We can save the booking now!");
 // Now create an array: $toBook that contains the roomId as a key and the value contains the number
 // of people and the type (ROOM or BED) of the booking.
 list($toBook, $roomChanges) = getBookingData($numOfPersonForRoomType, $startDate, $endDate, $rooms, $roomTypes);
+
+if(count($toBook) < 1) {
+	set_error('Could not save booking because there is no room selected. At least one room must be selected in order to save a booking.');
+	header('Location: edit_new_booking.php');
+	mysql_close($link);
+	return;
+}
 
 $sql = "INSERT INTO booking_descriptions (name, name_ext, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time) VALUES ('$name', '$nameExt', '$gender', '$addr', '$nat', '$email', '$tel', '$fnight', '$lnight', $numOfNights, 0, 0, 0, 0, '$comment', '$source', '$arrivalTime')";
 set_debug($sql);

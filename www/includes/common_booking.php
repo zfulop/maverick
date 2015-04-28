@@ -79,9 +79,12 @@ EOT;
 	return $extrasHtml;
 }
 
-function getCarousel($location, $lang) {
+function getCarousel($location, $lang, $apartment = false) {
 	$slides = '';
 	$carouselIdx = 1;
+	if($apartment) {
+		$location = 'apartment';
+	}
 	while(defined("CAROUSEL_" . strtoupper($location) . '_' . $carouselIdx . "_TITLE")) {
 		$carouselTitle = constant("CAROUSEL_" . strtoupper($location) . '_' . $carouselIdx . "_TITLE");
 		$bgImage = "img/carousel-$location-$carouselIdx.jpg";

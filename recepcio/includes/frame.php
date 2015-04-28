@@ -7,11 +7,13 @@ function html_start($title = "Maverick Reception", $extraHeader = '', $showMenu 
 
 	$actualities = ROOT_URL . 'index.php';
 	$availability = ROOT_URL . 'view_availability.php';
+	$dblRoomChange = ROOT_URL . 'view_dbl_room_changes.php';
 	$booking = ROOT_URL . 'view_booking.php';
 	$gtransfer = ROOT_URL . 'view_guest_transfer.php';
 	$schedule = ROOT_URL . 'view_schedule.php';
 	$mendingList = ROOT_URL . 'view_mending_list.php';
 	$shoppingList = ROOT_URL . 'view_shopping_list.php';
+	$vacations = ROOT_URL . 'view_vacations.php';
 	$exchangeRates = ROOT_URL . 'view_exchange_rates.php';
 	$serviceCharges = ROOT_URL . 'view_service_charges.php';
 	$cashRegister = ROOT_URL . 'view_cash_register.php';
@@ -89,6 +91,7 @@ EOT;
 			<ul>
 				<li><a href="$availability" style="font-size: 14px; padding-right: 20px;">Availability</a></li>
 				<li><a href="$gtransfer" style="font-size: 14px; padding-right: 20px;">Guest transfer</a></li>
+				<li><a href="$dblRoomChange" style="font-size: 14px; padding-right: 20px;">Multiple room changes for a day</a></li>
 			</ul>
 		</div>
 		<a href="$booking" style="float: left; font-size: 14px; padding-right: 20px;">Booking</a>
@@ -96,6 +99,7 @@ EOT;
 		<div id="maintenanceMenu" class="submenu" onmouseleave="$(this).hide();">
 			<ul style="list-style: none;">
 				<li><a href="$schedule" style="font-size: 14px; padding-right: 20px;">Reception/Cleaning schedule</a></li>
+				<li><a href="$vacations" style="font-size: 14px; padding-right: 20px;">Vacations</a></li>
 				<li><a href="$mendingList" style="font-size: 14px; padding-right: 20px;">Mending List</a></li>
 				<li><a href="$shoppingList" style="font-size: 14px; padding-right: 20px;">Shopping List</a></li>
 			</ul>

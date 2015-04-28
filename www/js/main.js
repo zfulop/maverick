@@ -4,17 +4,17 @@
     FastClick.attach(document.body);
   });
 
-  $(function() {
-    var $helper, resize;
-    $helper = $('#zoom-helper');
-    resize = function() {
-      var zoom;
-      zoom = Math.round((detectZoom.zoom() || detectZoom.device()) * 100);
-      $helper.width(zoom + '%');
-    };
-    $(window).on('resize', resize);
-    resize();
-  });
+  // $(function() {
+  //   var $helper, resize;
+  //   $helper = $('#zoom-helper');
+  //   resize = function() {
+  //     var zoom;
+  //     zoom = Math.round((detectZoom.zoom() || detectZoom.device()) * 100);
+  //     $helper.width(zoom + '%');
+  //   };
+  //   $(window).on('resize', resize);
+  //   resize();
+  // });
 
   $(function() {
     var $header, className;
@@ -439,7 +439,7 @@
         var $overlay, $target, error, latitude, longitude, success;
         e.preventDefault();
         $target = $(e.target).closest('.open-overlay');
-        $overlay = $('<section id="overlay"><div><h1 class="title"><a class="close ir" href="">Close</a></h1><div class="content"></div></div></section>');
+        $overlay = $('<section id="overlay"><div><h1 class="title"></h1><a class="close ir" href="">Close</a><div class="content"></div></div></section>');
         $overlay.find('.title').prepend($target.data('overlay-title'));
         /*
         if $target.data 'overlay-class'

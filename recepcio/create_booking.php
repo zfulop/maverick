@@ -50,7 +50,15 @@ while($row = mysql_fetch_assoc($result)) {
 //
 $numOfPersonForRoomType = array();
 foreach($roomTypes as $roomTypeId => $roomType) {
-	$numOfPersonForRoomType[$roomTypeId] = $_REQUEST['num_of_person_' . $roomTypeId];
+	/*if(isApartment($roomType)) {
+		for($i = 2; $i <= $roomType['num_of_beds']; $i++) {
+			if(isset($_REQUEST['num_of_person_' . $roomTypeId . '_' . $i]) {
+				$numOfPersonForRoomType[$roomTypeId . '_' . $i] = $_REQUEST['num_of_person_' . $roomTypeId . '_' . $i];
+			}
+		}
+	} else {*/
+		$numOfPersonForRoomType[$roomTypeId] = $_REQUEST['num_of_person_' . $roomTypeId];
+	//}
 }
 $overbookings = getOverbookings($numOfPersonForRoomType, $startDate, $endDate, $rooms);
 $error = false;
@@ -96,6 +104,13 @@ set_debug("We can save the booking now!");
 // Now create an array: $toBook that contains the roomId as a key and the value contains the number
 // of people and the type (ROOM or BED) of the booking.
 list($toBook, $roomChanges) = getBookingData($numOfPersonForRoomType, $startDate, $endDate, $rooms, $roomTypes);
+
+if(count($toBook) < 1) {
+	set_error('Could not save booking because there is no room selected. At least one room must be selected in order to save a booking.');
+	header('Location: edit_new_booking.php');
+	mysql_close($link);
+	return;
+}
 
 $sql = "INSERT INTO booking_descriptions (name, name_ext, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time) VALUES ('$name', '$nameExt', '$gender', '$addr', '$nat', '$email', '$tel', '$fnight', '$lnight', $numOfNights, 0, 0, 0, 0, '$comment', '$source', '$arrivalTime')";
 set_debug($sql);

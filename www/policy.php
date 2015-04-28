@@ -4,13 +4,13 @@ require('includes.php');
 
 echo "<h2 style=\"width:100%;text-align:center\">";
 foreach(getLocations() as $location) {
-	$name = constant('LOCATION_NAME_' . strtoupper($location));
+	$name = getLocationName($location);
 	echo "<a href=\"#$location\" style=\"padding:5px 10px;\">$name</a>  ";
 }
 echo "</h2><br>";
 
 foreach(getLocations() as $location) {
-	$name = constant('LOCATION_NAME_' . strtoupper($location));
+	$name = getLocationName($location);
 	echo "<h2><a name=\"$location\">$name</a></h2>\n<ul>\n";
 	$idx = 1;
 	while(defined('POLICY_' . strtoupper($location) . '_' . $idx)) {

@@ -114,6 +114,14 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 	if(isset($_SESSION[$key])) {
 		$numOfPersonForRoomType[$roomTypeId] = $_SESSION[$key];
 	}
+	/*if(isApartment($roomType)) {
+		for($i = 2; $i <= $roomType['num_of_beds']; $i++) {
+			$key = 'room_type_' . $location . '_' . $roomTypeId . '_' . $i;
+			if(isset($_SESSION[$key])) {
+				$numOfPersonForRoomType[$roomTypeId . '_' . $i] = $_SESSION[$key];
+			}
+		}
+	}*/
 }
 
 

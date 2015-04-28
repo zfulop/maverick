@@ -5,6 +5,7 @@ $MENUS = array(
 	'HOME' => 'index.php',
 	'LOCATION_NAME_LODGE_MENU' => 'maverick_city_lodge.php',
 	'LOCATION_NAME_HOSTEL_MENU' => 'maverick_hostel_ensuites.php',
+	'LOCATION_NAME_APARTMENTS_MENU' => 'maverick_apartments.php',
 	'GROUPS' => 'groups.php',
 	'RESTAURANT' => '',
 	'CONTACT' => 'contact.php');
@@ -33,6 +34,7 @@ function html_start($menuTitle, $extraHeader = '', $onloadScript='') {
   <link rel="stylesheet" href="/css/normalize.css">
   <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans:300,600,700|Oswald:300,700&subset=latin,latin-ext">
   <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/synth.css">
   <script src="/js/vendor/modernizr-2.6.2.min.js"></script>
 $extraHeader
 </head>

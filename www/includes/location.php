@@ -1,7 +1,7 @@
 <?php
 
 function getLocations() {
-	return array('hostel', 'lodge');
+	return array('hostel', 'lodge', 'apartments');
 }
 
 function getLocation() {
@@ -19,11 +19,16 @@ function guessLocation() {
 	return 'hostel';
 }
 
-function getLocationName($loc = null) {
+function getLocationName($loc = null, $apartment = false) {
 	if(is_null($loc)) {
 		$loc = getLocation();
 	}
+	if($apartment) {
+		return LOCATION_NAME_APARTMENTS;
+	}
 	return constant('LOCATION_NAME_' . strtoupper($loc));
 }
+
+
 
 ?>
