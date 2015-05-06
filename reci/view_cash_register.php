@@ -77,7 +77,7 @@ if(!$result) {
 $eurCasse = sprintf('%.2f', $eurCasse);
 
 $cashTypes = '';
-foreach(array('Fenntartási költségek','Pénz elvitel Kristóf','Pénz elvitel Levi', 'Pénz elvitel Peti', 'Pénz elvitel Süni', 'Szobabevétel', 'Vásárlás','Sztornó korrekció', 'Befizetés bankba','Házipénztár') as $type) {
+foreach(array('Fenntartási költségek','Pénz elvitel Kristóf','Pénz elvitel Levi', 'Pénz elvitel Peti', 'Pénz elvitel Süni', 'Szobabevétel', 'Vásárlás','Sztornó korrekció', 'Befizetés bankba','Házipénztár','Fürdők') as $type) {
 	$cashTypes .= "<option value=\"$type\">$type</option>";
 }
 

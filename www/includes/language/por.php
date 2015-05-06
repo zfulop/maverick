@@ -29,6 +29,7 @@ define('AIRPORT_TO_LODGE_2', '');
 define('ALL_TAX_INCLUDED', '');
 define('ALREADY_BOOKED', '');
 define('APARTMENT_DESCRIPTION_HOME', '');
+define('APARTMENTS', '');
 define('APRIL', '');
 define('ARRIVE_TIME', '');
 define('AUGUST', '');

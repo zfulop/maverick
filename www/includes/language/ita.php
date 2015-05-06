@@ -1,8 +1,8 @@
 <?php
 
-define('ABOUT_APARTMENT', 'Sul Maverick Hostel');
-define('ABOUT_APARTMENT_DESCRIPTION', 'Vorresti sentire l’energia vitale di Budapest mentre godi dell’ambiente rilassante e pulito, da un atmosfera amichevole? Maverick Hostel è sempre un rifugio per tornare dopo una giornata intensa trascorsa in città.');
-define('ABOUT_APARTMENT_DESCRIPTION_EXTRA', 'Maverick Hostel, un palazzo reale costruito dalla dinastia degli Asburgo e rinnovato che si trova nel cuore della città, è aperto agli ospiti nel suo splendore originale. Offriamo sia delle stanze private fino a 5 posti letto che dei dormitori senza letti a castello. Le stanze sono una combinazione del design moderno e dello stile storico. Nella zona si trovano molte piccole strade originarie nel Medioevo che oggi offrono una varietà di cultura, ristoranti ottimi, case del caffè tradizionali e bar. La maggior parte delle attrazioni turistiche della città si trovano a 15 minuti a piedi, compresa la zona del Castello sul lato di Buda ed i famosi “pub in rovine”.<br><br>Le nostre caratteristiche migliori:<br>• Posizione perfetta, Ambiente libero da fumo.<br>• Wifi ed Internet gratuiti in tutto il palazzo.<br>• Spazi comuni e cucine completamente attrezzate.<br>• Reception aperta a 24 ore con personale multilingue aiutevole.<br>• Tè e caffè gratuiti tutto il giorno.<br>• Pulizia giornaliera per tutti i tipi di stanza.<br>• Lenzuola ed asciugamani inclusi nel prezzo.<br>• Stanze private di alta qualità con bel bagno proprio e Tv via cavo.<br>• Niente letti a castello nei dormitori, ma luci di lettura ed armadietti gratuiti.<br>• Supermercato nel palazzo e negozio di alimentari aperto a 24 ore accanto.<br>• Eventi sociali ogni mercoledì e sabato dove si possono gustare delle speciali bevande ungheresi gratis.<br><br>Il modo più economico e veloce per prenotare è proprio qua sul sito web del Maverick: non verranno addebitate nessuna cauzione o spese di prenotazione e vi mandiamo la conferma immediata.<br><br>Ci vediamo al Maverick! ');
+define('ABOUT_APARTMENT', 'About Maverick Apartments');
+define('ABOUT_APARTMENT_DESCRIPTION', 'Book any of our 7 separate apartments and enjoy the same high level of comfort and amenities. Total privacy is guaranteed, but as an added benefit you will also have 24-hour access to Maverick Hostel\'s useful reception desk services. Apartment range is from 20 m2 for 2 guests to 80 m2 for up to 9 people.');
+define('ABOUT_APARTMENT_DESCRIPTION_EXTRA', 'Six of the apartments are in the same historical royal mansion that is also home to Maverick Hostel, while one apartment is just a 3-minute-walk away in another historical building. This separate apartment overlooks the Danube river and offers a truly amazing panorama of the Buda side across the water.<br><br>The location is as central as it gets, and the neighborhood is home to charming little streets dating back to the Middle Ages, yet feature a number of places offering modern dining, shopping, culture, and entertainment. While our location is well served by public transport, it also lets you get to most standard city attractions by just a casual walk.<br><br>All apartments feature elevator access, a fully equipped kitchen, free WiFi, free tea and coffee, free cable TV, and an elegant full bathroom with hairdryer. Linen and towels are also included. Some apartments have a washing machine, others offer laundry service.<br><br>Take a look around, see which apartment you like, and come say hello to other guests at our complementary social event if you had enough of all your privacy.<br><br>The cheapest and fastest way to book is right here at the Maverick website: we charge no deposit or booking fee and send you instant confirmation.<br><br>Looking forward to seeing you at Maverick Apartments.<br>');
 define('ABOUT_HOSTEL', 'Sul Maverick Hostel');
 define('ABOUT_HOSTEL_DESCRIPTION', 'Vorresti sentire l’energia vitale di Budapest mentre godi dell’ambiente rilassante e pulito, da un atmosfera amichevole? Maverick Hostel è sempre un rifugio per tornare dopo una giornata intensa trascorsa in città.');
 define('ABOUT_HOSTEL_DESCRIPTION_EXTRA', 'Maverick Hostel, un palazzo reale costruito dalla dinastia degli Asburgo e rinnovato che si trova nel cuore della città, è aperto agli ospiti nel suo splendore originale. Offriamo sia delle stanze private fino a 5 posti letto che dei dormitori senza letti a castello. Le stanze sono una combinazione del design moderno e dello stile storico. Nella zona si trovano molte piccole strade originarie nel Medioevo che oggi offrono una varietà di cultura, ristoranti ottimi, case del caffè tradizionali e bar. La maggior parte delle attrazioni turistiche della città si trovano a 15 minuti a piedi, compresa la zona del Castello sul lato di Buda ed i famosi “pub in rovine”.<br><br>Le nostre caratteristiche migliori:<br>• Posizione perfetta, Ambiente libero da fumo.<br>• Wifi ed Internet gratuiti in tutto il palazzo.<br>• Spazi comuni e cucine completamente attrezzate.<br>• Reception aperta a 24 ore con personale multilingue aiutevole.<br>• Tè e caffè gratuiti tutto il giorno.<br>• Pulizia giornaliera per tutti i tipi di stanza.<br>• Lenzuola ed asciugamani inclusi nel prezzo.<br>• Stanze private di alta qualità con bel bagno proprio e Tv via cavo.<br>• Niente letti a castello nei dormitori, ma luci di lettura ed armadietti gratuiti.<br>• Supermercato nel palazzo e negozio di alimentari aperto a 24 ore accanto.<br>• Eventi sociali ogni mercoledì e sabato dove si possono gustare delle speciali bevande ungheresi gratis.<br><br>Il modo più economico e veloce per prenotare è proprio qua sul sito web del Maverick: non verranno addebitate nessuna cauzione o spese di prenotazione e vi mandiamo la conferma immediata.<br><br>Ci vediamo al Maverick! ');
@@ -13,7 +13,7 @@ define('ACTION_CONFIRM_BOOKING_EMAIL_SUBJECT', 'Azioni richieste: Si prega di co
 define('ACTUAL_EXCHANGE_RATE', 'Tasso di cambio attuale');
 define('ADD_EXTRA_SERVICES', 'Aggiungete servizi extra');
 define('ADDRESS_TITLE', 'Indirizzo');
-define('ADDRESS_VALUE_APARTMENT', 'Ungeria, Budapest 1051<br>Ferenciek tere 2. e Belgrad rakpart 27. <br>');
+define('ADDRESS_VALUE_APARTMENT', 'Ungeria, Budapest 1051,<br>Ferenciek tere 2. e Belgrad rakpart 27. <br>');
 define('ADDRESS_VALUE_APARTMENT_GENERAL', 'Maverick <strong>Apartments</strong> <em>Ferenciek tere 2. e Belgrad rakpart 27., Budapest</em>');
 define('ADDRESS_VALUE_HOSTEL', 'Ferenciek tere 2.,<br>Budapest 1051, Ungheria');
 define('ADDRESS_VALUE_HOSTEL_GENERAL', 'Maverick <strong>Hostel</strong> <em>Ferenciek tere 2., Budapest</em>');
@@ -29,6 +29,7 @@ define('AIRPORT_TO_LODGE_2', 'Trasferimento dall’aeroporto è disponibile anch
 define('ALL_TAX_INCLUDED', 'Tutte le tasse incluse');
 define('ALREADY_BOOKED', 'Tutto esaurito');
 define('APARTMENT_DESCRIPTION_HOME', 'Book any of our 7 separate apartments and enjoy the same high level of comfort and amenities. Total privacy is guaranteed, but as an added benefit you will also have 24-hour access to Maverick Hostel\'s useful reception desk services. Apartment range is from 20 m2 for 2 guests to 80 m2 for up to 9 people.');
+define('APARTMENTS', 'Apartments');
 define('APRIL', 'Aprile');
 define('ARRIVE_TIME', 'Orario di arrivo');
 define('AUGUST', 'Agosto');
@@ -46,19 +47,19 @@ define('BOOKING_DATE_MUST_BE_IN_THE_FUTURE', 'Le date di check-in/out devono ess
 define('BOOKING_SUMMARY', 'Riepilogo della prenotazione');
 define('CABLE_TV', 'Tv via cavo');
 define('CANNOT_CONFIRM_BOOKING', 'È impossibile convalidare la conferma della prenotazione');
-define('CAROUSEL_APARTMENT_1_TITLE', 'Stay Maverick!<br><span>Budapest</span>');
-define('CAROUSEL_APARTMENT_2_TITLE', 'Hall d’ingresso<br><span>Hostel</span>');
-define('CAROUSEL_APARTMENT_3_TITLE', 'Atrio<br><span>City Lodge</span>');
-define('CAROUSEL_APARTMENT_4_TITLE', 'Atrio<br><span>Hostel</span>');
-define('CAROUSEL_APARTMENT_5_TITLE', 'Stanza doppia con bagno privato<br><span>City Lodge</span>');
-define('CAROUSEL_APARTMENT_6_TITLE', 'Dormitorio a 6 posti letto<br><span>City Lodge</span>');
-define('CAROUSEL_APARTMENT_7_TITLE', 'Stanza doppia con bagno privato<br><span>Hostel</span>');
-define('CAROUSEL_APARTMENT_8_TITLE', 'Dormitorio a 10 posti letto con bagno privato<br><span>Hostel</span>');
-define('CAROUSEL_APARTMENT_9_TITLE', 'Atrio<br><span>City Lodge</span>');
-define('CAROUSEL_APARTMENT_10_TITLE', 'Cucina comune<br><span>Hostel</span>');
-define('CAROUSEL_APARTMENT_11_TITLE', 'Esterno dell\'edificio<br><span>City Lodge</span>');
-define('CAROUSEL_APARTMENT_12_TITLE', 'Esterno dell\'edificio<br><span>City Lodge</span>');
-define('CAROUSEL_APARTMENT_13_TITLE', 'Esterno dell\'edificio<br><span>City Lodge</span>');
+define('CAROUSEL_APARTMENT_1_TITLE', 'View, Deluxe One-Bedroom <br><span>Apartment</span>');
+define('CAROUSEL_APARTMENT_2_TITLE', 'Entry Hall, Ferenciek square<br><span>Apartments</span>');
+define('CAROUSEL_APARTMENT_3_TITLE', 'Deluxe Two-Bedroom <br><span>Apartment</span>');
+define('CAROUSEL_APARTMENT_4_TITLE', 'Deluxe Two-Bedroom <br><span>Apartment</span>');
+define('CAROUSEL_APARTMENT_5_TITLE', 'Deluxe One-Bedroom <span>Apartment</span>');
+define('CAROUSEL_APARTMENT_6_TITLE', 'Deluxe One-Bedroom <span>Apartment</span>');
+define('CAROUSEL_APARTMENT_7_TITLE', 'One-Bedroom <span>Apartment</span>');
+define('CAROUSEL_APARTMENT_8_TITLE', 'One-Bedroom <span>Apartment</span><br><span>Hostel</span>');
+define('CAROUSEL_APARTMENT_9_TITLE', 'Deluxe Studio<br><span>Apartment</span>');
+define('CAROUSEL_APARTMENT_10_TITLE', 'Deluxe Studio<br><span>Apartment</span>');
+define('CAROUSEL_APARTMENT_11_TITLE', 'Studio<br><span>Apartment</span>');
+define('CAROUSEL_APARTMENT_12_TITLE', 'Building, Deluxe One-Bedroom<br><span>Apartment</span>');
+define('CAROUSEL_APARTMENT_13_TITLE', 'Deluxe Studio<br><span>Apartment</span>');
 define('CAROUSEL_HOME_1_TITLE', 'Stay Maverick!<br><span>Budapest</span>');
 define('CAROUSEL_HOME_2_TITLE', 'Hall d’ingresso<br><span>Hostel</span>');
 define('CAROUSEL_HOME_3_TITLE', 'Atrio<br><span>City Lodge</span>');
@@ -285,7 +286,7 @@ define('RAILWAY_STATIONS_TO_LODGE', '<b>Keleti - 10min. </b><br>- Prendete l’a
 define('READING_LIGHTS', 'Luci di lettura');
 define('RESTAURANT', 'Ristorante<span>Tra poco</span>');
 define('ROOM', 'Stanza');
-define('ROOM_DETAILS', 'Dettagli di stanza');
+define('ROOM_DETAILS', 'Dettagli ');
 define('ROOM_TYPE', 'Tipo di stanza');
 define('ROOM_TYPE_PREFERENCE', 'Tipo di stanza preferito');
 define('ROOMS', 'Stanze');

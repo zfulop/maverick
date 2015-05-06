@@ -6,6 +6,7 @@ require('room_booking.php');
 
 define('PROPERTY_ID_HOSTEL','1650');
 define('PROPERTY_ID_LODGE','1748');
+define('PROPERTY_ID_APARTMENT','5637');
 
 define('HASHED_PASSWORD', '$1$rM3.YS0.$.BMdC5Qd31wO6VUArIhb21');
 
@@ -117,6 +118,33 @@ $ROOM_MAP = array(
 			'roomTypeId' => 72,
 			'remoteRoomId' => '16475'
 			)
+		),
+	'apartment' => array(
+		array(
+			'roomName' => 'Studio Apartment',
+			'roomTypeId' => 70,
+			'remoteRoomId' => '29812'
+			),
+		array(
+			'roomName' => 'Deluxe Studio Apartment',
+			'roomTypeId' => array(69,71),
+			'remoteRoomId' => '29813'
+			),
+		array(
+			'roomName' => 'One-bedroom apartment, Ferenciek',
+			'roomTypeId' => array(68,72),
+			'remoteRoomId' => '29814'
+			),
+		array(
+			'roomName' => 'One-bedroom apartment, Belgrád',
+			'roomTypeId' => 67,
+			'remoteRoomId' => '29815'
+			),
+		array(
+			'roomName' => 'Two-bedroom apartment, Deák',
+			'roomTypeId' => 66,
+			'remoteRoomId' => '29816'
+			)
 		)
 	);
 
@@ -167,7 +195,7 @@ if(!isset($bookingData['PropertyId'])) {
 }
 
 
-if($propertyId == PROPERTY_ID_HOSTEL and $_SERVER['HTTP_HOST'] != 'recepcio.maverickhostel.com') {
+if((($propertyId == PROPERTY_ID_HOSTEL) or ($propertyId == PROPERTY_ID_APARTMENT)) and $_SERVER['HTTP_HOST'] != 'recepcio.maverickhostel.com') {
 	// sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Forward Booking to " . LOCATION, 'booking data: ' . print_r($bookingData,true) . "\n\nRaw data: \n" . stripslashes($_REQUEST['booking']));
 	$url = 'http://recepcio.maverickhostel.com/myallocator_booking.php';
 
@@ -251,7 +279,7 @@ function cancelBooking($myAllocatorId, $link) {
 
 
 function createBooking($bookingData, $link) {
-	global $lang, $bookingJson, $locationName, $SOURCES, $ROOM_MAP, $MESSAGES, $COUNTRY_ALIASES;
+	global $lang, $bookingJson, $locationName, $SOURCES, $MESSAGES, $COUNTRY_ALIASES;
 	$nowTime = date('Y-m-d H:i:s');
 	if(!isset($bookingData['Rooms']) or !is_array($bookingData['Rooms']) or count($bookingData['Rooms']) < 1) {
 		set_debug("booking data:");
@@ -377,7 +405,7 @@ function createBooking($bookingData, $link) {
 		$numOfPersonForRoomType = array();
 		$priceForRoomType = array();
 		foreach($roomData['RoomTypeIds'] as $myAllocRoomTypeId) {
-			$roomTypeId = findRoomTypeId($myAllocRoomTypeId);
+			$roomTypeId = findRoomTypeId($myAllocRoomTypeId, $propertyId);
 			if(is_null($roomTypeId)) {
 				set_debug("Cannot find roomTypeId for myallocator room id: $myAllocRoomTypeId");
 				respond('52', false, "Cannot find roomTypeId for myallocator room id: $myAllocRoomTypeId");
@@ -386,6 +414,20 @@ function createBooking($bookingData, $link) {
 			$numOfPerson = $roomData['Units'];
 			if(isPrivate($roomTypesData[$roomTypeId])) {
 				$numOfPerson = $numOfPerson * $roomTypesData[$roomTypeId]['num_of_beds'];
+			}
+			if(is_array($roomTypeId)) {
+				$goodId = null;
+				foreach($roomTypeId as $oneId) {
+					if(count(getOverbookings(array($oneId => $numOfPerson), $arriveDate, $lastNight, $rooms)) < 1) {
+						$goodId = $oneId;
+						break;
+					}
+				}
+				if(is_null($goodId)) {
+					$roomTypeId = $roomTypeId[0];
+				} else {
+					$roomTypeId = $goodId;
+				}
 			}
 			$numOfPersonForRoomType[$roomTypeId] = $numOfPerson;
 			$price = $roomData['Price'];
@@ -495,10 +537,14 @@ function respond($code, $success, $errorMessage = null) {
 }
 
 
-function findRoomTypeId($remoteRoomId) {
+function findRoomTypeId($remoteRoomId, $propertyId) {
 	global $ROOM_MAP;
 
-	foreach($ROOM_MAP[LOCATION] as $roomTypeInfo) {
+	$location = LOCATION;
+	if($propertyId == PROPERTY_ID_APARTMENT) {
+		$location = 'apartment';
+	}
+	foreach($ROOM_MAP[$location] as $roomTypeInfo) {
 		if($roomTypeInfo['remoteRoomId'] == $remoteRoomId) {
 			return $roomTypeInfo['roomTypeId'];
 		}

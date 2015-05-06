@@ -254,7 +254,7 @@ if(!$result) {
 }
  */
 
-$types = array('Fenntartási költségek','Pénz elvitel Kristóf','Pénz elvitel Levi', 'Pénz elvitel Peti', 'Pénz elvitel Süni', 'Szobabevétel', 'Vásárlás', 'Sztornó korrekció', 'Befizetés bankba', 'Házipénztár');
+$types = array('Fenntartási költségek','Pénz elvitel Kristóf','Pénz elvitel Levi', 'Pénz elvitel Peti', 'Pénz elvitel Süni', 'Szobabevétel', 'Vásárlás', 'Sztornó korrekció', 'Befizetés bankba', 'Házipénztár', 'Fürdők');
 $paymentTypeOptions = '';
 $serviceOptions = '';
 foreach($types as $type) {

@@ -83,7 +83,32 @@ class MyAllocatorBooker extends Booker {
 				'roomName' => 'Single room ensuite',
 				'roomIds' => array(65),
 				'remoteRoomId' => '24369'
-			)
+			),
+			array(
+				'roomName' => 'Studio Apartment',
+				'roomIds' => array(82),
+				'remoteRoomId' => '29812'
+				),
+			array(
+				'roomName' => 'Deluxe Studio Apartment',
+				'roomIds' => array(80,81),
+				'remoteRoomId' => '29813'
+				),
+			array(
+				'roomName' => 'One-bedroom apartment, Ferenciek',
+				'roomIds' => array(78,79),
+				'remoteRoomId' => '29814'
+				),
+			array(
+				'roomName' => 'One-bedroom apartment, Belgrád',
+				'roomIds' => array(77),
+				'remoteRoomId' => '29815'
+				),
+			array(
+				'roomName' => 'Two-bedroom apartment, Deák',
+				'roomIds' => array(76),
+				'remoteRoomId' => '29816'
+				)
 		),
 		'LODGE' => array(
 			array(
@@ -126,7 +151,7 @@ class MyAllocatorBooker extends Booker {
 				'roomIds' => array(117,118),
 				'remoteRoomId' => '16475'
 				)
-			)
+		)
 	);
 
 

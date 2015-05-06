@@ -63,7 +63,11 @@ for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', str
 		$dpb = intval($_REQUEST['discount_per_bed']);
 	} else {
 		$val = intval($_REQUEST[$dateStr]);
-		$dpb = intval($_REQUEST['dpb_' . $dateStr]);
+		if(isset($_REQUEST['dpb_' . $dateStr])) {
+			$dpb = intval($_REQUEST['dpb_' . $dateStr]);
+		} else {
+			$dpb = 0;
+		}
 	}
 	if($val > 0) {
 		$sql = "SELECT * FROM prices_for_date WHERE room_type_id=$roomTypeId AND date='$dateStr'";

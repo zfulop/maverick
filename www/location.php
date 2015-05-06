@@ -98,6 +98,9 @@ $airport = AIRPORT;
 $internationalBusStation = INTERNATIONAL_BUS_STATION;
 
 $rooms = ROOMS;
+if(showApartments()) {
+	$rooms = APARTMENTS;
+}
 $services = SERVICES;
 $freeServicesTitle = FREE_SERVICES;
 $extraServicesTitle = SERVICES_FOR_EXTRA_FEE;
