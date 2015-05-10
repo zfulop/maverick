@@ -47,7 +47,9 @@ $extras = array(
 			array('img' => '/img/icon/svc_icon_cable_tv.png', 'name' => CABLE_TV),
 			array('img' => '/img/icon/svc_icon_air_hair_dryer_for_request.png', 'name' => HAIR_DRYER_FOR_REQUEST),
 			array('img' => '/img/icon/svc_icon_towel_included.png', 'name' => LINEN_AND_TOWEL_INCLUDED)
-		),
+		)
+	),
+	'APARTMENTS' => array(
 		'APARTMENT' => array(
 			array('img' => '/img/icon/svc_icon_free_wifi.png', 'name' => FREE_WIFI),
 			array('img' => '/img/icon/svc_icon_reading_lights.png', 'name' => READING_LIGHTS),
@@ -83,7 +85,7 @@ function getCarousel($location, $lang, $apartment = false) {
 	$slides = '';
 	$carouselIdx = 1;
 	if($apartment) {
-		$location = 'apartment';
+		$location = 'apartments';
 	}
 	while(defined("CAROUSEL_" . strtoupper($location) . '_' . $carouselIdx . "_TITLE")) {
 		$carouselTitle = constant("CAROUSEL_" . strtoupper($location) . '_' . $carouselIdx . "_TITLE");

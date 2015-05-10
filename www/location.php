@@ -76,15 +76,15 @@ $contactPhone = constant('CONTACT_PHONE_' . strtoupper($location));
 $contactEmail = constant('CONTACT_EMAIL_' . strtoupper($location));
 $contactFax = constant('CONTACT_FAX_' . strtoupper($location));
 if(showApartments()) {
-	$aboutLocation = constant('ABOUT_APARTMENT');
-	$aboutLocationDescr = constant('ABOUT_APARTMENT_DESCRIPTION');
-	$aboutLocationDescrExtra = constant('ABOUT_APARTMENT_DESCRIPTION_EXTRA');
-	$directionsToLocation = constant('DIRECTIONS_TO_APARTMENT');
-	$addressValue = constant('ADDRESS_VALUE_APARTMENT');
+	$aboutLocation = constant('ABOUT_APARTMENTS');
+	$aboutLocationDescr = constant('ABOUT_APARTMENTS_DESCRIPTION');
+	$aboutLocationDescrExtra = constant('ABOUT_APARTMENTS_DESCRIPTION_EXTRA');
+	$directionsToLocation = constant('DIRECTIONS_TO_APARTMENTS');
+	$addressValue = constant('ADDRESS_VALUE_APARTMENTS');
 	// constants are defined in config.php
-	$contactPhone = constant('CONTACT_PHONE_APARTMENT');
-	$contactEmail = constant('CONTACT_EMAIL_APARTMENT');
-	$contactFax = constant('CONTACT_FAX_APARTMENT');
+	$contactPhone = constant('CONTACT_PHONE_APARTMENTS');
+	$contactEmail = constant('CONTACT_EMAIL_APARTMENTS');
+	$contactFax = constant('CONTACT_FAX_APARTMENTS');
 }
 $nights = NIGHTS;
 $locationTitle = LOCATION_TITLE;
@@ -333,7 +333,7 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 			if(($row['default'] == 1) or (strlen($roomImg) < 1)) {
 				$host = '';
 				$baseDir = BASE_DIR;
-				if($location == 'hostel') {
+				if($location == 'hostel' or $location == 'apartments') {
 					$host = 'http://img.maverickhostel.com/';
 					$baseDir = HOSTEL_BASE_DIR;
 				}

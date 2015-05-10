@@ -35,18 +35,18 @@ define('AWARDS_IMG_URL_LODGE', BASE_URL . "img/awards/");
 
 define('GEO_IP_DAT_FILE', BASE_DIR . "includes/GeoIP.dat");
 
-define('CONTACT_EMAIL_APARTMENT', 'zfulop@zolilla.com');
+define('CONTACT_EMAIL_APARTMENTS', 'zfulop@zolilla.com');
 define('CONTACT_EMAIL_HOSTEL', 'zfulop@zolilla.com');
 define('CONTACT_EMAIL_LODGE', 'zfulop@zolilla.com');
-define('CONTACT_FAX_APARTMENT', '+36 1 7004598');
+define('CONTACT_FAX_APARTMENTS', '+36 1 7004598');
 define('CONTACT_FAX_HOSTEL', '+36 1 7004598');
 define('CONTACT_FAX_LODGE', '+36 1 7004598');
-define('CONTACT_PHONE_APARTMENT', '+36 1 2673166');
+define('CONTACT_PHONE_APARTMENTS', '+36 1 2673166');
 define('CONTACT_PHONE_HOSTEL', '+36 1 2673166');
 define('CONTACT_PHONE_LODGE', '+36 1 2673166');
 
-define('LATITUDE_APARTMENT', '47.492994');
-define('LONGITUDE_APARTMENT', '19.055293');
+define('LATITUDE_APARTMENTS', '47.492994');
+define('LONGITUDE_APARTMENTS', '19.055293');
 define('LATITUDE_HOSTEL', '47.492994');
 define('LONGITUDE_HOSTEL', '19.055293');
 define('LATITUDE_LODGE', '47.498072');

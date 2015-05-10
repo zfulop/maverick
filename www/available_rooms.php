@@ -6,8 +6,7 @@ require('../recepcio/room_booking.php');
 
 // If a new search is executed from the availability screen, we have to adjust the location 
 // and the apartment setting accordingly (location can be hostel,lodge,apartment)
-if(isset($_REQUEST['location']) and $_REQUEST['location'] == 'apartment') {
-	$_REQUEST['location'] = 'hostel';
+if(isset($_REQUEST['location']) and $_REQUEST['location'] == 'apartments') {
 	$_SESSION['apartment'] == 'yes';
 } elseif(isset($_REQUEST['location'])) {
 	$_SESSION['apartment'] == 'no';
@@ -356,9 +355,10 @@ function getRoomHtml($roomType, $roomTypeId, $nights, $arriveDate, $specialOffer
 	list($discountPlus1, $specialOfferForOneMoreDay) = findSpecialOffer($specialOffers, $roomType, $nights+1, $arriveDate, $roomType['num_of_beds']);
 	$price = $roomType['price'];
 	if(isApartment($roomType)) {
-		$price = $roomType['price_' . $roomType['num_of_beds']];
+		$price = $roomType['price_2'];
 	}
 
+	$template = isDorm($roomType) ? PRICE_PER_NIGHT_PER_BED : (isPrivate($roomType) ? PRICE_PER_NIGHT_PER_ROOM : PRICE_PER_NIGHT_PER_2_GUESTS);
 	$oldPricePerNight = '';
 	if($discount > 0) {
 		$percentOff = '-' . $discount . '%';
@@ -369,9 +369,9 @@ function getRoomHtml($roomType, $roomTypeId, $nights, $arriveDate, $specialOffer
 
 EOT;
 		$price = $price * (100 - $discount) / 100;
-		$oldPricePerNight = sprintf(isDorm($roomType) ? PRICE_PER_NIGHT_PER_BED : PRICE_PER_NIGHT_PER_ROOM, formatMoney(convertCurrency($roomType['price'], 'EUR', $currency), $currency)) . '<br>';
+		$oldPricePerNight = sprintf($template, formatMoney(convertCurrency($roomType['price'], 'EUR', $currency), $currency)) . '<br>';
 	}
-	$pricePerNight = sprintf(isDorm($roomType) ? PRICE_PER_NIGHT_PER_BED : PRICE_PER_NIGHT_PER_ROOM, formatMoney(convertCurrency($price, 'EUR', $currency), $currency));
+	$pricePerNight = sprintf($template, formatMoney(convertCurrency($price, 'EUR', $currency), $currency));
 
 	if($roomType['num_of_beds_avail'] > 0) {
 		$formName = "room_type_" . $location . "_" . $roomTypeId;
@@ -422,7 +422,7 @@ EOT;
 			if(($row['default'] == 1) or (strlen($roomImg) < 1)) {
 				$host = '';
 				$baseDir = BASE_DIR;
-				if($location == 'hostel') {
+				if($location == 'hostel' or $location == 'apartments') {
 					$host = 'http://img.maverickhostel.com/';
 					$baseDir = HOSTEL_BASE_DIR;
 				}

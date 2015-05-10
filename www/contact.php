@@ -17,30 +17,30 @@ $locationNameApartment = LOCATION_NAME_APARTMENTS_MENU;
 $directions = DIRECTIONS;
 $directionsToLodge = DIRECTIONS_TO_LODGE;
 $directionsToHostel = DIRECTIONS_TO_HOSTEL;
-$directionsToApartment = DIRECTIONS_TO_APARTMENT;
+$directionsToApartment = DIRECTIONS_TO_APARTMENTS;
 $addressTitle = ADDRESS_TITLE;
 $phoneTitle = PHONE;
 $emailTitle = EMAIL;
 $faxTitle = FAX;
 $addressValueHostel = ADDRESS_VALUE_HOSTEL;
 $addressValueLodge = ADDRESS_VALUE_LODGE;
-$addressValueApartment = ADDRESS_VALUE_APARTMENT;
+$addressValueApartment = ADDRESS_VALUE_APARTMENTS;
 $phoneValueHostel = CONTACT_PHONE_HOSTEL;
 $phoneValueLodge = CONTACT_PHONE_LODGE;
-$phoneValueApartment = CONTACT_PHONE_APARTMENT;
+$phoneValueApartment = CONTACT_PHONE_APARTMENTS;
 $emailValueHostel = CONTACT_EMAIL_HOSTEL;
 $emailValueLodge = CONTACT_EMAIL_LODGE;
-$emailValueLodge = CONTACT_EMAIL_APARTMENT;
+$emailValueApartments = CONTACT_EMAIL_APARTMENTS;
 $faxValueHostel = CONTACT_FAX_HOSTEL;
 $faxValueLodge = CONTACT_FAX_LODGE;
-$faxValueApartment = CONTACT_FAX_APARTMENT;
+$faxValueApartment = CONTACT_FAX_APARTMENTS;
 
 $lodgeLatitude = LATITUDE_LODGE;
 $lodgeLongitude = LONGITUDE_LODGE;
 $hostelLatitude = LATITUDE_HOSTEL;
 $hostelLongitude = LONGITUDE_HOSTEL;
-$apartmentLatitude = LATITUDE_APARTMENT;
-$apartmentLongitude = LONGITUDE_APARTMENT;
+$apartmentLatitude = LATITUDE_APARTMENTS;
+$apartmentLongitude = LONGITUDE_APARTMENTS;
 
 
 echo <<<EOT
@@ -124,7 +124,7 @@ echo <<<EOT
               </div>
             </li>
 
-            <li class="hostel">
+            <li class="apartments">
               <h2>$locationNameApartment</h2>
 
               <div class="info">
@@ -134,7 +134,7 @@ echo <<<EOT
                 </p>
                 <p>
                   <strong>$emailTitle:</strong>
-                  <a href="mailto:$emailValueApartment">$emailValueApartment</a>
+                  <a href="mailto:$emailValueApartments">$emailValueApartments</a>
                 </p>
 
                 <div class="map">
@@ -153,7 +153,7 @@ echo <<<EOT
 
               <div class="directions">
                 <p class="condensed">
-                  <a class="open-overlay" href="" data-overlay-title="$directionsToApartment" data-overlay-content-url="directions.php?location=lodge">$directions</a>
+                  <a class="open-overlay" href="" data-overlay-title="$directionsToApartment" data-overlay-content-url="directions.php?location=apartments">$directions</a>
                   </a>
                 </p>
               </div>

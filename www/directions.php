@@ -1,8 +1,13 @@
 <?php
 
 require('includes.php');
+require('includes/common_booking.php');
 
 $location = getLocation();
+if(showApartments()) {
+	$location = 'apartments';
+}
+
 
 $publicTransportTitle = PUBLIC_TRANSPORT;
 $publicTransportValue = constant('PUBLIC_TRANSPORT_TO_' . strtoupper($location));

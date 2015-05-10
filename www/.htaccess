@@ -46,7 +46,7 @@ RewriteCond %{REQUEST_URI} maverick_hostel_ensuites.php
 RewriteRule maverick_hostel_ensuites.php location.php?location=hostel&apartment=no [L,QSA]
 
 RewriteCond %{REQUEST_URI} maverick_apartments.php
-RewriteRule maverick_apartments.php location.php?location=hostel&apartment=yes [L,QSA]
+RewriteRule maverick_apartments.php location.php?location=apartments&apartment=yes [L,QSA]
 
 RewriteCond %{REQUEST_URI} hostel_available_rooms.php
 RewriteRule hostel_available_rooms.php available_rooms.php?location=hostel [L,QSA]
@@ -54,21 +54,33 @@ RewriteRule hostel_available_rooms.php available_rooms.php?location=hostel [L,QS
 RewriteCond %{REQUEST_URI} lodge_available_rooms.php
 RewriteRule lodge_available_rooms.php available_rooms.php?location=lodge [L,QSA]
 
+RewriteCond %{REQUEST_URI} apartments_available_rooms.php
+RewriteRule apartments_available_rooms.php available_rooms.php?location=apartments&apartment=yes [L,QSA]
+
 RewriteCond %{REQUEST_URI} hostel_extra_services.php
-RewriteRule hostel_extra_services.php extra_services.php?location=hostel [L,QSA]
+RewriteRule hostel_extra_services.php extra_services.php?location=hostel&apartment=no [L,QSA]
 
 RewriteCond %{REQUEST_URI} lodge_extra_services.php
-RewriteRule lodge_extra_services.php extra_services.php?location=lodge [L,QSA]
+RewriteRule lodge_extra_services.php extra_services.php?location=lodge&apartment=no [L,QSA]
+
+RewriteCond %{REQUEST_URI} apartments_extra_services.php
+RewriteRule apartments_extra_services.php extra_services.php?location=apartments&apartment=yes [L,QSA]
 
 RewriteCond %{REQUEST_URI} hostel_contact_details.php
-RewriteRule hostel_contact_details.php contact_details.php?location=hostel [L,QSA]
+RewriteRule hostel_contact_details.php contact_details.php?location=hostel&apartment=no [L,QSA]
 
 RewriteCond %{REQUEST_URI} lodge_contact_details.php
-RewriteRule lodge_contact_details.php contact_details.php?location=lodge [L,QSA]
+RewriteRule lodge_contact_details.php contact_details.php?location=lodge&apartment=no [L,QSA]
+
+RewriteCond %{REQUEST_URI} apartments_contact_details.php
+RewriteRule apartments_contact_details.php contact_details.php?location=apartments&apartment=yes [L,QSA]
 
 RewriteCond %{REQUEST_URI} hostel_book_now.php
-RewriteRule hostel_book_now.php book_now.php?location=hostel [L,QSA]
+RewriteRule hostel_book_now.php book_now.php?location=hostel&apartment=no [L,QSA]
 
 RewriteCond %{REQUEST_URI} lodge_book_now.php
-RewriteRule lodge_book_now.php book_now.php?location=lodge [L,QSA]
+RewriteRule lodge_book_now.php book_now.php?location=lodge&apartment=no [L,QSA]
+
+RewriteCond %{REQUEST_URI} apartments_book_now.php
+RewriteRule apartments_book_now.php book_now.php?location=apartments&apartment=yes [L,QSA]
 
