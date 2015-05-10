@@ -16,6 +16,7 @@ define('CUSTOMER_ID','maverick');
 define('CUSTOMER_PASSWORD','Palesz22');
 define('PROPERTY_ID_HOSTEL','1650');
 define('PROPERTY_ID_LODGE','1748');
+define('PROPERTY_ID_APARTMENT','5637');
 define('VENDOR_ID','maverickhostel');
 define('VENDOR_PASSWORD','kPnFxw85RS');
 
@@ -83,7 +84,9 @@ class MyAllocatorBooker extends Booker {
 				'roomName' => 'Single room ensuite',
 				'roomIds' => array(65),
 				'remoteRoomId' => '24369'
-			),
+			)
+		),
+		'APARTMENT' => array(
 			array(
 				'roomName' => 'Studio Apartment',
 				'roomIds' => array(82),
@@ -160,7 +163,14 @@ class MyAllocatorBooker extends Booker {
 	function update($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, &$rooms) {
 		echo "<b>myalocator.com synchronization update</b><br>";
 		$location = strtoupper(LOCATION);
+		$this->updateLocation($location, $startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $rooms);
+		if($location == 'HOSTEL') {
+			$this->updateLocation('APARTMENT', $startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $rooms);
+		}
+		echo "<b>myallocator.com synchronization update finished</b><br><br><br>";
+	}
 
+	function updateLocation($location, $startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, &$rooms) {
 		echo "Location is: $location <br>\n";
 		//echo "<!-- " . print_r($rooms, true) . "-->\n";
 		$endTS = strtotime("$endYear-$endMonth-$endDay");
@@ -219,7 +229,7 @@ EOT;
 			//echo "done.<br>\n";
 		}
 
-		$pid = constant('PROPERTY_ID_' . strtoupper(LOCATION));
+		$pid = constant('PROPERTY_ID_' . $location);
 		$auth = $this->getAuth($pid);
 		$request = <<<EOT
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -257,7 +267,6 @@ EOT;
 		}
 		echo "</table>\n";
 
-		echo "<b>myallocator.com synchronization update finished</b><br><br><br>";
 	}
 
 
@@ -300,8 +309,8 @@ EOT;
 
 	}
 
-	function getRoomTypes() {
-		$pid = constant('PROPERTY_ID_' . strtoupper(LOCATION));
+	function getRoomTypes($location) {
+		$pid = constant('PROPERTY_ID_' . $location);
 		$auth = $this->getAuth($pid);
 		$request = <<<EOT
 <?xml version="1.0" encoding="UTF-8"?>
@@ -382,8 +391,9 @@ EOT;
 	}
 
 
-
 }
+
+
 
 
 
@@ -418,7 +428,7 @@ $booker = new MyAllocatorBooker();
 $booker->init();
 
 //$booker->getProperties();
-//$booker->getRoomTypes();
+//$booker->getRoomTypes(strtoupper(LOCATION));
 $booker->update($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $rooms);
 $booker->shutdown();
 
