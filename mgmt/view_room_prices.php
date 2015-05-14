@@ -84,12 +84,14 @@ for($i = 1; $i <= 12; $i++) {
 		$bgColor = ((($dayOfWeek+$day) % 7) < 2) ? "#AAAA00" : "#FFFFFF";
 		echo "		<td style=\"background-color: $bgColor\">";
 		$val = '';
+		$val2 = '';
 		if(isset($prices[$dateStr])) {
 			$val = $type == 'DORM' ? $prices[$dateStr]['price_per_bed'] : $prices[$dateStr]['price_per_room'];
+			$val2 = $prices[$dateStr]['discount_per_bed'];
 		}
 		echo "<input style=\"width: 20px; font-size: 9px;\" name=\"$dateStr\" value=\"$val\">";
 		if($type == 'APARTMENT') {
-			echo "<br><input style=\"width: 20px; font-size: 9px;\" name=\"dpb_$dateStr\" value=\"$val\">";
+			echo "<br><input style=\"width: 20px; font-size: 9px;\" name=\"dpb_$dateStr\" value=\"$val2\">";
 		}
 		echo "</td>\n";
 	}

@@ -238,7 +238,7 @@ if($hasServices) {
 if($hasPayments) {
 	$mailMessage .= getEmailRow("$paymentsTitle:", $payments);
 }
-$mailMessage .= getEmailRow("$balance:", "$total $currency");
+//$mailMessage .= getEmailRow("$balance:", "$total $currency");
 $mailMessage .= <<<EOT
 
                             <!-- space --><tr><td colspan="2" height="10"></td></tr>

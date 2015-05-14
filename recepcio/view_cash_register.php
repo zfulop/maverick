@@ -508,7 +508,7 @@ while(count($payments) > $pymtIdx or count($cashOuts) > $coIdx or count($gtransf
 		$name = '&nbsp;';
 	}
 
-	if($storno) {
+	if($storno or $time < $lastDayCloseTime) {
 		$stornoUrl = '&nbsp;';
 	} else {
 		$stornoUrl = "<a href=\"#\" onclick=\"if(confirm('Sztorno?')) { window.location='storno.php?type=$stornoType&id=$id&bdid=$bdid&bid=$bid'; }\">Sztorno</a>";
