@@ -9,9 +9,6 @@ $amount = -1 * str_replace(",", ".", $_REQUEST['amount']);
 $currency = $_REQUEST['currency'];
 $comment = $_REQUEST['comment'];
 $payMode = $_REQUEST['pay_mode'];
-if($serviceId < 1) {
-	$serviceId = 'NULL';
-}
 
 $link = db_connect();
 
