@@ -10,6 +10,7 @@ $currency = $_REQUEST['currency'];
 $comment = $_REQUEST['comment'];
 $payMode = $_REQUEST['pay_mode'];
 
+
 $link = db_connect();
 
 $sql = "INSERT INTO cash_out (type, receiver, time_of_payment, amount, currency, comment, pay_mode) VALUES ('$type', '$receiver', '$timeOfPayment', $amount, '$currency',  '$comment', '$payMode')";
