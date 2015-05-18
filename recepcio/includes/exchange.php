@@ -1,6 +1,6 @@
 <?php
 
-require 'exchange_table.php';
+require EXCHANGE_TABLE_FILE;
 
 // the exchange rate table is in the exchange_table.php file. That file
 // can be edited manualy, or on the site a new exchange rate can be 
@@ -75,6 +75,8 @@ function getExchangeRate($sourceCurrency, $destCurrency, $dateOfConversion) {
 //
 function addExchangeRate($sourceCurrency, $destCurrency, $rate, $date) {
 	global $EXCHANGE_TABLE;
+	set_message("Saving exchange: 1 $sourceCurrency=$rate $destCurrency for $date");
+	set_message("Saving into file: " . EXCHANGE_TABLE_FILE);
 	$EXCHANGE_TABLE[$sourceCurrency][$destCurrency][$date] = $rate;
 	krsort($EXCHANGE_TABLE[$sourceCurrency][$destCurrency]);
 	$EXCHANGE_TABLE[$destCurrency][$sourceCurrency][$date] = 1/$rate;
@@ -83,6 +85,7 @@ function addExchangeRate($sourceCurrency, $destCurrency, $rate, $date) {
 	fwrite($fh, "<?php\n\n");
 	fwrite($fh, '$EXCHANGE_TABLE = ' . var_export($EXCHANGE_TABLE, true) . ";\n\n");
 	fwrite($fh, '?' . ">\n");
+	fclose($fh);
 }
 
 function getCurrencies() {

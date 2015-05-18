@@ -2,7 +2,7 @@
 
 require('includes.php');
 require('includes/common_booking.php');
-require('../recepcio/room_booking.php');
+require(RECEPCIO_BASE_DIR . 'room_booking.php');
 
 
 $location = getLocation();
@@ -333,10 +333,6 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 			if(($row['default'] == 1) or (strlen($roomImg) < 1)) {
 				$host = '';
 				$baseDir = BASE_DIR;
-				if($location == 'hostel' or $location == 'apartments') {
-					$host = 'http://img.maverickhostel.com/';
-					$baseDir = HOSTEL_BASE_DIR;
-				}
 				$savedFileName = getFName($row['filename']) . '_587_387.' . getFExt($row['filename']);
 				if(file_exists($baseDir . 'img/rooms/' . $savedFileName)) {
 					$roomImg = $host . 'img/rooms/' . $savedFileName;

@@ -246,10 +246,10 @@ function getPrice($arriveTS, $nights, &$roomData, $numOfPerson) {
 		} elseif(isPrivate($roomData)) {
 			$totalPrice += getRoomPrice($currYear, $currMonth, $currDay, $roomData);
 		} elseif(isApartment($roomData)) {
-			set_debug('get apartment price');
+			//set_debug('get apartment price');
 			$price = getRoomPrice($currYear, $currMonth, $currDay, $roomData);
-			set_debug('room price: ' . $price);
-			set_debug('data: ' . print_r(array('num of person'=>$numOfPerson,'room beds'=>$roomData['num_of_beds'],'discount per bed'=>getDiscountPerBed($currYear, $currMonth, $currDay, $roomData)),true));
+			//set_debug('room price: ' . $price);
+			//set_debug('data: ' . print_r(array('num of person'=>$numOfPerson,'room beds'=>$roomData['num_of_beds'],'discount per bed'=>getDiscountPerBed($currYear, $currMonth, $currDay, $roomData)),true));
 			$price = $price - $price * ($roomData['num_of_beds'] - $numOfPerson) * getDiscountPerBed($currYear, $currMonth, $currDay, $roomData) / 100.0;
 			$totalPrice += $price;
 		}

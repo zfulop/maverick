@@ -2,7 +2,7 @@
 
 require('includes.php');
 require('includes/common_booking.php');
-require('../recepcio/room_booking.php');
+require(RECEPCIO_BASE_DIR . 'room_booking.php');
 
 $countryCodes = array(
 	'Afghanistan' => '93',

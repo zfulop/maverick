@@ -58,3 +58,4 @@ define('EXCHANGE_TABLE_FILE', 'c:/Projects/maverick/Repository/recepcio/includes
 
 
 ?>
+

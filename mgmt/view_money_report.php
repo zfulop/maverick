@@ -219,7 +219,7 @@ EOT;
 html_start("Maverick Mgmt - Report", $extraHeader);
 
 
-$fromName = $_SERVER['PHP_AUTH_USER'];
+$fromName = $_SERVER['REMOTE_USER'];
 
 echo <<<EOT
 

@@ -11,14 +11,6 @@ $fnight = $_REQUEST['first_night'];
 $lnight = $_REQUEST['last_night'];
 $descriptionId = $_REQUEST['booking_description_id'];
 
-$roomTypes = array();
-$sql = "SELECT rt.*, count(*) as num_of_rooms FROM room_types rt inner join rooms r on (rt.id=r.room_type_id) group by rt.id";
-$result = mysql_query($sql, $link);
-while($row = mysql_fetch_assoc($result)) {
-	$roomTypes[$row['id']] = $row;
-}
-
-
 header('Location: edit_booking.php?description_id=' . $descriptionId);
 
 list($startYear, $startMonth, $startDay) = explode('/', $fnight);
@@ -30,8 +22,6 @@ $roomTypes  = loadRoomTypes($link);
 $specialOffers = loadSpecialOffers("start_date<='$startDate' AND end_date>='$endDate'", $link);
 
 
-//set_debug('Loaded rooms: ' . print_r($rooms, true));
-
 //
 // Check to see if the booking does not conflict with the existing bookings...
 //
@@ -39,14 +29,15 @@ $numOfPersonForRoomType = array();
 foreach($roomTypes as $roomTypeId => $roomType) {
 	if(isApartment($roomType)) {
 		for($i = 2; $i <= $roomType['num_of_beds']; $i++) {
-			if(isset($_REQUEST['num_of_person_' . $roomTypeId . '_' . $i]) {
+			if(isset($_REQUEST['num_of_person_' . $roomTypeId . '_' . $i])) {
 				$numOfPersonForRoomType[$roomTypeId . '_' . $i] = $_REQUEST['num_of_person_' . $roomTypeId . '_' . $i];
 			}
 		}
-	} else {
+	} elseif(isset($_REQUEST['num_of_person_' . $roomTypeId])) {
 		$numOfPersonForRoomType[$roomTypeId] = $_REQUEST['num_of_person_' . $roomTypeId];
 	}
 }
+
 $overbookings = getOverbookings($numOfPersonForRoomType, $startDate, $endDate, $rooms);
 $error = false;
 $warning = false;

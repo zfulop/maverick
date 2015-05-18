@@ -1,7 +1,7 @@
 <?php
 
 require("includes.php");
-require("../recepcio/room_booking.php");
+require(RECEPCIO_BASE_DIR . "room_booking.php");
 
 
 $link = db_connect();

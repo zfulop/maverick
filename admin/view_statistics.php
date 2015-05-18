@@ -1,7 +1,7 @@
 <?php
 
 require("includes.php");
-require("../recepcio/room_booking.php");
+require(RECEPCIO_BASE_DIR . "room_booking.php");
 
 $link = db_connect();
 
@@ -160,7 +160,7 @@ while($row = mysql_fetch_assoc($result)) {
   $NATIONALITIES[] = $row['nationality'];
 }
 $NATIONALITIES[] = '----------';
-$countries = file_get_contents('../recepcio/includes/countries.txt');
+$countries = file_get_contents(RECEPCIO_BASE_DIR . 'includes/countries.txt');
 foreach(explode("\n", $countries) as $cntry) {
   $cntry = trim($cntry);
   if(strlen($cntry) < 1)

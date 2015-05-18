@@ -38,10 +38,10 @@ if($pwd1 != $pwd2) {
 }
 
 set_message("getting password file...");
-$content = file_get_contents('../recepcio/.htpasswd');
+$content = file_get_contents(RECEPCIO_BASE_DIR . '.htpasswd');
 $content .= $login . ":" . crypt($pwd1) . "\n";
 $content .= $login . "_:" . crypt($pwd1) . "\n";
-file_put_contents('../recepcio/.htpasswd', $content);
+file_put_contents(RECEPCIO_BASE_DIR . '.htpasswd', $content);
 //$output = shell_exec("$HTPASSWD_CMD -b ../recepcio/.htpasswd $login $pwd1 2>&1");
 //set_message($output);
 set_message("new password file saved.");

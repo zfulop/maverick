@@ -9,18 +9,18 @@ set_debug("save_booking.php START");
 
 $link = db_connect();
 
-$name = $_REQUEST['name'];
-$nameExt = $_REQUEST['name_ext'];
+$name = mysql_escape_string($_REQUEST['name']);
+$nameExt = mysql_escape_string($_REQUEST['name_ext']);
 $gender = $_REQUEST['gender'];
-$addr = $_REQUEST['address'];
-$nat = $_REQUEST['nationality'];
-$email = $_REQUEST['email'];
-$tel = $_REQUEST['telephone'];
-$deposit = $_REQUEST['deposit'];
+$addr = mysql_escape_string($_REQUEST['address']);
+$nat = mysql_escape_string($_REQUEST['nationality']);
+$email = mysql_escape_string($_REQUEST['email']);
+$tel = mysql_escape_string($_REQUEST['telephone']);
+$deposit = mysql_escape_string($_REQUEST['deposit']);
 $depositCurrency = $_REQUEST['deposit_currency'];
-$comment = $_REQUEST['comment'];
-$source = $_REQUEST['source'];
-$arrivalTime = $_REQUEST['arrival_time'];
+$comment = mysql_escape_string($_REQUEST['comment']);
+$source = mysql_escape_string($_REQUEST['source']);
+$arrivalTime = mysql_escape_string($_REQUEST['arrival_time']);
 
 $sql = "UPDATE booking_descriptions SET name='$name', name_ext='$nameExt', gender='$gender', address='$addr', nationality='$nat', email='$email', telephone='$tel', comment='$comment', source='$source', arrival_time='$arrivalTime' WHERE id=$descrId";
 $result = mysql_query($sql, $link);

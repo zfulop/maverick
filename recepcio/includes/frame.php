@@ -75,7 +75,7 @@ $tooltipJsHtml
 EOT;
 
 	if($showMenu) {
-		$myself = $_SERVER['PHP_AUTH_USER'];
+		$myself = $_SERVER['REMOTE_USER'];
 		$ex = getExchangeRate('EUR', 'HUF', date('Y-m-d'));
 		echo <<<EOT
 

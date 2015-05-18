@@ -229,7 +229,7 @@ $link = db_connect();
 mysql_query("START TRANSACTION", $link);
 
 $result = null;
-if(strpos($bookingJson, "\"IsCancellation\":true") > 0) {
+if(strpos(($bookingJson, "\"IsCancellation\":true") > 0) or (isset($bookingData['IsCancellation']) and $bookingData['IsCancellation'])) {
 	$matches = array();
 	preg_match('/"MyallocatorId":"([^"]*)"/', $bookingJson, $matches);
 	$myallocId = $matches[1];

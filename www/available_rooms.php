@@ -2,10 +2,12 @@
 
 require('includes.php');
 require('includes/common_booking.php');
-require('../recepcio/room_booking.php');
+require(RECEPCIO_BASE_DIR . 'room_booking.php');
+
 
 // If a new search is executed from the availability screen, we have to adjust the location 
 // and the apartment setting accordingly (location can be hostel,lodge,apartment)
+
 if(isset($_REQUEST['location']) and $_REQUEST['location'] == 'apartments') {
 	$_SESSION['apartment'] == 'yes';
 } elseif(isset($_REQUEST['location'])) {
@@ -240,6 +242,8 @@ EOT;
 html_end();
 mysql_close($link);
 
+echo "SDSADVASVASV";
+
 function processRoomData($arriveTS, $nights, &$roomData, &$roomType) {
 	$oneDayTS = $arriveTS;
 	$type = $roomData['type'];
@@ -280,13 +284,14 @@ function processRoomData($arriveTS, $nights, &$roomData, &$roomType) {
 	}
 
 	$roomType['num_of_beds_avail'] += $minAvailBeds;
-	$roomType['price'] = (getPrice($arriveTS, $nights, &$roomData, 1) / $nights);
+	$roomType['price'] = (getPrice($arriveTS, $nights, $roomData, 1) / $nights);
 	if(isApartment($roomType)) {
 		for($i=2; $i<= $roomType['num_of_beds']; $i++) {
-			$roomType['price_' . $i] = (getPrice($arriveTS, $nights, &$roomData, $i) / $nights);
+			$roomType['price_' . $i] = (getPrice($arriveTS, $nights, $roomData, $i) / $nights);
 		}
 	}
 }
+
 
 
 function sortRoomsByAvailOrder($rt1, $rt2) {
@@ -422,10 +427,6 @@ EOT;
 			if(($row['default'] == 1) or (strlen($roomImg) < 1)) {
 				$host = '';
 				$baseDir = BASE_DIR;
-				if($location == 'hostel' or $location == 'apartments') {
-					$host = 'http://img.maverickhostel.com/';
-					$baseDir = HOSTEL_BASE_DIR;
-				}
 				$savedFileName = getFName($row['filename']) . '_587_387.' . getFExt($row['filename']);
 				if(file_exists($baseDir . 'img/rooms/' . $savedFileName)) {
 					$roomImg = $host . 'img/rooms/' . $savedFileName;

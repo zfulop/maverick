@@ -2,7 +2,8 @@
 
 require('includes.php');
 require('includes/common_booking.php');
-require('../recepcio/room_booking.php');
+require(RECEPCIO_BASE_DIR . 'room_booking.php');
+
 
 $_SESSION['booking_status'] = array('rooms', 'services');
 

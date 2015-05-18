@@ -33,7 +33,7 @@ $login = $_REQUEST['login'];
 
 
 set_message("getting password file...");
-$content = file_get_contents('../recepcio/.htpasswd');
+$content = file_get_contents(RECEPCIO_BASE_DIR . '.htpasswd');
 $lines = split("\n", $content);
 $content = '';
 foreach($lines as $oneLine) {
@@ -45,7 +45,7 @@ foreach($lines as $oneLine) {
 		$content .= $oneLine . "\n";
 	}
 }
-file_put_contents('../recepcio/.htpasswd', $content);
+file_put_contents(RECEPCIO_BASE_DIR . '.htpasswd', $content);
 set_message("new password file saved.");
 
 
