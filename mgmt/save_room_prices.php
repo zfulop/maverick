@@ -1,8 +1,8 @@
 <?php
 
 require("includes.php");
-require("../recepcio/room_booking.php");
-require("../admin/common_booking.php");
+require(RECEPCIO_BASE_DIR . "room_booking.php");
+require("../lodge_admin/common_booking.php");
 
 header("Location: " . $_SERVER['HTTP_REFERER']);
 

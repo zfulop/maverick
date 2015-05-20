@@ -11,20 +11,21 @@ foreach($_REQUEST as $code => $val) {
 
 $link = db_connect();
 
-$name = $_REQUEST['name'];
-$nameExt = $_REQUEST['name_ext'];
+$name = mysql_escape_string($_REQUEST['name']);
+$nameExt = mysql_escape_string($_REQUEST['name_ext']);
 $gender = $_REQUEST['gender'];
-$addr = $_REQUEST['address'];
-$nat = $_REQUEST['nationality'];
-$email = $_REQUEST['email'];
-$tel = $_REQUEST['telephone'];
+$addr = mysql_escape_string($_REQUEST['address']);
+$nat = mysql_escape_string($_REQUEST['nationality']);
+$email = mysql_escape_string($_REQUEST['email']);
+$tel = mysql_escape_string($_REQUEST['telephone']);
+$deposit = mysql_escape_string($_REQUEST['deposit']);
+$depositCurrency = $_REQUEST['deposit_currency'];
+$comment = mysql_escape_string($_REQUEST['comment']);
+$source = mysql_escape_string($_REQUEST['source']);
+$arrivalTime = mysql_escape_string($_REQUEST['arrival_time']);
+
 $fnight = $_REQUEST['first_night'];
 $lnight = $_REQUEST['last_night'];
-$deposit = $_REQUEST['deposit'];
-$depositCurrency = $_REQUEST['deposit_currency'];
-$comment = $_REQUEST['comment'];
-$source = $_REQUEST['source'];
-$arrivalTime = $_REQUEST['arrival_time'];
 $numOfNights = round((strtotime(str_replace('/', '-', $lnight)) - strtotime(str_replace('/', '-', $fnight))) / (60*60*24)) + 1;
 
 list($startYear, $startMonth, $startDay) = explode('/', $fnight);

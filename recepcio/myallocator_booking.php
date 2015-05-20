@@ -1,14 +1,14 @@
 <?php
 
-require('includes.php');
-require('includes/country_alias.php');
-require('room_booking.php');
-
 define('PROPERTY_ID_HOSTEL','1650');
 define('PROPERTY_ID_LODGE','1748');
 define('PROPERTY_ID_APARTMENT','5637');
 
 define('HASHED_PASSWORD', '$1$rM3.YS0.$.BMdC5Qd31wO6VUArIhb21');
+
+require('includes.php');
+require('includes/country_alias.php');
+require('room_booking.php');
 
 $SOURCES = array(
 	'hw2' => 'hostelworld',
@@ -229,7 +229,7 @@ $link = db_connect();
 mysql_query("START TRANSACTION", $link);
 
 $result = null;
-if(strpos(($bookingJson, "\"IsCancellation\":true") > 0) or (isset($bookingData['IsCancellation']) and $bookingData['IsCancellation'])) {
+if((strpos($bookingJson, "\"IsCancellation\":true") > 0) or (isset($bookingData['IsCancellation']) and $bookingData['IsCancellation'])) {
 	$matches = array();
 	preg_match('/"MyallocatorId":"([^"]*)"/', $bookingJson, $matches);
 	$myallocId = $matches[1];
@@ -250,6 +250,8 @@ if(!$result) {
 mysql_close($link);
 // End of program
 
+
+echo "Hi";
 
 function cancelBooking($myAllocatorId, $link) {
 	global $lang, $locationName;
@@ -278,6 +280,7 @@ function cancelBooking($myAllocatorId, $link) {
 }
 
 
+
 function createBooking($bookingData, $link) {
 	global $lang, $bookingJson, $locationName, $SOURCES, $MESSAGES, $COUNTRY_ALIASES;
 	$nowTime = date('Y-m-d H:i:s');
@@ -291,6 +294,7 @@ function createBooking($bookingData, $link) {
 		respond('22', false, 'Customers element not in the request or not an array or an empty array');
 		return false;
 	}
+
 
 	$myAllocatorId = $bookingData['MyallocatorId'];
 	$sql = "SELECT * FROM booking_descriptions WHERE my_allocator_id='$myAllocatorId'";
@@ -516,7 +520,6 @@ function createBooking($bookingData, $link) {
 
 
 
-
 function respond($code, $success, $errorMessage = null) {
 	global $MESSAGES, $locationName;
 	$retVal = array();
@@ -656,6 +659,8 @@ function combineRooms($rooms) {
 	}
 	return $newRooms;
 }
+
+
 
 
 ?>

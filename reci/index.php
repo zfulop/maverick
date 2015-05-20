@@ -445,7 +445,7 @@ function getBookerNamesForDay(&$oneRoom, $oneDay) {
 				if($oneRoomChange['paid'] == 1) {
 					$style .= 'border: 2px solid rgb(0, 0, 255);';
 				}
-				$names[] = "<span style=\"margin: 3px;$style\">" . str_replace(" ", "&nbsp;", $oneRoomChange['name'] . ' ' . $oneRoomChange['name_ext']) . "&nbsp;(RC)</span><br>";
+				$names[] = "<span style=\"margin: 3px;$style\">" . str_replace(" ", "&nbsp;", $oneRoomChange['name']) . "&nbsp;(RC)</span><br>";
 			}
 
 		}
