@@ -175,6 +175,8 @@ $locationName = constant('LOCATION_NAME_' . strtoupper($location));
 $bookingJson = $_REQUEST['booking'];
 $pwd = $_REQUEST['password'];
 
+logMessage($bookingJson);
+
 if(crypt($pwd, HASHED_PASSWORD) !=  HASHED_PASSWORD) {
 	respond('10', false, "Incorrect password");
 	return;
@@ -531,6 +533,8 @@ function respond($code, $success, $errorMessage = null) {
 		$retVal['error'] = array('code' => $code, 'msg' => $msg, 'comment' => $errorMessage);
 	}
 	
+	logMessage("Response: code=$code, success=$success, errorMessage=$errorMessage");
+	
 	header("Content-type: application/json; charset=utf-8");
 	echo json_encode($retVal);
 
@@ -661,6 +665,13 @@ function combineRooms($rooms) {
 }
 
 
+function logMessage($message) {
+	$fh = fopen("myallocator.log", "a");
+	if($fh) {
+		fwrite($fh, $message . "\n");
+		fclose($fh);
+	}
+}
 
 
 ?>

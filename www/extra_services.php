@@ -41,7 +41,7 @@ if(count($bookings) < 1) {
 
 $contactDetailsUrl = $location . '_contact_details.php';
 
-html_start(EXTRA_SERVICES);
+html_start(EXTRA_SERVICES . ' - ' . getLocationName($location));
 
 echo <<<EOT
 

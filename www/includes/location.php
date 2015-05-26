@@ -19,12 +19,9 @@ function guessLocation() {
 	return 'hostel';
 }
 
-function getLocationName($loc = null, $apartment = false) {
+function getLocationName($loc = null) {
 	if(is_null($loc)) {
 		$loc = getLocation();
-	}
-	if($apartment) {
-		return LOCATION_NAME_APARTMENTS;
 	}
 	return constant('LOCATION_NAME_' . strtoupper($loc));
 }

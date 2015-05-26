@@ -14,26 +14,39 @@ $phoneValue = '';
 $fnightValue = '';
 $lnightValue = '';
 
+$message = '';
 $_SESSION['confirm_booking_validated'] = false;
 if(isset($_REQUEST['confirmCode'])) {
 	$confirmCode = $_REQUEST['confirmCode'];
 	$idx = strpos($confirmCode, 'A');
 	$descrId = substr($confirmCode, 0, $idx);
 	$code = substr($confirmCode, $idx + 1);
-	$sql = $sql = "SELECT * FROM booking_descriptions WHERE id=$descrId";
+	$message .= "id: $descrId<br>\n";
+	$message .= "code: $code<br>\n";
+	$sql = "SELECT * FROM booking_descriptions WHERE id=$descrId";
 	$result = mysql_query($sql, $link);
-	if($result) {
-		$row = $row = mysql_fetch_assoc($result);
+	$message .= "sql: $sql<br>\n";
+	$message .= "rows returned: " . mysql_num_rows($result) . "<br>\n";
+	if($result and (mysql_num_rows($result) > 0)) {
+		$row = mysql_fetch_assoc($result);
 		$nameValue = $row['name'];
 		$emailValue = $row['email'];
 		$phoneValue = $row['telephone'];
 		$fnightValue = $row['first_night'];
 		$lnightValue = $row['last_night'];
+		$message .= "<pre>" . print_r($row, true) . "</pre><br>\n";
+		$message .= "email: $emailValue<br>\n";
 		if(crypt($emailValue, $code) == $code) {
 			$row = mysql_fetch_assoc($result);
 			$_SESSION['confirm_booking_validated'] = true;
+		} else {
+			$message .= "not validated<br>\n";
 		}
+	} else {
+		$message .= "no result for $sql<br>\n";
 	}
+} else {
+	$message .= "confirm code is not set<br>\n";
 }
 
 
@@ -223,10 +236,12 @@ $servicesHtml
 
 $paymentsHtml
 
+<!--
                 <div class="field clearfix">
                   <label for="balance">$balance:</label>
 				  <div>$total $currency</div>
                 </div>
+-->
 
                 <div class="field clearfix">
                   <label for="departureDate">$arriveTime:</label>

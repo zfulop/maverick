@@ -317,12 +317,18 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 		if($occupancy >= 100) {
 			$color = 'white';
 		}
+		$dpbHtml = '';
+		if(isApartment($roomType)) {
+			$room = findRoom($rooms, $roomTypeId);
+			$dpbValue = getDiscountPerBed($currYear, $currMonth, $currDay, $room);
+			$dpbHtml = ", <input name=\"dpb$roomTypeId|$currYear-$currMonth-$currDay\" value=\"$dpbValue\" style=\"float: none; display: inline; font-size=70%; width: 25px; height: 20px;\" >%";
+		}
 		echo <<<EOT
 		<td class="$cssClass" style="background: rgb($red, $green, $blue); color: $color;">
 			<!-- $roomTypeDump -->
 			<div style="float: right; font-size: 60%;">$occupancy%</div>
 			<div class="absolute_value" ><a href="view_pricing_detail.php?room_type_id=$roomTypeId&date=$currDate" data-ot="" data-ot-group="tips" data-ot-hide-trigger="tip" data-ot-show-on="click" data-ot-hide-on="click" data-ot-fixed="true" data-ot-ajax="true">$price &#8364;</a><a href="#" style="font-size: 70%;" onclick="$('setprice_$roomTypeId$currDate').show();return false;">▼</a></div>
-			<div id="setprice_$roomTypeId$currDate" style="display: none;"><input name="$roomTypeId|$currYear-$currMonth-$currDay" style="float: none; display: inline; font-size=70%; width: 25px; height: 20px;">&#8364;</div>
+			<div id="setprice_$roomTypeId$currDate" style="display: none;"><input name="$roomTypeId|$currYear-$currMonth-$currDay" style="float: none; display: inline; font-size=70%; width: 25px; height: 20px;">&#8364;$dpbHtml</div>
 		</td>
 
 EOT;
@@ -337,22 +343,27 @@ echo "<input type=\"submit\" value=\"Save prices\"></form><br><br><br>\n";
 
 html_end();
 
-
-function admin_getRoomPrice($currDate, &$rooms, &$roomType) {
-	$currDateTs = strtotime($currDate);
+function findRoom(&$rooms, $roomTypeId) {
 	$selectedRoom = null;
 	foreach($rooms as $roomId => $roomData) {
-		if($roomData['room_type_id'] == $roomType['id']) {
+		if($roomData['room_type_id'] == $roomTypeId) {
 			$selectedRoom = $roomData;
 			break;
 		}
 	}
+	return $selectedRoom;
+}
+
+
+function admin_getRoomPrice($currDate, &$rooms, &$roomType) {
+	$currDateTs = strtotime($currDate);
+	$selectedRoom = findRoom($rooms, $roomType['id']);
 	$price = 0;
 	if(!is_null($selectedRoom)) {
 		$year = date('Y', $currDateTs);
 		$month = date('m', $currDateTs);
 		$day = date('d', $currDateTs);
-		if($roomType['type'] == 'DORM') {
+		if(isDorm($roomType)) {
 			$price = getBedPrice($year, $month, $day, $selectedRoom);
 		} else {
 			$price = getRoomPrice($year, $month, $day, $selectedRoom);

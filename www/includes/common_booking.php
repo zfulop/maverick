@@ -209,7 +209,7 @@ function getBookedServices($services, $location) {
 }
 
 function showApartments() {
-	return ($_SESSION['apartment'] == 'yes');
+	return ($_SESSION['location'] == 'apartments');
 }
 
 

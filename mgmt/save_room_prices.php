@@ -89,7 +89,8 @@ for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', str
 				(is_null($priceRow['price_per_bed']) ? 'NULL' : $priceRow['price_per_bed']) . ", " . 
 				$priceRow['room_type_id'] . ", " . 
 				(is_null($priceRow['price_set_date']) ? 'NULL' : '\''.$priceRow['price_set_date'].'\'') . ", " .
-				"'$todaySlash', $occupancy, $dpb)";
+				"'$todaySlash', $occupancy, " .
+				(is_null($priceRow['discount_per_bed']) ? 'NULL' : '\''.$priceRow['dscount_per_bed'].'\'') . ")";
 			$result = mysql_query($sql, $link);
 			if(!$result) {
 				trigger_error("Cannot create room prices history in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);

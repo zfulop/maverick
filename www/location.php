@@ -45,7 +45,7 @@ if(mysql_num_rows($result) > 0) {
 
 
 
-html_start(getLocationName($location, showApartments()), $oneAwardJs, $onloadScript);
+html_start(getLocationName($location), $oneAwardJs, $onloadScript);
 
 $checkin = CHECKIN;
 $checkinDate = CHECKIN_DATE;
@@ -101,7 +101,7 @@ $rooms = ROOMS;
 if(showApartments()) {
 	$rooms = APARTMENTS;
 }
-$services = SERVICES;
+$servicesTitle = SERVICES;
 $freeServicesTitle = FREE_SERVICES;
 $extraServicesTitle = SERVICES_FOR_EXTRA_FEE;
 $linksTitle = LINKS;
@@ -305,7 +305,7 @@ $facilities = FACILITIES;
 $close = CLOSE;
 $gallery = GALLERY;
 
-$locationName = getLocationName($location, showApartments());
+$locationName = getLocationName($location);
 foreach($roomTypesData as $roomTypeId => $roomType) {
 	if(showApartments() !== isApartment($roomType)) {
 		continue;
@@ -400,7 +400,7 @@ echo <<<EOT
 		</section>
 
         <section id="services" class="clearfix">
-          <h1>$services</h1>
+          <h1>$servicesTitle</h1>
           
           <div>
             <h2>$freeServicesTitle</h2>

@@ -86,9 +86,9 @@ $nightsTitle = NIGHTS;
 $chooseLocation = CHOOSE_LOCATION;
 $lodgeLocationSelected = ($location == 'lodge' ? ' selected="selected"' : '');
 $lodgeTitle = LOCATION_NAME_LODGE;
-$hostelLocationSelected = (($location == 'hostel' and !showApartments()) ? ' selected="selected"' : '');
+$hostelLocationSelected = ($location == 'hostel' ? ' selected="selected"' : '');
 $hostelTitle = LOCATION_NAME_HOSTEL;
-$apartmentLocationSelected = (showApartments() ? ' selected="selected"' : '');
+$apartmentLocationSelected = ($location == 'apartments' ? ' selected="selected"' : '');
 $apartmentTitle = LOCATION_NAME_APARTMENTS;
 $checkAvailability = CHECK_AVAILABILITY;
 
@@ -131,7 +131,7 @@ foreach($rooms as $roomId => $roomData) {
 
 uasort($roomTypesData, 'sortRoomsByAvailOrder');
 
-html_start(AVAILABLE_ROOMS);
+html_start(AVAILABLE_ROOMS . ' - ' . getLocationName($location));
 
 if(isset($_SESSION['booking_error'])) {
 	$msg = $_SESSION['booking_error'];
@@ -184,7 +184,7 @@ $specialOfferSection
                   <select name="location">
                     <option value="lodge"$lodgeLocationSelected>$lodgeTitle</option>
                     <option value="hostel"$hostelLocationSelected>$hostelTitle</option>
-                    <option value="apartment"$apartmentLocationSelected>$apartmentTitle</option>
+                    <option value="apartments"$apartmentLocationSelected>$apartmentTitle</option>
                   </select>
                 </div>
                 
@@ -203,7 +203,7 @@ EOT;
 
 $roomsTitle = ROOMS;
 $details = DETAILS;
-$locationName = getLocationName($location, showApartments());
+$locationName = getLocationName($location);
 $extraServicesUrl = $location . '_extra_services.php';
 
 echo <<<EOT
@@ -312,7 +312,7 @@ function sortRoomsByAvailOrder($rt1, $rt2) {
 
 function getRoomHtml($roomType, $roomTypeId, $nights, $arriveDate, $specialOffers, $link) {
 	$location = getLocation();
-	$locationName = getLocationName($location, showApartments());
+	$locationName = getLocationName($location);
 	$guests = GUESTS;
 	$gallery = GALLERY;
 	$roomDetails = ROOM_DETAILS;

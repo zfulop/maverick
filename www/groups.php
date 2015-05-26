@@ -2,7 +2,7 @@
 
 require('includes.php');
 require('includes/common_booking.php');
-require('../recepcio/room_booking.php');
+require(RECEPCIO_BASE_DIR . 'room_booking.php');
 
 $countryCodes = array(
 	'Afghanistan' => '93',
@@ -342,7 +342,6 @@ foreach(getLocations() as $oneLocation) {
 	$selected = (isset($_SESSION['group_destination']) and $oneLocation == $_SESSION['group_destination']) ? ' selected="selected"' : '';
 	$destinationOptions .= "                        <option value=\"$oneLocation\"$selected>" . getLocationName($oneLocation) . "</option>\n";
 }
-$destinationOptions .= "                        <option value=\"both\"" . ((isset($_SESSION['group_destination']) and $both == $_SESSION['group_destination']) ? ' selected="selected"' : '') . ">$both</option>\n";
 $destinationError = '';
 $destinationErrorClass = '';
 if(isset($_SESSION['group_destinationError'])) {
