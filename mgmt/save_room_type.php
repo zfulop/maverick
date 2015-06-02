@@ -58,9 +58,9 @@ if(!mysql_query($sql, $link)) {
 }
 
 foreach(getLanguages() as $lang => $name) {
-	$name = $_REQUEST["name_$lang"];
-	$description = $_REQUEST["description_$lang"];
-	$shortDescription = $_REQUEST["short_description_$lang"];
+	$name = mysql_escape_string($_REQUEST["name_$lang"]);
+	$description = mysql_escape_string($_REQUEST["description_$lang"]);
+	$shortDescription = mysql_escape_string($_REQUEST["short_description_$lang"]);
 	$sql = "INSERT INTO lang_text (table_name, column_name, row_id, lang, value) VALUES ('room_types', 'name', $id, '$lang', '$name')";
 	if(!mysql_query($sql, $link)) {
 		trigger_error("Can save room type name in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);

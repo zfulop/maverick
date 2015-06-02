@@ -184,7 +184,7 @@ EOT;
 html_start("Maverick Reception - Cash Register", $extraHeader);
 
 
-$fromName = $_SERVER['PHP_AUTH_USER'];
+$fromName = $_SERVER['REMOTE_USER'];
 
 echo <<<EOT
 
