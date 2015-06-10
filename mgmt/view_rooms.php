@@ -241,7 +241,7 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 		$record[$row['lang']][$row['column_name']] = $row['value'];
 	}
 
-	echo "<script language=\"JavaScript\">\n";
+	echo "<script type=\"text/javascript\">\n";
 	echo "	function editType" . $roomTypeId . "() {\n";
 	echo "		document.getElementById('room_type_form').reset();\n";
 	echo "		document.getElementById('room_type_form').style.display='block';\n";
@@ -256,10 +256,10 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 	echo "		document.getElementById('type').selectedIndex=" . $TYPES[$roomType['type']] . ";\n";
 	echo "		document.getElementById('order').value='" . $roomType['_order'] . "';\n";
 	foreach($record as $lang => $cols) {
-		echo "		document.getElementById('name_$lang').value='" . $cols['name'] . "';\n";
-		echo "		document.getElementById('description_$lang').value='" . str_replace('\'', '\\\'', $cols['description']) . "';\n";
+		echo "		document.getElementById('name_$lang').value='" . js_escape($cols['name']) . "';\n";
+		echo "		document.getElementById('description_$lang').value='" . js_escape($cols['description']) . "';\n";
 		if(isset($cols['short_description'])) {
-			echo "		document.getElementById('short_description_$lang').value='" . str_replace('\'', '\\\'', $cols['short_description']) . "';\n";
+			echo "		document.getElementById('short_description_$lang').value='" . js_escape($cols['short_description']) . "';\n";
 		}
 	}
 	echo "	}\n";
@@ -289,7 +289,7 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 	echo "	<td colspan=\"7\">\n";
 	echo "		<table>\n";
 	foreach($roomType['rooms'] as $room) {
-		echo "<script language=\"JavaScript\">\n";
+		echo "<script type=\"text/javascript\">\n";
 		echo "	function edit" . $room['id'] . "() {\n";
 		echo "		document.getElementById('room_form').reset();\n";
 		echo "		document.getElementById('room_form').style.display='block';\n";
@@ -324,5 +324,11 @@ mysql_close($link);
 
 html_end();
 
+function js_escape($text) {
+	$text = str_replace("\n", " ", $text);
+	$text = str_replace("\r", " ", $text);
+	$text = str_replace('\'', '\\\'', $text);
+	return $text;
+}
 
 ?>

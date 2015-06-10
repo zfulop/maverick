@@ -338,6 +338,17 @@ if($findBy == 'arrival_date') {
 	$sqlFindBy = "bd.create_time<='$endDateDash 23:59:59' AND bd.create_time>='$startDateDash 00:00:00'";
 }
 
+if(isset($_REQUEST['export'])) {
+	$sql = "SELECT bd.name,bd.email,bd.first_night,bd.last_night,bd.cancelled,bd.confirmed,bd.checked_in,bd.paid,bd.source,b.num_of_person,b.booking_type,b.room_payment,rt.name as room_name,so.name as so_name FROM booking_descriptions bd INNER JOIN bookings b ON bd.id=b.description_id INNER JOIN rooms r on b.room_id=r.id INNER JOIN room_types rt on r.room_type_id=rt.id LEFT OUTER JOIN special_offers so on b.special_offer_id=so.id WHERE $sqlFindBy $whereClause";
+	$result = mysql_query($sql, $link);
+	if(!$result) {
+		trigger_error("Cannot execute query. " . mysql_error($link) . " (SQL: $sql)");
+	}
+	exportToExcel($result);
+	mysql_close($link);
+	return;
+}
+
 $sql = "SELECT sum(b.num_of_person) as num_of_person, sum(b.room_payment) as room_payment, avg(room_payment/num_of_nights) as avg_daily_rate, min(room_payment/num_of_nights) as min_daily_rate, max(room_payment/num_of_nights) as max_daily_rate, count(*) as num_of_booking, $dateVal AS date_val$sqlColumns FROM booking_descriptions bd INNER JOIN bookings b ON bd.id=b.description_id INNER JOIN rooms r on b.room_id=r.id INNER JOIN room_types rt on r.room_type_id=rt.id LEFT OUTER JOIN special_offers so on b.special_offer_id=so.id WHERE $sqlFindBy $whereClause GROUP BY $dateVal$sqlGroupBy";
 $result = mysql_query($sql, $link);
 $table = array();
@@ -405,6 +416,8 @@ if($includeY2y) {
 	}
 }
 
+mysql_close($link);
+
 html_start("Maverick Admin - Statistics", $extraHeader, 'init();');
 
 
@@ -455,6 +468,7 @@ $grouping2Options
   </td></tr>
 
 </table>
+<input type="checkbox" name="export" value="1"> Export to excel<br>
 <input type="submit" value="Generate Statistics">
 </form>
 
@@ -637,6 +651,19 @@ foreach($dateCols as $dateCol) {
 echo "</table>\n";
 
 html_end();
+
+
+function exportToExcel($result) {
+	header('Content-Type: text/csv');
+	header('Content-Disposition: attachment; filename="stat_export.csv"');
+	echo "name,email,first night,last night,cancelled,confirmed,checked in,paid,source,num of person,booking type,room payment,room name,special offer\n";
+	while($row = mysql_fetch_array($result, MYSQL_NUM)) {
+		if(strpos($row[0],',') > 0) {
+			$row[0] = str_replace(',', ' ', $row[0]);
+		}
+		echo implode(',',$row) . "\n";
+	}
+}
 
 
 ?>
