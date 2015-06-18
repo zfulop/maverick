@@ -253,8 +253,6 @@ mysql_close($link);
 // End of program
 
 
-echo "Hi";
-
 function cancelBooking($myAllocatorId, $link) {
 	global $lang, $locationName;
 	$sql = "SELECT * FROM booking_descriptions WHERE my_allocator_id='$myAllocatorId'";
@@ -534,6 +532,7 @@ function respond($code, $success, $errorMessage = null) {
 	}
 	
 	logMessage("Response: code=$code, success=$success, errorMessage=$errorMessage");
+	logMessage("Response (as it is sent back): " . json_encode($retVal) . "\n\n");
 	
 	header("Content-type: application/json; charset=utf-8");
 	echo json_encode($retVal);
@@ -666,8 +665,9 @@ function combineRooms($rooms) {
 
 
 function logMessage($message) {
-	$fh = fopen("myallocator.log", "a");
+	$fh = fopen("myallocator." . date('Ymd') . ".log", "a");
 	if($fh) {
+		fwrite($fh, date('Y-m-d H:i:s') . "\n");
 		fwrite($fh, $message . "\n");
 		fclose($fh);
 	}
