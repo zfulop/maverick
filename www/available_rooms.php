@@ -373,8 +373,8 @@ function getRoomHtml($roomType, $roomTypeId, $nights, $arriveDate, $specialOffer
                     </p>
 
 EOT;
+		$oldPricePerNight = sprintf($template, formatMoney(convertCurrency($price, 'EUR', $currency), $currency)) . '<br>';
 		$price = $price * (100 - $discount) / 100;
-		$oldPricePerNight = sprintf($template, formatMoney(convertCurrency($roomType['price'], 'EUR', $currency), $currency)) . '<br>';
 	}
 	$pricePerNight = sprintf($template, formatMoney(convertCurrency($price, 'EUR', $currency), $currency));
 

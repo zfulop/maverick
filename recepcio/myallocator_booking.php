@@ -532,7 +532,10 @@ function respond($code, $success, $errorMessage = null) {
 	}
 	
 	logMessage("Response: code=$code, success=$success, errorMessage=$errorMessage");
+	$retVal = array('success' => true);
+	logMessage("Always send back success to myallocator to stop resending the message.");
 	logMessage("Response (as it is sent back): " . json_encode($retVal) . "\n\n");
+	
 	
 	header("Content-type: application/json; charset=utf-8");
 	echo json_encode($retVal);
