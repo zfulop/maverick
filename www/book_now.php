@@ -103,7 +103,7 @@ $departureDate = date('Y-m-d', $departureDateTs);
 
 $link = db_connect($location);
 
-$specialOffers = loadSpecialOffers("start_date<='$arriveDate' AND end_date>='$lastNight'", $link);
+$specialOffers = loadSpecialOffers($arriveDate,$lastNight, $link);
 $rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
 $roomTypesData = loadRoomTypes($link, $lang);
 

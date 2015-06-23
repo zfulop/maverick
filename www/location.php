@@ -126,7 +126,7 @@ $roomTypesData = loadRoomTypes($link, $lang);
 
 $today = date('Y-m-d');
 $specialOfferSection = '';
-$specialOffers = loadSpecialOffers("end_date>'$today'", $link, $lang);
+$specialOffers = loadSpecialOffers(null, $today, $link, $lang);
 $dateFormat = DATE_FORMAT;
 if((strtoupper(substr(PHP_OS, 0, 3)) == 'WIN')) {
 	$dateFormat = str_replace('%e', '%#d', $dateFormat);

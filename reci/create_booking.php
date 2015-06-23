@@ -33,7 +33,7 @@ $startDate = "$startYear-$startMonth-$startDay";
 $endDate = "$endYear-$endMonth-$endDay";
 $rooms  = loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link);
 $roomTypes  = loadRoomTypes($link);
-$specialOffers = loadSpecialOffers("start_date<='$startDate' AND end_date>='$endDate'", $link);
+$specialOffers = loadSpecialOffers($startDate,$endDate, $link);
 
 
 $sql = "SELECT rt.*, count(*) as num_of_rooms FROM room_types rt inner join rooms r on (rt.id=r.room_type_id) group by rt.id";

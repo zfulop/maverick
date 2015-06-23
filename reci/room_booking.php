@@ -39,16 +39,33 @@ function loadRoomTypesWithAvailableBeds($link, $startDate, $endDate, $lang = 'en
 
 
 
-function loadSpecialOffers($whereClause, $link, $lang = 'eng') {
+function loadSpecialOffers($startDate, $endDate, $link, $lang = 'eng') {
+	$whereClause = '';
+	if(!is_null($startDate)) {
+		$whereClause = "(so.end_date>='$endDate' AND so.start_date<='$startDate') OR (sod.end_date>='$endDate' AND sod.start_date<='$startDate')";
+	} else {
+		$whereClause = "so.end_date>'$endDate' OR sod.end_date>'$endDate'";
+	}
 	$sql = "SELECT so.*, n.value AS title, d.value AS text, r.value AS room_name FROM special_offers so " .
 		"INNER JOIN lang_text n ON (so.id=n.row_id AND n.table_name='special_offers' AND n.column_name='title' AND n.lang='$lang') " .
 		"INNER JOIN lang_text d ON (so.id=d.row_id AND d.table_name='special_offers' AND d.column_name='text' AND d.lang='$lang') " .
 		"LEFT OUTER JOIN lang_text r ON (so.id=r.row_id AND r.table_name='special_offers' AND r.column_name='room_name' AND r.lang='$lang') " .
+		"LEFT OUTER JOIN special_offer_dates sod ON (so.id=sod.special_offer_id) " .
 		"WHERE $whereClause";
 	$result = mysql_query($sql, $link);
 	$specialOffers = array();
 	while($row = mysql_fetch_assoc($result)) {
+		$row['dates'] = array();
+		$row['dates'][] = array('start_date' => $row['start_date'], 'end_date' => $row['end_date']);
 		$specialOffers[$row['id']] = $row;
+	}
+
+	$sql = "SELECT * FROM special_offer_dates WHERE special_offer_id IN (" . implode(',',array_keys($specialOffers)) . ")";
+	$result = mysql_query($sql, $link);
+	while($row = mysql_fetch_assoc($result)) {
+		if(isset($specialOffers[$row['special_offer_id']])) {
+			$specialOffers[$row['special_offer_id']]['dates'][] = $row;
+		}
 	}
 
 	return $specialOffers;
@@ -246,10 +263,10 @@ function getPrice($arriveTS, $nights, &$roomData, $numOfPerson) {
 		} elseif(isPrivate($roomData)) {
 			$totalPrice += getRoomPrice($currYear, $currMonth, $currDay, $roomData);
 		} elseif(isApartment($roomData)) {
-			set_debug('get apartment price');
+			//set_debug('get apartment price');
 			$price = getRoomPrice($currYear, $currMonth, $currDay, $roomData);
-			set_debug('room price: ' . $price);
-			set_debug('data: ' . print_r(array('num of person'=>$numOfPerson,'room beds'=>$roomData['num_of_beds'],'discount per bed'=>getDiscountPerBed($currYear, $currMonth, $currDay, $roomData)),true));
+			//set_debug('room price: ' . $price);
+			//set_debug('data: ' . print_r(array('num of person'=>$numOfPerson,'room beds'=>$roomData['num_of_beds'],'discount per bed'=>getDiscountPerBed($currYear, $currMonth, $currDay, $roomData)),true));
 			$price = $price - $price * ($roomData['num_of_beds'] - $numOfPerson) * getDiscountPerBed($currYear, $currMonth, $currDay, $roomData) / 100.0;
 			$totalPrice += $price;
 		}

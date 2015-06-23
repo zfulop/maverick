@@ -10,8 +10,8 @@ mysql_query("START TRANSACTION", $link);
 
 $id = intval($_REQUEST['id']);
 $name = $_REQUEST['name'];
-$startDate = $_REQUEST['start_date'];
-$endDate = $_REQUEST['end_date'];
+$startDate = $_REQUEST['start_date_0'];
+$endDate = $_REQUEST['end_date_0'];
 $discount = intval($_REQUEST['discount']);
 $nights = intval($_REQUEST['num_of_nights']);
 $visible = isset($_REQUEST['visible']) ? 1 : 0;
@@ -50,9 +50,31 @@ if($id < 1) {
 	$id = mysql_insert_id($link);
 }
 
+$sql = "DELETE FROM special_offer_dates WHERE special_offer_id=$id";
+if(!mysql_query($sql, $link)) {
+	trigger_error("Cannot delete old special offer dates in recepcio interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	set_error('Cannot save special offer');
+	mysql_close($link);
+	return;
+}
+
+for($i = 1; $i < 9; $i++) {
+	$startDate = $_REQUEST['start_date_' . $i];
+	$endDate = $_REQUEST['end_date_' . $i];
+	if(isValidDate($startDate) and isValidDate($endDate)) {
+		$sql = "INSERT INTO special_offer_dates (special_offer_id, start_date, end_date) VALUES ($id, '$startDate', '$endDate')";
+		if(!mysql_query($sql, $link)) {
+			trigger_error("Cannot save special offer date in recepcio interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+			set_error("Cannot save special offer date: $startDate - $endDate");
+		} else {
+			set_message("Special offer date ($startDate - $endDate) saved");
+		}
+	}
+}
+
 $sql = "DELETE FROM lang_text WHERE table_name='special_offers' AND row_id=$id";
 if(!mysql_query($sql, $link)) {
-	trigger_error("Cannot save special offers title in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	trigger_error("Cannot delete special offer title in recepcio interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 	set_error('Cannot save special offer');
 	mysql_close($link);
 	return;
@@ -92,4 +114,11 @@ set_message('Special offer saved');
 mysql_query("COMMIT", $link);
 mysql_close($link);
 
+function isValidDate($date) {
+	if(strlen(trim($date)) == 10) {
+		return true;
+	} else { 
+		return false;
+	}
+}
 ?>

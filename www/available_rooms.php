@@ -99,7 +99,7 @@ for($i = 1; $i < 15; $i++) {
 }
 
 $specialOfferSection = "";
-$specialOffers = loadSpecialOffers("start_date<='$arriveDate' AND end_date>='$lastNight'", $link, $lang);
+$specialOffers = loadSpecialOffers($arriveDate,$lastNight, $link, $lang);
 foreach($specialOffers as $soId => $so) {
 	if(($so['nights'] == ($nights+1)) and is_null($so['room_type_ids'])) {
 		$descr = $so['title'];

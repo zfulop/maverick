@@ -26,7 +26,7 @@ $extras = EXTRAS;
 $occasion = OCCASION;
 
 
-$specialOffers = loadSpecialOffers("start_date<='$arriveDate' AND end_date>='$lastNight'", $link, $lang);
+$specialOffers = loadSpecialOffers($arriveDate,$lastNight, $link, $lang);
 $rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
 $roomTypesData = loadRoomTypes($link, $lang);
 

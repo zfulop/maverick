@@ -27,7 +27,7 @@ $startDate = "$startYear-$startMonth-$startDay";
 $endDate = "$endYear-$endMonth-$endDay";
 $rooms  = loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link);
 $roomTypes  = loadRoomTypes($link);
-$specialOffers = loadSpecialOffers("start_date<='$startDate' AND end_date>='$endDate'", $link);
+$specialOffers = loadSpecialOffers($startDate, $endDate, $link);
 
 
 //set_debug('Loaded rooms: ' . print_r($rooms, true));
