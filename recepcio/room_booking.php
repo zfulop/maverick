@@ -60,11 +60,13 @@ function loadSpecialOffers($startDate, $endDate, $link, $lang = 'eng') {
 		$specialOffers[$row['id']] = $row;
 	}
 
-	$sql = "SELECT * FROM special_offer_dates WHERE special_offer_id IN (" . implode(',',array_keys($specialOffers)) . ")";
-	$result = mysql_query($sql, $link);
-	while($row = mysql_fetch_assoc($result)) {
-		if(isset($specialOffers[$row['special_offer_id']])) {
-			$specialOffers[$row['special_offer_id']]['dates'][] = $row;
+	if(count($specialOffers) > 0) {
+		$sql = "SELECT * FROM special_offer_dates WHERE special_offer_id IN (" . implode(',',array_keys($specialOffers)) . ")";
+		$result = mysql_query($sql, $link);
+		while($row = mysql_fetch_assoc($result)) {
+			if(isset($specialOffers[$row['special_offer_id']])) {
+				$specialOffers[$row['special_offer_id']]['dates'][] = $row;
+			}
 		}
 	}
 
@@ -560,7 +562,7 @@ function specialOfferApplies($specialOffer, $roomType, $nights, $arriveDate, $nu
 		return false;
 	}
 
-	if(!is_null($specialOffer['nights']) and $nights != $specialOffer['nights']) {
+	if(!is_null($specialOffer['nights']) and $nights < $specialOffer['nights']) {
 		return false;
 	}
 

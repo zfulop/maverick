@@ -209,13 +209,13 @@ $endYearOptions
 $endMonthOptions
 </select>/<input name="end_day" value="$endDayValue" size="2" style="display: inline; float: none;"></td></tr>
 <tr><td>Days</td><td>
-	<div>Mon <input style="float: left; display: block;" type="checkbox" name="days[]" value="1" $monChecked></div>
-	<div>Tue <input style="float: left; display: block;" type="checkbox" name="days[]" value="2" $tueChecked></div>
-	<div>Wed <input style="float: left; display: block;" type="checkbox" name="days[]" value="3" $wedChecked></div>
-	<div>Thu <input style="float: left; display: block;" type="checkbox" name="days[]" value="4" $thuChecked></div>
-	<div>Fri <input style="float: left; display: block;" type="checkbox" name="days[]" value="5" $friChecked></div>
-	<div>Sat <input style="float: left; display: block;" type="checkbox" name="days[]" value="6" $satChecked></div>
-	<div>Sun <input style="float: left; display: block;" type="checkbox" name="days[]" value="7" $sunChecked></div>
+	<div style="clear:left;">Mon <input style="float: left; display: block;" type="checkbox" name="days[]" value="1" $monChecked></div>
+	<div style="clear:left;">Tue <input style="float: left; display: block;" type="checkbox" name="days[]" value="2" $tueChecked></div>
+	<div style="clear:left;">Wed <input style="float: left; display: block;" type="checkbox" name="days[]" value="3" $wedChecked></div>
+	<div style="clear:left;">Thu <input style="float: left; display: block;" type="checkbox" name="days[]" value="4" $thuChecked></div>
+	<div style="clear:left;">Fri <input style="float: left; display: block;" type="checkbox" name="days[]" value="5" $friChecked></div>
+	<div style="clear:left;">Sat <input style="float: left; display: block;" type="checkbox" name="days[]" value="6" $satChecked></div>
+	<div style="clear:left;">Sun <input style="float: left; display: block;" type="checkbox" name="days[]" value="7" $sunChecked></div>
 </td></tr>
 <tr><td>Bed or Room Price: </td><td><input name="price" size="4"></td></tr>
 <tr><td colspan="2">
@@ -365,8 +365,13 @@ function admin_getRoomPrice($currDate, &$rooms, &$roomType) {
 		$day = date('d', $currDateTs);
 		if(isDorm($roomType)) {
 			$price = getBedPrice($year, $month, $day, $selectedRoom);
-		} else {
+		} elseif(isPrivate($roomType)) {
 			$price = getRoomPrice($year, $month, $day, $selectedRoom);
+		} elseif(isApartment($roomType)) {
+			$price = getRoomPrice($year, $month, $day, $selectedRoom);
+			//set_debug('room price: ' . $price);
+			//set_debug('data: ' . print_r(array('num of person'=>$numOfPerson,'room beds'=>$roomData['num_of_beds'],'discount per bed'=>getDiscountPerBed($currYear, $currMonth, $currDay, $roomData)),true));
+			$price = $price - $price * ($roomType['num_of_beds'] - 2) * getDiscountPerBed($year, $month, $day, $selectedRoom) / 100.0;
 		}
 	}
 	return $price;

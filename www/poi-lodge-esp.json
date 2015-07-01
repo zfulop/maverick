@@ -1,0 +1,19 @@
+[
+  {"name": "Maverick",  "lat": 47.498072, "lng": 19.062733, "image": "/img/poi-lodge.png"},
+  {"name": "Szimpla Bar (Kazinczy utca 14.)", "lat": 47.497015, "lng": 19.063348},
+  {"name": "Dohany Sinagoga", "lat": 47.495596, "lng": 19.059852},
+  {"name": "Spiler Restaurant (Gozsdu Udvar)", "lat": 47.499204, "lng": 19.058385},
+  {"name": "Corvintető, Club (Blaha Lujza tér)", "lat": 47.496374, "lng": 19.069024},
+  {"name": "Keleti,  Estación del Este", "lat": 47.500491, "lng": 19.082659},
+  {"name": "Fogasház Bar, Club, Centro cultural (Akácfa u.51.)", "lat": 47.501576, "lng": 19.064113},
+  {"name": "Basílica", "lat": 47.500890, "lng": 19.053989},
+  {"name": "Ópera de Estado", "lat": 47.502337, "lng": 19.058887},
+  {"name": "Ötkert Club, Restaurante (Zrinyi utca)", "lat": 47.500246, "lng": 19.048603},
+  {"name": "Puente de Cadenas", "lat": 47.498956, "lng": 19.043775},
+  {"name": "Castillo", "lat": 47.501917, "lng": 19.035112},
+  {"name": "calle Váci, Corso célebre", "lat": 47.494266, "lng": 19.052401},
+  {"name": "Excursión en barco (március 15. tér)", "lat": 47.492280, "lng": 19.050245},
+  {"name": "Csendes Bar (Ferenczy István u.5.)", "lat": 47.492684, "lng": 19.060180},
+  {"name": "Museo nacional", "lat": 47.491091, "lng": 19.061950},
+  {"name": "Mercado cubierto  central", "lat": 47.487299, "lng": 19.058286}
+]

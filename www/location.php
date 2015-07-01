@@ -135,7 +135,10 @@ foreach($specialOffers as $spId => $so) {
 	if($so['visible'] != 1) {
 		continue;
 	}
-	if(showApartments() !== isSOForApartment($so, $roomTypesData)) {
+	if(showApartments() and !isSOForApartment($so, $roomTypesData)) {
+		continue;
+	}
+	if(!showApartments() and !isSOForDormOrPrivate($so, $roomTypesData)) {
 		continue;
 	}
 	$title = $so['title'];
@@ -462,6 +465,22 @@ function isSOForApartment($so, &$roomTypesData) {
 	}
 	return $forApartment;
 }
+
+function isSOForDormOrPrivate($so, &$roomTypesData) {
+	$forApartment = false;
+	if(strlen($so['room_type_ids']) > 1) {
+		foreach(explode(",", $so['room_type_ids']) as $rtId) {
+			if(isDorm($roomTypesData[$rtId]) or isPrivate($roomTypesData[$rtId])) {
+				$forApartment = true;
+				break;
+			}
+		}
+	} else {
+		$forApartment = true;
+	}
+	return $forApartment;
+}
+
 
 
 
