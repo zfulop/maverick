@@ -714,9 +714,9 @@ foreach($bookings as $oneRoomBooked) {
 	$dprice = $oneRoomBooked['discountedPrice'];
 	$total += $dprice;
 	if($price != $dprice) {
-		$price = "<span style=\"text-decoration:line-through\">$price euro</span> $dprice euro";
+		$price = "<span style=\"text-decoration:line-through\">" . formatMoney($price, 'EUR') . "</span> " . formatMoney($dprice, 'EUR');
 	} else {
-		$price = "$price euro";
+		$price = formatMoney($price, 'EUR');
 	}
 	$recepcioMessage .= "<tr><td>$name</td><td>$type</td><td>$numOfGuests</td><td>$price</td></tr>\n";
 }
@@ -732,7 +732,8 @@ foreach($bookedServices as $service) {
 	$serviceCurrency = $service['currency'];
 	$price = convertCurrency($service['price'], $serviceCurrency, 'EUR');
 	$total += $price;
-	$recepcioMessage .= "<td><td>$title</td><td>$occasion</td><td>$price euro</td></tr>\n";
+	$price = formatMoney($price, 'EUR');
+	$recepcioMessage .= "<tr><td>$title</td><td>$occasion</td><td>$price</td></tr>\n";
 }
 $recepcioMessage .= "</table><br>\n";
 $recepcioMessage .= "Total: $total euro<br>\n";

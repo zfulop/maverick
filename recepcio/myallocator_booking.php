@@ -16,6 +16,7 @@ $SOURCES = array(
 	'boo' => 'booking.com',
 	'ago' => 'Agoda',
 	'bnw' => 'BookNow - Tripadvisor',
+	'hi' => 'HiHostels',
 	'exp' => array('Hotel Collect Booking' => 'Expedia - Hotel Collect', 'Expedia Collect Booking' => 'Expedia - Expedia Collect')
 );
 

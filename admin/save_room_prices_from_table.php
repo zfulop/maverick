@@ -42,12 +42,18 @@ for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', str
 			trigger_error("Cannot get old room prices in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 		}
 		if(mysql_num_rows($result) > 0) {
+			$priceRow = mysql_fetch_assoc($result);
+			$newPricePerRoom = ((isPrivate($roomTypeData) or isApartment($roomTypeData)) ? $val : null);
+			$newPricePerBed = (isDorm($roomTypeData) ? $val : null);
+			if(isSamePrice($newPricePerRoom, $newPricePerBed, $dpb, $priceRow)) {
+				continue;
+			}
+
 			list($y,$m,$d) = explode('-', $currDate);
 			$bookings = getBookings($roomTypeId, $rooms, $currDate, $currDate);
 			$avgNumOfBeds = getAvgNumOfBedsOccupied($bookings, $currDate, $currDate);
 			$occupancy = round($avgNumOfBeds / $roomTypeData['available_beds'] * 100);
 
-			$priceRow = mysql_fetch_assoc($result);
 			$sql = "INSERT INTO prices_for_date_history (date, price_per_room, price_per_bed, room_type_id, price_set_date, price_unset_date, occupancy, discount_per_bed) VALUES ('" . $priceRow['date'] . "', " . 
 				(is_null($priceRow['price_per_room']) ? 'NULL' : $priceRow['price_per_room']) . ", " . 
 				(is_null($priceRow['price_per_bed']) ? 'NULL' : $priceRow['price_per_bed']) . ", " . 
@@ -68,12 +74,12 @@ for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', str
 			trigger_error("Cannot delete old room prices in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 		}
 
-		$sql = "INSERT INTO prices_for_date (room_type_id, date, price_per_room, price_per_bed,	price_set_date, discount_per_bed) VALUES ($roomTypeId, '$currDateSlash', " . ((isPrivate($roomTypeData) or isApartment($roomTypeData)) ? $val : 'NULL') . ", " . (isDorm($roomTypeData) ? $val : 'NULL') . ", '$todaySlash', " . (is_null($dpb) ? 'NULL' : $dpb) . ")";
+		$sql = "INSERT INTO prices_for_date (room_type_id, date, price_per_room, price_per_bed,	price_set_date, discount_per_bed) VALUES ($roomTypeId, '$currDateSlash', " . (is_null($newPricePerRoom) ? 'NULL' : $newPricePerRoom) . ", " . (is_null($newPricePerBed) ? 'NULL' : $newPricePerBed) . ", '$todaySlash', " . (is_null($dpb) ? 'NULL' : $dpb) . ")";
 		if(!mysql_query($sql, $link)) {
 			trigger_error("Cannot save room price: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 			set_error("Cannot save price for day: $currDateSlash and room(s): " . $roomTypeData['name']);
 		} else {
-			set_message("Price saved for day: $currDateSlash and room(s): " . $roomTypeData['name']);
+			set_message("Price saved for day: $currDateSlash and room(s): " . $roomTypeData['name'] . " ppr:$newPricePerRoom, pbd:$newPricePerBed, dpb:$dpb, old ppr: " . $priceRow['price_per_room'] . ",old ppb:" . $priceRow['price_per_bed'] . ", old dpb:" . $priceRow['discount_per_bed']);
 		}
 	}
 }
@@ -82,5 +88,17 @@ for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', str
 mysql_close($link);
 
 
+function isSamePrice($newPricePerRoom, $newPricePerBed, $dpb, $priceRow) {
+	if(!is_null($newPricePerRoom) and ($newPricePerRoom != $priceRow['price_per_room'])) {
+		return false;
+	}
+	if(!is_null($newPricePerBed) and ($newPricePerBed != $priceRow['price_per_bed'])) {
+		return false;
+	}
+	if(!is_null($dpb) and ($dpb != $priceRow['discount_per_bed'])) {
+		return false;
+	}
+	return true;
+}
 
 ?>

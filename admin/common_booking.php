@@ -60,14 +60,19 @@ function getBookings($roomTypeId, &$rooms, $startPeriod, $endPeriod, $startDateB
 
 
 
-function getAvgNumOfBedsOccupied($selectedBookings, $startPeriod, $endPeriod) {
+function getAvgNumOfBedsOccupied($selectedBookings, $startPeriod, $endPeriod, $numOfBedsInRoom = null) {
 	$numOfBookedBeds = array();
 	$oneDay = $startPeriod;
 	$numOfBookedBeds = 0;
 	$cntr = 0;
 	while($oneDay <= $endPeriod) {
 		foreach($selectedBookings as $booking) {
-			$numOfBookedBeds += $booking['num_of_person'];
+			if(is_null($numOfBedsInRoom)) {
+				$numOfBookedBeds += $booking['num_of_person'];
+			} else {
+				// set_message('adding ' . $numOfBedsInRoom);
+				$numOfBookedBeds += $numOfBedsInRoom;
+			}
 		}
 		$oneDay = date('Y-m-d', strtotime($oneDay . ' +1 day'));
 		$cntr += 1;

@@ -249,15 +249,23 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 		$numOfDays = $groupDays;
 		if($groupDays == 'month') { 
 			$endPeriod = date('Y-m-d', strtotime("$startPeriod +1 month"));
-			$numOfDays = date('t', strtotime($startPeriod));;
+			$numOfDays = date('t', strtotime($startPeriod));
 		} else {
 			$endPeriod = date('Y-m-d', strtotime("$startPeriod +$groupDays day"));
 		}
 		$endPeriod = date('Y-m-d', strtotime("$endPeriod -1 day"));
 		$relBookings = getBookings($roomTypeId, $rooms, $startPeriod, $endPeriod, $startDateBookingRec, $endDateBookingRec);
 		$absBookings = getBookings($roomTypeId, $rooms, $startPeriod, $endPeriod);
-		$relAvgNumOfBeds = getAvgNumOfBedsOccupied($relBookings, $startPeriod, $endPeriod);
-		$absAvgNumOfBeds = getAvgNumOfBedsOccupied($absBookings, $startPeriod, $endPeriod);
+		if(isApartment($roomType)) {
+			//set_message("Room: " . $roomType['name'] . " is apartment with num of beds: " . $roomType['num_of_beds']);
+			//set_message("abs selected bookings: " . print_r($absBookings, true));
+			$relAvgNumOfBeds = getAvgNumOfBedsOccupied($relBookings, $startPeriod, $endPeriod, $roomType['num_of_beds']);
+			$absAvgNumOfBeds = getAvgNumOfBedsOccupied($absBookings, $startPeriod, $endPeriod, $roomType['num_of_beds']);
+			//set_message("abs avg num of beds: " . $absAvgNumOfBeds);
+		} else {
+			$relAvgNumOfBeds = getAvgNumOfBedsOccupied($relBookings, $startPeriod, $endPeriod);
+			$absAvgNumOfBeds = getAvgNumOfBedsOccupied($absBookings, $startPeriod, $endPeriod);
+		}
 		$relativeOccupancy = round($relAvgNumOfBeds / ($numOfDays*$roomType['available_beds']) * 100);
 		$absoluteOccupancy = round($absAvgNumOfBeds / ($numOfDays*$roomType['available_beds']) * 100);
 		$absRed = intval((4 - 3*$absoluteOccupancy / 100.0) * 171);
