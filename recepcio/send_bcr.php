@@ -69,10 +69,10 @@ if(!$result) {
 	return;
 }
 
-$rooms = '<table cellpadding="5"><tr><th>' . NAME . '</th><th>' . TYPE . '</th><th>' . NUMBER_OF_PERSON . '</th><th>' . PRICE . '</th></tr>';
+$rooms = '<table cellpadding="5"><tr><th>' . NAME . '</th><th>' . TYPE . '</th><th>' . NUMBER_OF_PERSON . '</th>' . /*'<th>' . PRICE . '</th>' . */'</tr>';
 while($row = mysql_fetch_assoc($result)) {
 	$payment = intval(convertAmount($row['room_payment'], 'EUR', $currency, substr($row['creation_time'], 0, 10)));
-	$rooms .= '<tr><td>' . $row['room_name'] . '</td><td>' . constant(strtoupper($row['booking_type'])) . '</td><td align="center">' . $row['num_of_person'] . '</td><td align="right">' . $payment . $currency . '</td></tr>';
+	$rooms .= '<tr><td>' . $row['room_name'] . '</td><td>' . constant(strtoupper($row['booking_type'])) . '</td><td align="center">' . $row['num_of_person'] . '</td>' . /*'<td align="right">' . $payment . $currency . '</td>' . */ '</tr>';
 	$total += $payment;
 }
 $rooms .= '</table>';

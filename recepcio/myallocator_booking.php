@@ -283,7 +283,7 @@ function cancelBooking($myAllocatorId, $link) {
 
 
 function createBooking($bookingData, $link) {
-	global $lang, $bookingJson, $locationName, $SOURCES, $MESSAGES, $COUNTRY_ALIASES;
+	global $lang, $bookingJson, $locationName, $SOURCES, $MESSAGES, $COUNTRY_ALIASES, $propertyId;
 	$nowTime = date('Y-m-d H:i:s');
 	if(!isset($bookingData['Rooms']) or !is_array($bookingData['Rooms']) or count($bookingData['Rooms']) < 1) {
 		set_debug("booking data:");
@@ -413,7 +413,7 @@ function createBooking($bookingData, $link) {
 			$roomTypeId = findRoomTypeId($myAllocRoomTypeId, $propertyId);
 			if(is_null($roomTypeId)) {
 				set_debug("Cannot find roomTypeId for myallocator room id: $myAllocRoomTypeId");
-				respond('52', false, "Cannot find roomTypeId for myallocator room id: $myAllocRoomTypeId");
+				respond('52', false, "Cannot find roomTypeId for myallocator room id: $myAllocRoomTypeId, property id: $propertyId");
 				return false;
 			}
 			$numOfPerson = $roomData['Units'];
@@ -497,6 +497,29 @@ function createBooking($bookingData, $link) {
 			set_debug("Cannot save deposit payment: " . mysql_error($link) . " (SQL: $sql)");
 		} else {
 			set_debug("Save successful. SQL: $sql");
+		}
+	}
+
+	if(isset($bookingData['ExtraServices'])) {
+		foreach($bookingData['ExtraServices'] as $oneService) {
+			if(substr($oneService['Description'],0,6) == 'Parkol' and isset($oneService['Price'])) {
+				$amount = doubleval($oneService['Price']);
+				if(isset($bookingData['TotalCurrency'])) {
+					$curr = $bookingData['TotalCurrency'];
+				} else {
+					$curr = 'EUR';
+				}
+				$bdid = $bookingDescriptionIds[0];
+				$nowTime = date('Y-m-d H:i:s');
+				set_debug("Saving extra service as service_charge");
+				$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($bdid, $amount, '$curr', '$nowTime', '" . $oneService['Description'] . "', 'Parkolás')";
+				$result = mysql_query($sql, $link);
+				if(!$result) {
+					set_debug("Cannot save service charge: " . mysql_error($link) . " (SQL: $sql)");
+				} else {
+					set_debug("Save successful. SQL: $sql");
+				}
+			}
 		}
 	}
 
