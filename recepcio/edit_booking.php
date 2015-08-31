@@ -390,6 +390,7 @@ echo <<<EOT
 <a href="#" onclick="if(confirm('Are you sure to email the payment receipt to $email?')) { window.location='print_booking_summary.php?description_id=$descrId&action=email';} return false;">Email payment receipt</a><br>
 <a href="#" onclick="if(confirm('Are you sure to cancel the booking?')) { window.location='cancel_booking.php?description_id=$descrId&type=reception';} return false;">Reception cancel</a><br>
 <a href="#" onclick="if(confirm('Are you sure to cancel the booking?')) { window.location='cancel_booking.php?description_id=$descrId&type=guest';} return false;">Guest cancel</a><br>
+<a href="#" onclick="if(confirm('Are you sure to \'no show\' the booking?')) { window.location='cancel_booking.php?description_id=$descrId&type=no_show';} return false;\">No show</a><br>
 <form>
 	<input type="checkbox" $maintenanceChecked onchange="toggleMaintenance(this);">Maintenance<br>
 </form>

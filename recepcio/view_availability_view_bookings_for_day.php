@@ -58,7 +58,7 @@ echo "			</div>\n";
 
 function getTableRow(&$booking, &$room) {
 	$status = getStatusCell($booking);
-	$name = $booking['name'] . ' ' . $booking['name_ext'];
+	$name = $booking['name_ext'] . ' ' . $booking['name'];
 	$fnight = $booking['first_night'];
 	if(isset($booking['arrival_time'])) {
 		$fnight .= '<br>' . $booking['arrival_time'];

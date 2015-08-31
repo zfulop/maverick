@@ -119,7 +119,7 @@ if(count($bdids) > 0) {
 }
 
 $roomChanges = array();
-$sql = "SELECT booking_room_changes.booking_id, booking_room_changes.new_room_id, booking_room_changes.date_of_room_change, bookings.room_id, booking_descriptions.name as bd_name, booking_descriptions.first_night as bd_first_night, booking_descriptions.last_night as bd_last_night, booking_guest_data.name as bgd_name FROM booking_room_changes INNER JOIN bookings ON booking_room_changes.booking_id=bookings.id INNER JOIN booking_descriptions ON (bookings.description_id=booking_descriptions.id AND booking_descriptions.cancelled=0) LEFT OUTER JOIN booking_guest_data ON (bookings.room_id=booking_guest_data.room_id AND booking_guest_data.booking_description_id=booking_descriptions.id) WHERE booking_room_changes.date_of_room_change IN ('$today', '$yesterday')";
+$sql = "SELECT booking_room_changes.booking_id, booking_room_changes.new_room_id, booking_room_changes.date_of_room_change, bookings.room_id, booking_descriptions.name as bd_name, booking_descriptions.name_ext as bd_name_ext, booking_descriptions.first_night as bd_first_night, booking_descriptions.last_night as bd_last_night, booking_guest_data.name as bgd_name FROM booking_room_changes INNER JOIN bookings ON booking_room_changes.booking_id=bookings.id INNER JOIN booking_descriptions ON (bookings.description_id=booking_descriptions.id AND booking_descriptions.cancelled=0) LEFT OUTER JOIN booking_guest_data ON (bookings.room_id=booking_guest_data.room_id AND booking_guest_data.booking_description_id=booking_descriptions.id) WHERE booking_room_changes.date_of_room_change IN ('$today', '$yesterday')";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	trigger_error("Cannot room changes for today: " . mysql_error($link) . " (SQL: $sql)");
@@ -266,7 +266,7 @@ EOT;
 	$dataArr = array();
 	foreach($arrivingToday as $bookingDescr) {
 		$descrId = $bookingDescr['id'];
-		$name = $bookingDescr['name'];
+		$name = $bookingDescr['name_ext'] . ' ' . $bookingDescr['name'];
 		$rooms = '';
 		$aTime = $bookingDescr['arrival_time'];
 		if(isset($bookings[$descrId])) {
@@ -335,7 +335,7 @@ EOT;
 
 	foreach($leavingToday as $bookingDescr) {
 		$descrId = $bookingDescr['id'];
-		$name = $bookingDescr['name'];
+		$name = $bookingDescr['name_ext'] . ' ' . $bookingDescr['name'];
 		$rooms = '';
 		$roomTotal = 0;
 		if(isset($bookings[$descrId])) {
@@ -501,7 +501,7 @@ EOT;
 $dataArr = array();
 foreach($checkedin as $bookingDescr) {
 	$id = $bookingDescr['id'];
-	$name = $bookingDescr['name'];
+	$name = $bookingDescr['name_ext'] . ' ' . $bookingDescr['name'];
 	$fnight = $bookingDescr['first_night'];
 	$lnight = $bookingDescr['last_night'];
 	$style = "";
@@ -613,7 +613,7 @@ $bgColor='#ffffff';
 foreach($bcrTo as $bookingDescr) {
 	$bgColor = ($bgColor=='#ffffff' ? '#dddddd' : '#ffffff');
 	$id = $bookingDescr['id'];
-	$name = $bookingDescr['name'] . ' ' . $bookingDescr['name_ext'];
+	$name = $bookingDescr['name_ext'] . ' ' . $bookingDescr['name'];
 	$fnight = str_replace('/','-',$bookingDescr['first_night']);
 	$lnight = str_replace('/','-',$bookingDescr['last_night']);
 	$email = $bookingDescr['email'];

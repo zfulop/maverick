@@ -2,7 +2,7 @@
 
 require("includes.php");
 require(RECEPCIO_BASE_DIR . "room_booking.php");
-require("common_booking.php");
+require(ADMIN_BASE_DIR . "common_booking.php");
 
 header("Location: " . $_SERVER['HTTP_REFERER']);
 

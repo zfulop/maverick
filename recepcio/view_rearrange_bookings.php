@@ -288,8 +288,8 @@ echo "</tr>\n";
 $tdIds = array();
 foreach($rooms as $roomId => $roomData) {
 	$roomName = $roomData['name'] . ' - ' . $roomData['room_type_name'];
-	$height = ($roomData['num_of_beds'] * 40) . 'px';
-	$divHeight = ($roomData['num_of_beds'] * 40 - 2) . 'px';
+	$height = ($roomData['num_of_beds'] * 60) . 'px';
+	$divHeight = ($roomData['num_of_beds'] * 60 - 2) . 'px';
 	echo <<<EOT
 	<tr>
 		<td style="width: 100px; background: rgb(49, 236, 243); height: $height; border: 1px solid #000;">

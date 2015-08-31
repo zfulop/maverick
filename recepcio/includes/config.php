@@ -1,9 +1,10 @@
 <?php
 
 define('DB_HOST', 'localhost');
-define('DB_USER', 'website');
-define('DB_PASSWORD', 'dsfv34ras2SQg');
-define('DB_NAME', 'lodge');
+define('DB_USER', 'maverick');
+define('DB_PASSWORD', 'maverick');
+define('DB_NAME', 'maverickhos_3637');
+
 
 define('PHP_MAILER_LANGUAGE_DIR', "c:/Projects/maverick/Repository/recepcio/includes/phpmailer/language");
 define('PHP_MAILER_SENDTYPE_SENDMAIL', 'SENDMAIL');
