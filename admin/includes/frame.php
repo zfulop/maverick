@@ -5,7 +5,7 @@ function html_start($title = "Maverick Admin", $extraHeader = '', $onloadScript 
 	$audit = ADMIN_ROOT_URL . 'view_audit.php';
 	$stats = ADMIN_ROOT_URL . 'view_statistics.php';
 	$occupancy = ADMIN_ROOT_URL . 'view_occupancy.php';
-	$pricing = ADMIN_ROOT_URL . 'view_pricing.php';
+	$pastProjectedPayment = ADMIN_ROOT_URL . 'view_past_projected_payments.php';
 	$report = ADMIN_ROOT_URL . 'view_payment_report.php';
 
 	$tooltipJs = ADMIN_ROOT_URL . 'js/wz_tooltip.js';
@@ -29,7 +29,7 @@ function html_start($title = "Maverick Admin", $extraHeader = '', $onloadScript 
 <a href="$audit" style="float: left; font-size: 14px; padding-right: 20px;">Audit</a>
 <a href="$stats" style="float: left; font-size: 14px; padding-right: 20px;">Statistics</a>
 <a href="$occupancy" style="float: left; font-size: 14px; padding-right: 20px;">Occupancy</a>
-<a href="$pricing" style="float: left; font-size: 14px; padding-right: 20px;">Pricing</a>
+<a href="$pastProjectedPayment" style="float: left; font-size: 14px; padding-right: 20px;">Past/Projeced Payments</a>
 <a href="$report" style="float: left; font-size: 14px; padding-right: 20px;">Payments</a>
 </div>
 
