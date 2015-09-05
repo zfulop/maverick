@@ -155,7 +155,7 @@ html_start("Maverick Admin - Cashflow view", $extraHeader);
 echo <<<EOT
 
 
-<form action="view_cashflow.php" method="POST">
+<form action="view_past_projected_payments.php" method="POST">
 <table>
   <tr><td>Past start date:</td><td>
     <input id="past_start_date" name="past_start_date" size="10" maxlength="10" type="text" value="$pastStartDate"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'past_start_date', 'chooserSpanPSD', 2008, 2025, 'Y/m/d', false);">
