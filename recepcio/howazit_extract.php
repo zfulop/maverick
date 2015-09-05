@@ -10,7 +10,7 @@ $link = db_connect();
 $today = date('Y/m/d');
 $yesterday = date('Y/m/d', strtotime(date('Y-m-d') . ' -1 day'));
 $file = getcwd() . "/maverick_" . $location . "." . date('Ymd') . ".csv";
-$sql = "SELECT name,telephone,email,nationality,source,first_night as arrival_date, '$today' as departure_date FROM booking_descriptions WHERE last_night='$today'";
+$sql = "SELECT name,telephone,email,nationality,source,first_night as arrival_date, '$today' as departure_date FROM booking_descriptions WHERE last_night='$yesterday' and cancelled<>1";
 
 echo "Getting guests who are leaving $today, last night is $yesterday\n";
 
@@ -28,6 +28,7 @@ for ($i = 0; $i < $fields; $i++) {
 
 $count = 0;
 $data = $header . "\n";
+$msg = '';
 while($row = mysql_fetch_row($result)) {
 	$line = '';
 	foreach($row as $value) {
@@ -40,11 +41,13 @@ while($row = mysql_fetch_row($result)) {
 		$line .= $value;
 	}
 	$data .= trim($line) . "\n";
+	$msg .= sprintf("[%-20s] %s %s\n", $row[0], $row[5], $row[6]);
 	$count += 1;
 }
 $data = str_replace( "\r" , "" , $data );
 
 echo "There are $count such guests\n";
+echo $msg;
 
 mysql_close($link);
 
