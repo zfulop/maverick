@@ -110,7 +110,7 @@ if(in_array('CIO', $tablesSelected)) {
 
 $payments = array();
 if(in_array('P', $tablesSelected)) {
-	$sql = "SELECT p.type AS type, p.time_of_payment, p.pay_mode, p.comment, p.currency, p.amount FROM payments p WHERE SUBSTR(p.time_of_payment,1,10)>='$startDate' AND SUBSTR(p.time_of_payment,1,10)<='$endDate' AND p.storno<>1";
+	$sql = "SELECT p.* FROM payments p WHERE SUBSTR(p.time_of_payment,1,10)>='$startDate' AND SUBSTR(p.time_of_payment,1,10)<='$endDate' AND p.storno<>1";
 	if(strlen($comment) > 0) {
 		$sql .= " AND p.comment LIKE '%$comment%'";
 	}
@@ -329,6 +329,7 @@ while(count($scharges) > $scIdx or count($cashOuts) > $coIdx or count($payments)
 
 	$eurCell = "";
 	$hufCell = "";
+	$bookingDescriptionId = null;
 	if($takeSc) {
 		$scharge = $scharges[$scIdx];
 		if($scharge['currency'] == 'EUR') {
@@ -344,6 +345,7 @@ while(count($scharges) > $scIdx or count($cashOuts) > $coIdx or count($payments)
 		$comment = $scharge['comment'];
 		$name = '';
 		$paymode = '';
+		$bookingDescriptionId = $scharge['booking_description_id'];
 		$scIdx += 1;
 	} elseif($takeCo) {
 		$co = $cashOuts[$coIdx];
@@ -380,6 +382,7 @@ while(count($scharges) > $scIdx or count($cashOuts) > $coIdx or count($payments)
 			$amountHuf += $p['amount'];
 			$hufCell = $p['amount'];
 		}
+		$bookingDescriptionId = $p['booking_description_id'];
 		$pIdx += 1;
 	} elseif($takeGt) {
 		$gt = $gtransfers[$gtIdx];
@@ -405,14 +408,19 @@ while(count($scharges) > $scIdx or count($cashOuts) > $coIdx or count($payments)
 		$name = '&nbsp;';
 	}
 
+	if(!is_null($bookingDescriptionId)) {
+		$editBookingUrl = RECEPCIO_BASE_URL . "edit_booking.php?description_id=$bookingDescriptionId";
+		$eurCell = "<a href=\"$editBookingUrl\">$eurCell</a>";
+		$hufCell = "<a href=\"$editBookingUrl\">$hufCell</a>";
+	}
 	echo "	<tr><td>$table</td><td>$type</td><td>$time</td><td>$name</td><td>$paymode</td><td>$comment</td><td class=\"amount\">$eurCell</td><td class=\"amount\">$hufCell</td></tr>";
 }
 
 $amountEur = sprintf('%.2f', $amountEur);
 
 echo <<<EOT
-	<tr><td colspan="7"><hr></td></tr>
-	<tr><td colspan="5"><strong>Total</strong></td><td class="amount">$amountEur</td><td class="amount">$amountHuf</td></tr>
+	<tr><td colspan="8"><hr></td></tr>
+	<tr><td colspan="6"><strong>Total</strong></td><td class="amount">$amountEur</td><td class="amount">$amountHuf</td></tr>
 </table>
 
 
