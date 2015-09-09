@@ -27,6 +27,18 @@ if(!$result) {
 	}
 }
 
+$mtypes = array();
+$sql = "SELECT * FROM mending_type ORDER BY type";
+$result = mysql_query($sql, $link);
+if(!$result) {
+	trigger_error("Cannot get mending type in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+} else {
+	while($row = mysql_fetch_assoc($result)) {
+		$mtypes[] = $row['type'];
+	}
+}
+
+
 
 html_start("Maverick Mgmt - Lists");
 
@@ -71,6 +83,26 @@ echo <<<EOT
 </table>
 
 </td>
+
+<td valign="top">
+<h2>Mending owners</h2>
+<form action="save_list_item.php" method="post" accept-charset="utf-8">
+<input type="hidden" name="type" value="mending_type">
+<input type="hidden" name="item_name" value="type">
+New owner: <input name="item" style="display: inline; float: none;"> <input type="submit" value="Save" style="display: inline; float: none;">
+</form>
+<table>
+EOT;
+foreach($mtypes as $t) {
+	echo "	<tr><td>$t</td><td><a href=\"delete_list_item.php?type=mending_type&item_name=type&item=" . urlencode($t) . "\">Delete</a></td></tr>\n";
+}
+
+echo <<<EOT
+</table>
+
+</td>
+
+
 
 </tr>
 </table>

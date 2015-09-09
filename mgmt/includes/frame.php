@@ -13,6 +13,7 @@ function html_start($title = "Maverick Mgmt", $extraHeader = '', $showMenu = tru
 	$shifts = MGMT_ROOT_URL . 'view_shifts.php';
 	$vacations = MGMT_ROOT_URL . 'view_vacations.php';
 	$lists = MGMT_ROOT_URL . 'view_lists.php';
+	$minMax = MGMT_ROOT_URL . 'view_min_max_stay.php';
 	$photos = MGMT_ROOT_URL . 'view_room_images.php';
 	$rooms = MGMT_ROOT_URL . 'view_rooms.php';
 	$texts = MGMT_ROOT_URL . 'view_site_text.php';
@@ -102,6 +103,7 @@ EOT;
 				<li><a href="$lists" style="float: left; font-size: 14px; padding-right: 20px;">Lists</a></li>
 				<li><a href="$texts" style="float: left; font-size: 14px; padding-right: 20px;">Site texts</a></li>
 				<li><a href="$audit" style="float: left; font-size: 14px; padding-right: 20px;">Audit</a></li>
+				<li><a href="$minMax" style="float: left; font-size: 14px; padding-right: 20px;">Min/Max Stay</a></li>
 			</ul>
 		</div>
 	</div>
