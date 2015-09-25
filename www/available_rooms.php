@@ -48,8 +48,20 @@ if($_SESSION['to_date'] <= $_SESSION['from_date']) {
 }
 
 
-
 $link = db_connect($location);
+
+
+$minMax = getMinMaxStay($_SESSION['from_date'], $_SESSION['to_date'], $link);
+if(!is_null($minMax) and $minMax['min_stay'] > $_SESSION['nights']) {
+	$_SESSION['booking_error'] = sprintf(FOR_SELECTED_DATE_MIN_STAY, $minMax['min_stay']);
+	header('Location: ' . $_SERVER['HTTP_REFERER']);
+	return;
+}
+if(!is_null($minMax) and !is_null($minMax['max_stay']) and  $minMax['max_stay'] < $_SESSION['nights']) {
+	$_SESSION['booking_error'] = sprintf(FOR_SELECTED_DATE_MAX_STAY, $minMax['max_stay']);
+	header('Location: ' . $_SERVER['HTTP_REFERER']);
+	return;
+}
 
 $arriveDateTs = strtotime($_SESSION['from_date']);
 $arriveDate = $_SESSION['from_date'];
@@ -98,8 +110,9 @@ for($i = 1; $i < 15; $i++) {
 	$nightsOptions .= "                    <option value=\"$i\"" . ($i == $nights ? ' selected="selected"' : '') . ">$i</option>\n";
 }
 
-$specialOfferSection = "";
 $specialOffers = loadSpecialOffers($arriveDate,$lastNight, $link, $lang);
+/*
+$specialOfferSection = "";
 foreach($specialOffers as $soId => $so) {
 	if(($so['nights'] == ($nights+1)) and is_null($so['room_type_ids'])) {
 		$descr = $so['title'];
@@ -121,6 +134,7 @@ $specialOfferSection
 
 EOT;
 }
+*/
 
 $roomTypesData = loadRoomTypes($link, $lang);
 
@@ -131,7 +145,18 @@ foreach($rooms as $roomId => $roomData) {
 
 uasort($roomTypesData, 'sortRoomsByAvailOrder');
 
-html_start(AVAILABLE_ROOMS . ' - ' . getLocationName($location));
+$afterBody = <<<EOT
+    <div id='gallery'>
+        <h1 class='gallery-title'></h1>
+        <span class='galleryClose' onClick="$('#gallery').fadeOut(); $('iframe.gallery').attr('src','');">X</span>
+        <center>
+        <iframe class='gallery'  frameborder='0' src=''></iframe>
+        </center>
+    </div>
+
+EOT;
+
+html_start(AVAILABLE_ROOMS . ' - ' . getLocationName($location), '', '', $afterBody);
 
 if(isset($_SESSION['booking_error'])) {
 	$msg = $_SESSION['booking_error'];
@@ -150,52 +175,36 @@ echo <<<EOT
         $availableRooms
       </h1>
       
-      <div class="fluid-wrapper booking">
-$specialOfferSection
-        
-        <section id="booking-filter">
-          <h1 class="arrive">
-            $arriveAt
-            <span class="open-filter">$changeDates</span>
-          </h1>
+      <section id="checkin3">
+         <form class="filter" action="available_rooms.php" method="GET">
+           <div class='centered'>
+             <div class="field date from ">
+               <input type="date" class='cifrom from' id="from2" name="from" value="$fromDate">
+             </div>
+       
+             <div class="field date to ">
+               <input type="date" class='cito to' id="to2" name="to" value="$toDate">
+             </div>
 
-          <form class="filter" action="available_rooms.php" method="GET">
-            <fieldset>
-              <div class="date">
-                <h2>$checkinDate</h2>
-                <div class="field date from clearfix">
-                  <label for="from">$from:</label>
-                  <input type="date" id="from" name="from" value="$fromDate">
-                </div>
+             <div class="fake-select clearfix">
+                <span class="value">$chooseLocation</span>
+                <span class="open-select icon-down"></span>
+                <select name="location">
+                  <option value="">$chooseLocation</option>
+                  <option value="lodge"$lodgeLocationSelected>$lodgeTitle</option>
+                  <option value="hostel"$hostelLocationSelected>$hostelTitle</option>
+                  <option value="apartments"$apartmentLocationSelected>$apartmentTitle</option>
+                </select>
+             </div>          
+             <br>  
+             <div class="field  submit">
+               <button type="submit">$checkAvailability</button>
+             </div>
 
-                <h2>$checkoutDate</h2>
-                <div class="field date to clearfix">
-                  <label for="to">$to:</label>
-                  <input type="date" id="to" name="to" value="$toDate">
-                </div>
-              </div>
-              
-              <div class="hostel">
-                <h2>$chooseLocation</h2>
-                
-                <div class="fake-select">
-                  <span class="value"></span>
-                  <span class="open-select icon-down"></span>
-                  <select name="location">
-                    <option value="lodge"$lodgeLocationSelected>$lodgeTitle</option>
-                    <option value="hostel"$hostelLocationSelected>$hostelTitle</option>
-                    <option value="apartments"$apartmentLocationSelected>$apartmentTitle</option>
-                  </select>
-                </div>
-                
-                <div class="submit">
-                  <button type="submit">$checkAvailability</button>
-                </div>
-              </div>
-            </fieldset>
-          </form>
-
-        </section>
+             <div class='clearfix'></div>
+           </div> 
+         </form>
+      </section>
 
 
 EOT;
@@ -207,12 +216,12 @@ $locationName = getLocationName($location);
 $extraServicesUrl = $location . '_extra_services.php';
 
 echo <<<EOT
-        <form class="update-summary" action="$extraServicesUrl" data-refresh="json_update_summary.php" method="post">
-          <fieldset>
-            <section class="rooms">
-              <h1>$roomsTitle</h1>
-              
-              <ul>
+
+      <div class="fluid-wrapper fluid-wrapper2"><div style="max-width: 1000px;">
+
+        <form class="common-form update-summary" action="$extraServicesUrl" data-refresh="json_update_summary.php" method="post">
+          <section class="rooms">
+            <h1><a name="rooms">$roomsTitle</a></h1>
 
 EOT;
 
@@ -225,24 +234,21 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 }
 
 echo <<<EOT
-              </ul>
-            </section>
+          </section>
 
 EOT;
 
 echo getBookingSummaryHtml(CONTINUE_BOOKING);
 
 echo <<<EOT
-          </fieldset>
         </form>
-      </div>
+      </div></div>
 
 EOT;
 
-html_end();
+html_end($link);
 mysql_close($link);
 
-echo "SDSADVASVASV";
 
 function processRoomData($arriveTS, $nights, &$roomData, &$roomType) {
 	$oneDayTS = $arriveTS;
@@ -319,11 +325,14 @@ function getRoomHtml($roomType, $roomTypeId, $nights, $arriveDate, $specialOffer
 	$close = CLOSE;
 	$photos = PHOTOS;
 	$specialOfferTitle = SPECIAL_OFFER;
+	$roomOccupancyTitle = ROOM_OCCUPANCY;
 
 	$name = $roomType['name'];
 	$descr = $roomType['description'];
 	$shortDescr = $roomType['short_description'];
 	$guestOptions = '';
+	$key = 'room_type_' . $location . '_' . $roomTypeId;
+	$guestSelectedValue = isset($_SESSION[$key]) ? $_SESSION[$key] : '';
 	if(!isset($roomType['num_of_beds_avail'])) {
 		$roomType['num_of_beds_avail'] = 0;
 	}
@@ -332,13 +341,11 @@ function getRoomHtml($roomType, $roomTypeId, $nights, $arriveDate, $specialOffer
 	}
 	if(isDorm($roomType)) {
 		for($i = 0; $i <= $roomType['num_of_beds_avail']; $i++) {
-			$key = 'room_type_' . $location . '_' . $roomTypeId;
 			$selected = (isset($_SESSION[$key]) and $_SESSION[$key] == $i) ? ' selected="selected"' : '';
 			$guestOptions .= "                      <option value=\"$i\"$selected>$i</option>\n";
 		}
 	} elseif(isPrivate($roomType)) {
 		for($i = 0; $i <= $roomType['num_of_rooms_avail']*$roomType['num_of_beds']; $i+=$roomType['num_of_beds']) {
-			$key = 'room_type_' . $location . '_' . $roomTypeId;
 			$selected = (isset($_SESSION[$key]) and $_SESSION[$key] == $i) ? ' selected="selected"' : '';
 			$guestOptions .= "                      <option value=\"$i\"$selected>$i</option>\n";
 		}
@@ -347,7 +354,6 @@ function getRoomHtml($roomType, $roomTypeId, $nights, $arriveDate, $specialOffer
 			if($i == 1) {
 				continue;
 			}
-			$key = 'room_type_' . $location . '_' . $roomTypeId;
 			$selected = (isset($_SESSION[$key]) and $_SESSION[$key] == $i) ? ' selected="selected"' : '';
 			$guestOptions .= "                      <option value=\"$i\"$selected>$i</option>\n";
 		}
@@ -378,45 +384,41 @@ EOT;
 	}
 	$pricePerNight = sprintf($template, formatMoney(convertCurrency($price, 'EUR', $currency), $currency));
 
+	$selectionOfAvailability = '';
+	$roomOccupancy = <<<EOT
+              <div class="roomOccupancy" data-room-type-id="$roomTypeId"><div class='roomOccupancyText'>$roomOccupancyTitle</div>
+                <div class="roomCalendar"></div>
+                <div class='clearfix'></div>
+              </div>
+		
+EOT;
 	if($roomType['num_of_beds_avail'] > 0) {
 		$formName = "room_type_" . $location . "_" . $roomTypeId;
 		/*if(isApartment($roomType)) {
 			$formName .= "_" . $roomType['num_of_beds'];
 		}*/
 		$selectionOfAvailability = <<<EOT
-                  <div class="fake-select">
-                    <label for="guests-room-1">$guests</label>
-                    <span class="value"></span>
-                    <span class="open-select icon-down"></span>
-                    <select id="$formName" name="$formName">
+              <div class='right roomGuestSelect'>
+                <div class="fake-select">
+                  <label for="guests-room-1">$guests</label>
+                  <div class='clearfix'></div>
+                  <span class="value">$guestSelectedValue</span>
+                  <span class="open-select icon-down"></span>
+                  <select id="$formName" name="$formName">
 $guestOptions
-                    </select>
-                  </div>
+                  </select>
+                </div>
+              </div>
 
 EOT;
 	} else {
 		$alreadyBooked = ALREADY_BOOKED;
-		$selectionOfAvailability = <<<EOT
-                  <p class="booked condensed">
-                    $alreadyBooked
-                  </p>
-
-
-EOT;
+		$selectionOfAvailability = "              <div class=\"right roomFullyBooked\">$alreadyBooked</div>";
 	}
 
-	$liClassAttr = '';
 	$specialOfferHtml = '';
 	if(!is_null($specialOfferForOneMoreDay)) {
-		$liClassAttr = ' class="special-offer"';
-		$title = $specialOfferForOneMoreDay['text'];
-		$specialOfferHtml = <<<EOT
-					  <p class="special-offer">
-					    <strong>$specialOfferTitle:</strong>
-					    $title
-					  </p>
-
-EOT;
+		$specialOfferHtml = "<div class=\"specOff\"><strong>$specialOfferTitle:</strong>" . $specialOfferForOneMoreDay['text'] . "</div>";
 	}
 
 	$sql = "SELECT * FROM room_images WHERE room_type_id=$roomTypeId";
@@ -440,46 +442,52 @@ EOT;
 	$extrasHtml = getExtrasHtml($location, $roomType['type']);
 
 	echo <<<EOT
-				<li$liClassAttr>
-                  <div class="card clearfix">
-                    <h2>
-                      <a href="">$name</a>
-                    </h2>              
-                    <a class="open-overlay" href="" data-overlay-title="$gallery" data-overlay-gallery-url="gallery.php?room_type_id=$roomTypeId">
-                      <img src="$roomImg" width="587" height="387">
-                    </a>
-
-                    <div class="data">
-                      <p class="type condensed">
-						<strong>$shortDescr</strong><br>
-                        $locationName
-                      </p>
-$specialOfferHtml
-$sale
-                      <p class="price condensed"><span style="text-decoration:line-through;">$oldPricePerNight</span>$pricePerNight</p>
-                    </div>
-                    <p class="details-alternate">
-                      <a class="open" href="">$roomDetails</a>
-                      <a class="close" href="">$close</a>
-                      <a class="open-overlay" href="" data-overlay-title="$gallery" data-overlay-gallery-url="gallery.php?room_type_id=$roomTypeId">
-                        $photos
-                      </a>
-                    </p>
-
+            <div class="roomCard">
+              <div class='left roomPic roomPic2'><img src='$roomImg' alt='pic' class='imgResp open-gallery' data-gallery-title="$gallery" data-gallery-url="gallery.php?room_type_id=$roomTypeId"></div>
+              <div class='roomHead left'>
+                  <h2><a class='open-gallery' data-gallery-title="$gallery" data-gallery-url="gallery.php?room_type_id=$roomTypeId">$name</a></h2>
+                  <a class="roomDets2">$roomDetails</a>
+                  <!-- &nbsp;&nbsp;&nbsp;<a class='open-gallery' data-gallery-title="$gallery" data-gallery-url="gallery.php?room_type_id=$roomTypeId">$photos</a> --></h2>
+                  <br><br>
+                  <strong>$shortDescr</strong><br>
+                  <div class='left' style='min-width: 250px'>$locationName</div>
+                  <div class='left'><span style="text-decoration:line-through;">$oldPricePerNight</span>$pricePerNight</div>
+                  <div class='clearfix'></div>
+              </div>
+            
 $selectionOfAvailability
+              <div class='clearfix'></div>
+              
+$roomOccupancy            
+              $specialOfferHtml            
 
-				  </div>
-                  <div class="extra clearfix">
-                    <p class="details">$descr</p>
-                    <ul class="extras">
+              <div class='roomDetails'> 
+                <img src='/img/expand.png' title='view in fullscreen' alt='fullscreen' class='right open-gallery' style='margin:10px;' data-gallery-title="$gallery" data-gallery-url="gallery.php?room_type_id=$roomTypeId" />
+                <div class='clearfix'></div>
+                <iframe class="roomSlider" src="gallery.php?room_type_id=$roomTypeId" frameborder="0"></iframe>
+                <div class='roomDetailsText'>$descr</div>
+                <div class='roomExtras'>
+                  <ul class="extras">
 $extrasHtml
-                    </ul>
-				  </div>
-                </li>
-                
+                  </ul>
+                  <div class='clearfix'></div>
+                </div>
+              </div>
+            </div>
+
 
 EOT;
 }
 
-?>
+function getMinMaxStay($fromDate, $toDate, $link) {
+	$sql = "SELECT * FROM min_max_stay WHERE (from_date IS NULL OR from_date<'$fromDate') AND (to_date IS NULL OR to_date>'$toDate')";
+	$result = mysql_query($sql, $link);
+	if(mysql_num_rows($result) > 0) {
+		$row = mysql_fetch_assoc($result);
+		return $row;
+	}
+	return null;
+}
 
+
+?>

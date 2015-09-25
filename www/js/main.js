@@ -23,6 +23,7 @@
     $('#mobile-header').find('.open-header, .close-header, p').on('click', function(e) {
       e.preventDefault();
       $header.toggleClass(className);
+	  $('#checkin3').slideUp();
     });
   });
 
@@ -72,9 +73,9 @@
             var $input;
             $input = $(this);
             if ($input.hasClass('from')) {
-              $input.closest('form').find('input.to').datepicker('option', 'minDate', date);
+              //$input.closest('form').find('input.to').datepicker('option', 'minDate', date);
             } else if ($input.hasClass('to')) {
-              $input.closest('form').find('input.from').datepicker('option', 'maxDate', date);
+              //$input.closest('form').find('input.from').datepicker('option', 'maxDate', date);
             }
           }
         });
@@ -181,14 +182,8 @@
   $(function() {
     var elements;
     elements = [
-      {
-        selector: '#checkin',
-        headerSelector: '#carousel',
-        headerOffset: -60,
-        footerSelector: '#footer',
-        footerOffset: 30
-      }, {
-        selector: '#booking-summary',
+       {
+        selector: '',
         headerSelector: '.page-title',
         headerOffset: 30,
         footerSelector: '#footer',
@@ -291,8 +286,8 @@
               icon = {
                 url: poi.image,
                 size: new google.maps.Size(174, 103),
-                scaledSize: new google.maps.Size(87, 52),
-                anchor: new google.maps.Point(44, 52)
+                anchor: new google.maps.Point(44, 52),
+                zIndex: poi.zIndex
               };
               shape = {
                 type: 'poly',
@@ -304,13 +299,15 @@
                 title: poi.name,
                 icon: icon,
                 shape: shape,
-                anchorPoint: new google.maps.Point(0, -52)
+                anchorPoint: new google.maps.Point(0, -52),
+                zIndex: poi.zIndex
               });
             } else {
               marker = new google.maps.Marker({
                 map: map,
                 position: latlng,
-                title: poi.name
+                title: poi.name,
+                zIndex: poi.zIndex
               });
               google.maps.event.addListener(marker, 'click', function() {
                 bubble.setContent(this.title);
@@ -439,7 +436,7 @@
         var $overlay, $target, error, latitude, longitude, success;
         e.preventDefault();
         $target = $(e.target).closest('.open-overlay');
-        $overlay = $('<section id="overlay"><div><h1 class="title"></h1><a class="close ir" href="">Close</a><div class="content"></div></div></section>');
+        $overlay = $('<section id="overlay"><div><h1 class="title"></h1><a class="close" href="" style="position: absolute; z-index: 999999; top: 0; right: 0; font-size: 30px; margin: 15px; text-decoration: none;">X</a><div class="clearfix"></div><div class="content"></div></div></section>');
         $overlay.find('.title').prepend($target.data('overlay-title'));
         /*
         if $target.data 'overlay-class'

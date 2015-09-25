@@ -126,7 +126,7 @@ echo <<<EOT
 EOT;
 
 
-html_end();
+html_end($link);
 mysql_close($link);
 
 

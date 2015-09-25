@@ -125,8 +125,13 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 }
 
 
-$address = $street . ', ' . $city . ', ' . $zip . ', ' . $country;
-$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency) VALUES ('$firstname $lastname', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', 'saját', '', '$lang', '$currency')";
+$address = mysql_real_escape_string($street . ', ' . $city . ', ' . $zip . ', ' . $country);
+$name = mysql_real_escape_string("$firstname $lastname");
+$nationality = mysql_real_escape_string($nationality);
+$email = mysql_real_escape_string($email);
+$phone = mysql_real_escape_string($phone);
+$comment = mysql_real_escape_string($comment);
+$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency) VALUES ('$name', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', 'saját', '', '$lang', '$currency')";
 set_debug($sql);
 
 if(!mysql_query($sql, $link)) {
@@ -175,7 +180,6 @@ foreach($_SESSION as $key => $value) {
 
 
 
-mysql_close($link);
 
 $thankYou = THANK_YOU;
 $thankYouForYourBooking = THANK_YOU_FOR_YOUR_BOOKING;
@@ -301,7 +305,8 @@ var google_remarketing_only = false;
 EOT;
 
 
-html_end();
+html_end($link);
+mysql_close($link);
 
 $mailMessage = <<<EOT
 <html>

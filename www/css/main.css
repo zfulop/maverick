@@ -211,8 +211,8 @@ button{border:0;margin:0;outline:0;padding:0}
 @media only screen and (min-width: 1024px){#about .badge{padding-left:160px}
 }@media only screen and (min-width: 1024px){#location{clear:both}
 }@media only screen and (min-width: 1280px){#location{clear:none;float:right;width:48%}
-}#location p{margin-top:5px;padding-left:80px;}
-#location p strong{float:left;margin-left:-80px}
+}#location p{margin-top:5px;padding-left:0px;}
+#location p strong{float:left;margin-left:0px}
 #location .route{float:right;line-height:28px;margin-top:-36px;padding-left:0;}
 #location .route a{float:left;margin-left:8px;}
 @media only screen and (min-width: 1024px){#location .route a{margin-left:12px}
@@ -486,16 +486,8 @@ form .rooms:first-child h1{display:none}
 #contact .directions strong{float:left;margin-left:-80px}
 @media only screen and (min-width: 1024px){#contact .directions p{margin-top:20px;padding-left:0}
 #contact .directions strong{display:block;float:none;font:700 14px/28px 'Oswald',arial,sans-serif;margin-bottom:8px;margin-left:0;text-transform:uppercase}
-}#footer{background:#1a1a1a;}
-#footer div{background:url("../img/logo-footer-mobile.png") no-repeat 24px 39px;background-size:79px 39px;color:#3f3f3f;padding:90px 24px 40px;}
-@media only screen and (min-width: 1024px){#footer div{background-position:100% 50px;margin-right:80px;padding:24px 0 90px 50px}
-}#footer p{margin-top:12px;}
-@media only screen and (min-width: 1024px){#footer p{float:left;margin-right:20px}
-}#footer p:first-child{margin-top:0;}
-@media only screen and (min-width: 1024px){#footer p:first-child{margin-top:12px}
-}@media only screen and (min-width: 1024px){#footer .copyright{clear:both;float:none;padding-top:40px}
-}#footer a{color:#ffffe1;}
-@media only screen and (min-width: 1024px){#footer a:hover{text-decoration:none}
+}
+@media only screen and (min-width: 1024px){
 }#overlay{background:#fff;bottom:12px;left:12px;opacity:0;position:fixed;right:12px;top:12px;transition:opacity .2s;z-index:999;}
 @media only screen and (min-width: 1024px){#overlay{bottom:0;height:420px;left:0;margin:auto;right:0;top:0;width:540px}
 }#overlay.opened{opacity:1}
@@ -505,7 +497,7 @@ form .rooms:first-child h1{display:none}
 #overlay .title{border-bottom:1px solid rgba(0,0,0,0.1);color:#1e0329;font:400 30px/84px 'Zuboni Stencil',arial,sans-serif;padding:0 12px;}
 @media only screen and (min-width: 1024px){#overlay .title{padding:0 25px}
 }#overlay .title .close{background:url("../img/close.png") no-repeat 50% 50%;height:39px;position:absolute;right:17px;top:23px;width:39px}
-#overlay .content{bottom:12px;left:12px;overflow:auto;overflow-x:hidden;position:absolute;right:12px;top:97px;}
+#overlay .content{bottom:12px;left:12px;overflow:auto;overflow-x:hidden;position:absolute;right:12px;top:97px !important;}
 @media only screen and (min-width: 1024px){#overlay .content{bottom:25px;left:25px;right:25px;top:110px}
 }#overlay .content h2{font:700 14px/1.2 'Oswald',arial,sans-serif;margin:1em 0 .5em}
 #overlay .content p{margin:.75em 0}

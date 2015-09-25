@@ -1,5 +1,9 @@
 <?php
 
+define('DB_HOST_APARTMENTS', 'localhost');
+define('DB_USER_APARTMENTS', 'maverick');
+define('DB_PASSWORD_APARTMENTS', 'maverick');
+define('DB_NAME_APARTMENTS', 'maverickhos_3637');
 define('DB_HOST_HOSTEL', 'localhost');
 define('DB_USER_HOSTEL', 'maverick');
 define('DB_PASSWORD_HOSTEL', 'maverick');

@@ -25,27 +25,21 @@ if(isset($_REQUEST['apartment'])) {
 }
 
 
-$oneAwardHtml = '';
-$oneAwardJs = '';
-$sql = "SELECT a.*, d.value AS description FROM awards a INNER JOIN lang_text d ON (d.table_name='awards' AND d.column_name='description' AND d.row_id=a.id and d.lang='$lang')";
-$result = mysql_query($sql, $link);
-if(mysql_num_rows($result) > 0) {
-	$idx = rand(0, mysql_num_rows($result)-1);
-	$row = null;
-	for($i = 0; $i <= $idx; $i++) {
-		$row = mysql_fetch_assoc($result);
-	}
-	if(strlen($row['html']) > 0) {
-		$oneAwardHtml = $row['html'];
-		$oneAwardJs = $row['javascript'];
-	} else {
-		$oneAwardHtml = "<img src=\"" . constant('AWARDS_IMG_URL_' . strtoupper($location)) . $row['img'] . "\">" . $row['description'];
-	}
-}
+$afterBody = <<<EOT
+    <div id='gallery'>
+        <h1 class='gallery-title'>
+        </h1>
+          <span class='galleryClose' onClick="$('#gallery').fadeOut(); $('iframe.gallery').attr('src','');">X</span>
+        <center>
+        <iframe class='gallery'  frameborder='0' src=''></iframe>
+        </center>
+    </div>
 
+EOT;
 
+set_show_tripadvisor();
 
-html_start(getLocationName($location), $oneAwardJs, $onloadScript);
+html_start(getLocationName($location), '', $onloadScript, $afterBody);
 
 $checkin = CHECKIN;
 $checkinDate = CHECKIN_DATE;
@@ -111,16 +105,12 @@ $email = EMAIL;
 $fax = FAX;
 
 $more = MORE;
-$awards = AWARDS;
-$viewAwards = VIEW_AWARDS;
 $photos = PHOTOS;
 
 // constants are defined in config.php
 $contactPhone = constant('CONTACT_PHONE_' . strtoupper($location));
 $contactEmail = constant('CONTACT_EMAIL_' . strtoupper($location));
 $contactFax = constant('CONTACT_FAX_' . strtoupper($location));
-
-$slides = getCarousel($location, $lang, showApartments());
 
 $roomTypesData = loadRoomTypes($link, $lang);
 
@@ -144,6 +134,7 @@ foreach($specialOffers as $spId => $so) {
 	$title = $so['title'];
 	$descr = $so['text'];
 	$offValue = sprintf(PERCENT_OFF, $so['discount_pct']);
+	$dscountPct = $so['discount_pct'];
 	$roomName = $so['room_name'];
 	if(is_null($roomName)) {
 		$roomName = getRoomTypeNames($so['room_type_ids'], $roomTypesData);
@@ -155,12 +146,23 @@ foreach($specialOffers as $spId => $so) {
 	$endDate = strftime($dateFormat, strtotime($so['end_date']));
 	$offerForRoomBetweenDates = sprintf(FOR_ROOM_BETWEEN_DATES, $roomName, $startDate, $endDate);
 	$specialOfferSection .= <<<EOT
-<li>
-              <h2>$offValue</h2>
-              <h3>$title</h3>
-			  <p>$offerForRoomBetweenDates</p><br>
-			  <p>$descr</p>
-            </li>
+            <div class='offer-box'>
+                <div class='offer-box-cont'>
+                    <div class="offerdesc">$title</div>
+                    <table align='center'>
+                        <tr>
+                            <td class='offer-percent'>$dscountPct</td>
+                            <td class='offer-percent2'><span style='font-size: 30px;'>%</span></td>
+                        </tr>
+                    </table>
+                   <div class='offer-box-triangle'></div>
+                </div>
+				<div class='offer-box-desc'>
+    			  $offerForRoomBetweenDates<br>
+	    		  $descr
+				</div>
+            </div>
+
 EOT;
 
 }
@@ -171,9 +173,8 @@ if(strlen($specialOfferSection) > 0) {
 	$specialOfferSection = <<<EOT
         <section id="special-offers">
           <h1>$specialOffersTitle</h1>
-          <ul>
 $specialOfferSection
-          </ul>
+		  <div class='clearfix'></div>
           <p>$specialOfferExplain</p>
         </section>
 
@@ -182,20 +183,73 @@ EOT;
 
 $availableRoomsUrl = $location . '_available_rooms.php';
 
+$checkOutOurRooms = CHECKOUT_OUR_ROOMS;
+$watchTheIntroVideo = WATCH_INTRO_VIDEO;
+
+$awards = AWARDS;
+$sql = "SELECT * FROM awards";
+$result = mysql_query($sql, $link);
+$awardsHtml = '';
+while($row = mysql_fetch_assoc($result)) {
+	$awardsHtml .= '                        <a href="' . $row['url'] . '" target="_blank"><img class="footerAward" src="' . constant('AWARDS_IMG_URL_' . strtoupper($location)) . $row['img'] . '" alt="' . $row['name'] . '"></a>' . "\n";	
+}
+
+
 
 echo <<<EOT
 
+<style>	@media screen and (max-width: 768px) { .hidden-xs { display: none }	}</style>
+<iframe style='border: 0px; margin: 0px; width: 100%;' id='newcarousel' src='carousel.php?page=$location' frameborder='0' class='hidden-xs'></iframe>
 
-      <section id="carousel" class="small">
-        <ul class="slides">
-$slides
-        </ul>
+<section id="checkin2" class="show1280">
+    <form action="$availableRoomsUrl" method="GET">
+       
+            <table style='width: 100%'>
+            <tr>
+                <td><h2>$checkinDate</h2>
+                    <input type="date" class='cifrom' id="from2" name="from" value="$fromDate">
+                </td>
+                <td>
+                    <h2>$checkoutDate</h2>
+                    <input type="date" class='cito' id="to2" name="to" value="$toDate">
+                </td>
+ 
+                <td>
+                    <h2>&nbsp;</h2>
+                    <button type="submit">$checkAvailability</button>
+                </td>
+            </tr>
+            </table>
+    </form>
+  
+</section>  
+
+<section id="checkin3">
+    
+    <form action="$availableRoomsUrl" method="GET">
+       <div class='centered'>
+        <div class="field date from left">
+          <h2>$checkinDate</h2>
+          <input type="date" class='cifrom' id="from2" name="from" value="$fromDate">
+        </div>
+
+       
+        <div class="field date to left">
+          <h2>$checkoutDate</h2>
+          <input type="date" class='cito' id="to2" name="to" value="$toDate">
+        </div>
+
+        <div class="field left submit">
+            <h2>&nbsp;</h2>
+          <button type="submit">$checkAvailability</button>
+        </div>
         
-        <nav class="navigation">
-          <span class="prev"></span>
-          <span class="next"></span>
-        </nav>
-      </section>
+        <div class='clearfix'></div>
+       </div> 
+            
+    </form>
+   
+</section>  
 
 
 
@@ -226,44 +280,44 @@ $slides
 
         </section>
 
+<div style="max-width:1000px;">
+
         <section id="about">
           <h1>$aboutLocation</h1>
           
 		  <p>
-		    <strong>$aboutLocationDescr</strong>
+			<strong>$aboutLocationDescr</strong>
             <span class="overlay-related">
               <span class="extra">
                 <br><br>
               </span>
               <a class="open-overlay" href="" data-overlay-title="$aboutLocation" data-overlay-content-selector="#overlay-content-1">$more</a>
-              <span id="overlay-content-1" class="overlay-content">
-			    $aboutLocationDescrExtra
-              </span>
             </span>
-
           </p>
+          
+        <section id="awards">
 
-EOT;
+              <h1>$awards</h1><br>
+$awardsHtml
+              <div class='clearfix'></div>
 
-if(strlen($oneAwardHtml) > 0) {
-	echo <<<EOT
-		  <h2>$awards</h2>
-          <p class="more">
-            <a class="open-overlay" href="" data-overlay-title="$awards" data-overlay-content-url="awards.php">$viewAwards</a>
-          </p>
-          <p>
-            $oneAwardHtml
-          </p>
+        </section>
+        
 
-EOT;
-}
 
-echo <<<EOT
+
+          <div id='moodVideoControl'>
+            <div class='whiteRight'><i class='fa fa-fw  fa-bed' style='margin-right: 10px; font-size: 30px;'></i><a href='#rooms'>$checkOutOurRooms</a></div>
+            <div onClick='handleMoodVideo()' style='cursor: pointer'><i class='fa fa-fw fa-youtube-play vicon' style='margin-right: 10px;  font-size: 30px;'></i><span class='vtext1'>$watchTheIntroVideo</span><span class='vtext2'>close the intro video </span></div>
+          </div>
+          <div id='moodVideo' class='video-container'>
+            <iframe src='https://www.youtube.com/embed/R-emTwEMGnA?showinfo=0'></iframe>
+          </div>
 
         </section>
         
         <section id="location" class="clearfix">
-          <h1><a href="#rooms">$rooms</a></h1>
+          <!-- h1><a href="#rooms">$rooms</a></h1 -->
           
           <p class="route">
               <a class="open-overlay" href="" data-overlay-title="$directionsToLocation" data-overlay-content-url="directions.php">$directions</a>
@@ -274,6 +328,16 @@ echo <<<EOT
             <div class="map" data-poi-url="poi-$location-$lang.json"></div>
 		  </div>
           
+
+		  <p class="hidden-xs">
+            <br>
+            <span id="overlay-content-1" class="overlay-content">
+              $aboutLocationDescrExtra
+            </span>
+          </p>
+
+
+<!--
           <div class="address">
             <p class="condensed">
               <strong>$addressTitle</strong>
@@ -292,6 +356,7 @@ echo <<<EOT
               $contactFax
 			</p>
 		  </div>
+-->
 
         </section>
 
@@ -300,11 +365,9 @@ $specialOfferSection
         <section class="rooms">
           <h1><a name="rooms">$rooms</a></h1>
           
-          <ul>
-
 EOT;
 
-$facilities = FACILITIES;
+$details = DETAILS;
 $close = CLOSE;
 $gallery = GALLERY;
 
@@ -348,40 +411,37 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 
 	$extrasHtml = getExtrasHtml($location, $roomType['type']);
 	echo <<<EOT
-			<li>
-			  <div class="card clearfix">
-                <h2>
-                  <a href="">$name</a>
-                </h2>            
-                <a class="open-overlay" href="" data-overlay-title="$gallery" data-overlay-gallery-url="gallery.php?room_type_id=$roomTypeId">
-                  <img src="$roomImg" width="587" height="387">
-                </a>
-           
-                <div class="data">
-                  <p class="type condensed">
-                    <a class="open-overlay" href="" data-overlay-title="$gallery" data-overlay-gallery-url="gallery.php?room_type_id=$roomTypeId">$photos</a>
-					<strong>$shortDescr</strong>
-					$locationName
-                  </p>
-                  <p class="price condensed">$priceStartingFrom</p>
-                </div>
+            <div class='roomCard'>
               
-                <p class="details">
-				  <a class="open" href="">$facilities</a>
-				  <a class="close" href="">$close</a>
-                </p>
+              <div class='left roomPic'><img src='$roomImg' alt='pic' class='imgResp open-gallery' data-gallery-title="$gallery" data-gallery-url="gallery.php?room_type_id=$roomTypeId"></div>
+              <div class='roomHead left'>
+                  <h2><a class='open-gallery' data-gallery-title="$gallery" data-gallery-url="gallery.php?room_type_id=$roomTypeId">$name</a></h2>
+                  <strong>$shortDescr</strong><br>
+                  $locationName
               </div>
+              
+              <div class='right roomButtonCont'>
+                  <button class='roomButton'>
+                      <span class='roomDetOpen'>$details</span>
+                      <span class='roomDetClose'>$close</span>
+                  </button>
+              </div>
+              
+              <div class='clearfix'></div>
 
-              <div class="extra clearfix">
-				<p class="details">
-                  $descr
-                </p>
-                
-                <ul class="extras">
+              <div class='roomDetails'> 
+                    <img src='/img/expand.png' title='' alt='' class='right open-gallery' style='margin:10px;' data-gallery-title="$gallery" data-gallery-url="gallery.php?room_type_id=$roomTypeId" />
+                    <div class='clearfix'></div>
+                    <iframe class='roomSlider' src='gallery.php?room_type_id=$roomTypeId' frameborder='0'></iframe>
+                    <div class='roomDetailsText'>$descr</div>
+                    <div class='roomExtras'>
+                      <ul class="extras">
 $extrasHtml
-				</ul>
-              </div>
-            </li>
+                      </ul>
+                    <div class='clearfix'></div>
+                </div>
+            </div>
+        </div>
 
 EOT;
 }
@@ -427,12 +487,17 @@ $payingServices
             <a href="http://www.momondo.com" target="_blank">www.momondo.com</a>
             <p>If you're looking for flights to Budapest, try Momondo's free flight search engine</p>
           </div>
-        </section>
+		</section>
+
+
+
+</div>
+
       </div>
 
 EOT;
 
-html_end();
+html_end($link);
 mysql_close($link);
 
 

@@ -2,7 +2,7 @@
 
 require('includes.php');
 require('includes/common_booking.php');
-require('../recepcio/room_booking.php');
+require(RECEPCIO_BASE_DIR . 'room_booking.php');
 
 $lang = getCurrentLanguage();
 $currency = getCurrency();
@@ -106,6 +106,11 @@ if($error) {
 	header('Location: ' . $_SERVER['HTTP_REFERER']);
 	return;
 }
+
+
+$location = getLocation();
+$link = db_connect($location);
+
 
 $groupBooking = GROUP_BOOKING;
 $dontForgetToLikeUs = DONT_FORGET_TO_LIKE_US;
@@ -257,8 +262,8 @@ if($destination == 'both') {
 	$toEmail = constant('CONTACT_EMAIL_' . strtoupper($destination));
 	$toName = 'Reservation - ' . getLocationName();
 }
-sendMail($email, $firstname . ' ' . $lastname, $toEmail, $toName, 'Group booking request', $message, $inlineAttachments = array(), $attachments = array());
-sendMail($toEmail, $toName, $email, $firstname . ' ' . $lastname, 'Group booking request', $message, $inlineAttachments = array(), $attachments = array());
+sendMail($email, $firstname . ' ' . $lastname, $toEmail, $toName, 'Group booking request', $message, array(), array());
+sendMail($toEmail, $toName, $email, $firstname . ' ' . $lastname, 'Group booking request', $message, array(), array());
 
 html_start(GROUP_BOOKING);
 
@@ -279,7 +284,9 @@ echo <<<EOT
 
 EOT;
 
-html_end();
+html_end($link);
+mysql_close($link);
+
 
 ?>
 

@@ -18,7 +18,7 @@ function getCurrentLanguage() {
 function guessLanguage() {
 	if(isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
 		$reqLang = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
-		$tokens = split(",", $reqLang);
+		$tokens = explode(",", $reqLang);
 		foreach($tokens as $token) {
 			$token = substr($token, 0, 2);
 			if($token == "en") {

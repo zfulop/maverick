@@ -4,241 +4,6 @@ require('includes.php');
 require('includes/common_booking.php');
 require(RECEPCIO_BASE_DIR . 'room_booking.php');
 
-$countryCodes = array(
-	'Afghanistan' => '93',
-	'Albania' => '355',
-	'Algeria' => '213',
-	'American Samoa' => '684',
-	'Andorra' => '376',
-	'Angola' => '244',
-	'Anguilla' => '809',
-	'Antigua' => '268',
-	'Argentina' => '54',
-	'Armenia' => '374',
-	'Aruba' => '297',
-	'Ascension Island' => '247',
-	'Australia' => '61',
-	'Australian External Territories' => '672',
-	'Austria' => '43',
-	'Azerbaijan' => '994',
-	'Bahamas' => '242',
-	'Barbados' => '246',
-	'Bahrain' => '973',
-	'Bangladesh' => '880',
-	'Belarus' => '375',
-	'Belgium' => '32',
-	'Belize' => '501',
-	'Benin' => '229',
-	'Bermuda' => '809',
-	'Bhutan' => '975',
-	'British Virgin Islands' => '284',
-	'Bolivia' => '591',
-	'Bosnia and Hercegovina' => '387',
-	'Botswana' => '267',
-	'Brazil' => '55',
-	'British V.I.' => '284',
-	'Brunei Darussalm' => '673',
-	'Bulgaria' => '359',
-	'Burkina Faso' => '226',
-	'Burundi' => '257',
-	'Cambodia' => '855',
-	'Cameroon' => '237',
-	'Canada' => '1',
-	'CapeVerde Islands' => '238',
-	'Caribbean Nations' => '1',
-	'Cayman Islands' => '345',
-	'Cape Verdi' => '238',
-	'Central African Republic' => '236',
-	'Chad' => '235',
-	'Chile' => '56',
-	'China' => '86',
-	'China-Taiwan' => '886',
-	'Colombia' => '57',
-	'Comoros and Mayotte' => '269',
-	'Congo' => '242',
-	'Cook Islands' => '682',
-	'Costa Rica' => '506',
-	'Croatia' => '385',
-	'Cuba' => '53',
-	'Cyprus' => '357',
-	'Czech Republic' => '420',
-	'Denmark' => '45',
-	'Diego Garcia' => '246',
-	'Dominca' => '767',
-	'Dominican Republic' => '809',
-	'Djibouti' => '253',
-	'Ecuador' => '593',
-	'Egypt' => '20',
-	'El Salvador' => '503',
-	'Equatorial Guinea' => '240',
-	'Eritrea' => '291',
-	'Estonia' => '372',
-	'Ethiopia' => '251',
-	'Falkland Islands' => '500',
-	'Faroe (Faeroe) Islands (Denmark)' => '298',
-	'Fiji' => '679',
-	'Finland' => '358',
-	'France' => '33',
-	'French Antilles' => '596',
-	'French Guiana' => '594',
-	'Gabon' => '241',
-	'Gambia' => '220',
-	'Georgia' => '995',
-	'Germany' => '49',
-	'Ghana' => '233',
-	'Gibraltar' => '350',
-	'Greece' => '30',
-	'Greenland' => '299',
-	'Grenada/Carricou' => '473',
-	'Guam' => '671',
-	'Guatemala' => '502',
-	'Guinea' => '224',
-	'Guinea-Bissau' => '245',
-	'Guyana' => '592',
-	'Haiti' => '509',
-	'Honduras' => '504',
-	'Hong Kong' => '852',
-	'Hungary' => '36',
-	'Iceland' => '354',
-	'India' => '91',
-	'Indonesia' => '62',
-	'Iran' => '98',
-	'Iraq' => '964',
-	'Ireland' => '353',
-	'Israel' => '972',
-	'Italy' => '39',
-	'Ivory Coast' => '225',
-	'Jamaica' => '876',
-	'Japan' => '81',
-	'Jordan' => '962',
-	'Kazakhstan' => '7',
-	'Kenya' => '254',
-	'Khmer Republic (Cambodia/Kampuchea)' => '855',
-	'Kiribati Republic (Gilbert Islands)' => '686',
-	'Korea (South)' => '82',
-	'Korea (North)' => '850',
-	'Kuwait' => '965',
-	'Kyrgyz Republic' => '996',
-	'Latvia' => '371',
-	'Laos' => '856',
-	'Lebanon' => '961',
-	'Lesotho' => '266',
-	'Liberia' => '231',
-	'Lithuania' => '370',
-	'Libya' => '218',
-	'Liechtenstein' => '423',
-	'Luxembourg' => '352',
-	'Macao' => '853',
-	'Macedonia' => '389',
-	'Madagascar' => '261',
-	'Malawi' => '265',
-	'Malaysia' => '60',
-	'Maldives' => '960',
-	'Mali' => '223',
-	'Malta' => '356',
-	'Marshall Islands' => '692',
-	'Martinique (French Antilles)' => '596',
-	'Mauritania' => '222',
-	'Mauritius' => '230',
-	'Mayolte' => '269',
-	'Mexico' => '52',
-	'Micronesia (F.S. of Polynesia)' => '691',
-	'Moldova' => '373',
-	'Monaco' => '33',
-	'Mongolia' => '976',
-	'Montserrat' => '473',
-	'Morocco' => '212',
-	'Mozambique' => '258',
-	'Myanmar (former Burma)' => '95',
-	'Namibia (former South-West Africa)' => '264',
-	'Nauru' => '674',
-	'Nepal' => '977',
-	'Netherlands' => '31',
-	'Netherlands Antilles' => '599',
-	'Nevis' => '869',
-	'New Caledonia' => '687',
-	'New Zealand' => '64',
-	'Nicaragua' => '505',
-	'Niger' => '227',
-	'Nigeria' => '234',
-	'Niue' => '683',
-	'North Korea' => '850',
-	'North Mariana Islands (Saipan)' => '1 670',
-	'Norway' => '47',
-	'Oman' => '968',
-	'Pakistan' => '92',
-	'Palau' => '680',
-	'Panama' => '507',
-	'Papua New Guinea' => '675',
-	'Paraguay' => '595',
-	'Peru' => '51',
-	'Philippines' => '63',
-	'Poland' => '48',
-	'Portugal (includes Azores)' => '351',
-	'Puerto Rico' => '1 787',
-	'Qatar' => '974',
-	'Reunion (France)' => '262',
-	'Romania' => '40',
-	'Russia' => '7',
-	'Rwanda (Rwandese Republic)' => '250',
-	'Saipan' => '670',
-	'San Marino' => '378',
-	'Sao Tome and Principe' => '239',
-	'Saudi Arabia' => '966',
-	'Senegal' => '221',
-	'Serbia and Montenegro' => '381',
-	'Seychelles' => '248',
-	'Sierra Leone' => '232',
-	'Singapore' => '65',
-	'Slovakia' => '421',
-	'Slovenia' => '386',
-	'Solomon Islands' => '677',
-	'Somalia' => '252',
-	'South Africa' => '27',
-	'Spain' => '34',
-	'Sri Lanka' => '94',
-	'St. Helena' => '290',
-	'St. Kitts/Nevis' => '869',
-	'St. Pierre &(et) Miquelon (France)' => '508',
-	'Sudan' => '249',
-	'Suriname' => '597',
-	'Swaziland' => '268',
-	'Sweden' => '46',
-	'Switzerland' => '41',
-	'Syrian Arab Republic (Syria)' => '963',
-	'Tahiti (French Polynesia)' => '689',
-	'Taiwan' => '886',
-	'Tajikistan' => '7',
-	'Tanzania (includes Zanzibar)' => '255',
-	'Thailand' => '66',
-	'Togo (Togolese Republic)' => '228',
-	'Tokelau' => '690',
-	'Tonga' => '676',
-	'Trinidad and Tobago' => '1 868',
-	'Tunisia' => '216',
-	'Turkey' => '90',
-	'Turkmenistan' => '993',
-	'Tuvalu (Ellice Islands)' => '688',
-	'Uganda' => '256',
-	'Ukraine' => '380',
-	'United Arab Emirates' => '971',
-	'United Kingdom' => '44',
-	'Uruguay' => '598',
-	'USA' => '1',
-	'Uzbekistan' => '7',
-	'Vanuatu (New Hebrides)' => '678',
-	'Vatican City' => '39',
-	'Venezuela' => '58',
-	'Viet Nam' => '84',
-	'Virgin Islands' => '1 340',
-	'Wallis and Futuna' => '681',
-	'Western Samoa' => '685',
-	'Yemen' => '381',
-	'Yemen Arab Republic (North Yemen)' => '967',
-	'Zaire' => '243',
-	'Zambia' => '260',
-	'Zimbabwe' => '263',	
-);
 
 $roomTypes = array(PRIVATE_ROOM, DORM, BOTH);
 
@@ -265,6 +30,7 @@ $address = ADDRESS_TITLE;
 $city = CITY;
 $zipcode= ZIP_CODE;
 $country = COUNTRY;
+$countryCode= COUNTRY;
 $pleaseSelect = PLEASE_SELECT;
 $roomTypePreference = ROOM_TYPE_PREFERENCE;
 $provideContactDetails = PROVIDE_CONTACT_DETAILS;
@@ -445,13 +211,13 @@ echo <<<EOT
                 <div class="group clearfix">
                   <span class="group-label">$yourName:</span>
                   
-                  <div class="field $firstnameErrorClass clearfix">
+                  <div class="field $firstnameErrorClass">
                     <label for="data_firstname">$firstname:</label>
                     <input type="text" id="data_firstname" name="data_firstname" placeholder="$firstname" value="$firstnameValue">
 					$firstnameError
                   </div>
                   
-                  <div class="field $lastnameErrorClass clearfix">
+                  <div class="field $lastnameErrorClass">
                     <label for="data_last_name">$lastname:</label>
                     <input type="text" id="data_last_name" name="data_last_name" placeholder="$lastname" value="$lastnameValue">
 					$lastnameError
@@ -470,13 +236,13 @@ echo <<<EOT
                   $confirmEmailError
                 </div>
                 
-                <div class="group clearfix">
+                <div class="group">
                   <span class="group-label">$phone:</span>
                   
-                  <div class="field $countryCodeErrorClass clearfix">
-                    <label for="data_countrycode">Country code:</label>
+                  <div class="field $countryCodeErrorClass ">
+                    <label for="data_countrycode">$countryCode:</label>
                     <div class="fake-select">
-                      <span class="value"></span>
+                      <span class="value">$pleaseSelect</span>
                       <span class="open-select icon-down"></span>
                       <select id="data_countrycode" name="data_countrycode">
 $countryCodeOptions
@@ -485,7 +251,7 @@ $countryCodeOptions
                     $countryCodeError
                   </div>
                   
-                  <div class="field $dataPhoneErrorClass clearfix">
+                  <div class="field $dataPhoneErrorClass">
                     <label for="data_phone"></label>
                     <input type="text" id="data_phone" name="data_phone" value="$dataPhoneValue">
                     $dataPhoneError
@@ -495,7 +261,7 @@ $countryCodeOptions
                 <div class="field $destinationErrorClass clearfix">
                   <label for="data_destination">$destination:</label>
                   <div class="fake-select">
-                    <span class="value"></span>
+                    <span class="value">$pleaseSelect</span>
                     <span class="open-select icon-down"></span>
 					<select id="data_destination" name="data_destination">
 $destinationOptions
@@ -504,18 +270,16 @@ $destinationOptions
 				  $destinationError
                 </div>
 
-                <div class="group without-label clearfix">
-                  <div class="field date from $dateOfArrivalErrorClass clearfix">
-                    <label for="data_arrival">$dateOfArrival:</label>
-					<input type="date" id="data_arrival" name="data_arrival" value="$dateOfArrivalValue">
-                    $dateOfArrivalError
-                  </div>
+                <div class="field short date from $dateOfArrivalErrorClass clearfix">
+                  <label for="data_arrival">$dateOfArrival:</label>
+                  <input type="date" id="data_arrival" name="data_arrival" value="$dateOfArrivalValue">
+                  $dateOfArrivalError
+                </div>
 
-                  <div class="field date to $dateOfDepartureErrorClass clearfix">
-                    <label for="data_departure">$dateOfDeparture:</label>
-					<input type="date" id="data_departure" name="data_departure" value="$dateOfDepartureValue">
-                    $dateOfDepartureError
-                  </div>
+                <div class="field short date to $dateOfDepartureErrorClass clearfix">
+                  <label for="data_departure">$dateOfDeparture:</label>
+                  <input type="date" id="data_departure" name="data_departure" value="$dateOfDepartureValue">
+                  $dateOfDepartureError
                 </div>
 
                 <div class="field $groupTypeErrorClass clearfix">
@@ -539,7 +303,7 @@ $groupTypeOptions
                 <div class="field $nationalityErrorClass clearfix">
                   <label for="data_nationality">$nationality:</label>
                   <div class="fake-select">
-                    <span class="value"></span>
+                    <span class="value">$pleaseSelect</span>
                     <span class="open-select icon-down"></span>
                     <select id="data_nationality" name="data_nationality">
 $nationalityOptions
@@ -569,16 +333,15 @@ $roomTypeOptions
                 <button type="submit">$sendInquiry</button>
 
               </div>
-            </section>
-
-          </fieldset>
-        </form>
+            </fieldset>
+          </form>
+        </section>
       </div>
 
 EOT;
 
 
-html_end();
+html_end($link);
 mysql_close($link);
 
 
