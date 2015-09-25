@@ -191,7 +191,7 @@ echo <<<EOT
 <br>
 
 
-<form action="save_room_prices.php" method="POST" style="display: none;" id="price_form">
+<form action="save_room_prices.php" target="_blank" method="POST" style="display: none;" id="price_form">
 <table style="border: 1px solid rgb(0,0,0);">
 <tr><th colspan="2">Set price of a room for a date interval.</strong></th></tr>
 <tr><td colspan="2">To delete special price, set the date and leave the price field empty.</td></tr>
@@ -218,6 +218,7 @@ $endMonthOptions
 	<div style="clear:left;">Sun <input style="float: left; display: block;" type="checkbox" name="days[]" value="7" $sunChecked></div>
 </td></tr>
 <tr><td>Bed or Room Price: </td><td><input name="price" size="4"></td></tr>
+<tr><td>Automatic sync: </td><td><input name="sync" type="checkbox" value="true" checked="true" onclick="if(this.checked) { document.getElementById('price_form').target='_blank'; } else { document.getElementById('price_form').target='_self'; }"></td></tr>
 <tr><td colspan="2">
 	<input type="submit" value="Set price(s)">
 	<input type="button" onclick="document.getElementById('price_form').style.display='none'; document.getElementById('price_btn').style.display='block'; return false;" value="Cancel">
@@ -269,7 +270,7 @@ for($i = 0; $i <= 100; $i += 10) {
 }
 echo "</tr></table>\n";
 
-echo "<form action=\"save_room_prices_from_table.php\" method=\"post\" style=\"padding: 0; margin: 0;\" >\n";
+echo "<form action=\"save_room_prices_from_table.php\" target=\"_blank\" method=\"post\" style=\"padding: 0; margin: 0;\" id=\"price_table_form\">\n";
 
 echo "<table class=\"stat\">\n\t<tr>\n\t\t<td>&nbsp;</td><th>Available Beds</th>\n";
 
@@ -343,8 +344,12 @@ EOT;
 	}
 	echo "\t</tr>\n";
 }
-echo "</table><br>\n";
-echo "<input type=\"submit\" value=\"Save prices\"></form><br><br><br>\n";
+echo <<<EOT
+</table><br>
+Automatic sync: <input name="sync" type="checkbox" value="true" checked="true" onclick="if(this.checked) { document.getElementById('price_table_form').target='_blank'; } else { document.getElementById('price_table_form').target='_self'; }"><br>
+<input type="submit" value="Save prices"></form><br><br><br>
+
+EOT;
 
 
 html_end();

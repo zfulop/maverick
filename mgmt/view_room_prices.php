@@ -49,7 +49,7 @@ echo "<strong>$year</strong> \n";
 echo "<a href=\"view_room_prices.php?room_type_id=$roomTypeId&year=" . ($year + 1) . "\">View prices for next year</a><br>\n";
 
 echo "<p>\n";
-echo "<form action=\"save_room_prices.php\" method=\"POST\">\n";
+echo "<form action=\"save_room_prices.php\" target=\"_blank\" method=\"POST\" id=\"price_form\">\n";
 echo "<input type=\"hidden\" name=\"room_type_id\" value=\"$roomTypeId\">\n";
 echo "<input type=\"hidden\" name=\"year\" value=\"$year\">\n";
 echo "<input type=\"hidden\" name=\"start_year\" value=\"$year\">\n";
@@ -104,6 +104,7 @@ for($i = 1; $i <= 12; $i++) {
 
 echo <<<EOT
 </table>
+Automatic sync: <input name="sync" type="checkbox" value="true" checked="true" onclick="if(this.checked) { document.getElementById('price_form').target='_blank'; } else { document.getElementById('price_form').target='_self'; }"><br>
 <input type="submit" value="Save Prices">
 </form>
 
