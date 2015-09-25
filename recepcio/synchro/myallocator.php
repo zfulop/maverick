@@ -174,7 +174,7 @@ class MyAllocatorBooker extends Booker {
 		echo "Location is: $location <br>\n";
 		//echo "<!-- " . print_r($rooms, true) . "-->\n";
 		$endTS = strtotime("$endYear-$endMonth-$endDay");
-		$allocations = array();
+		$allocations = '';
 		$availabilities = array();
 		foreach($this->roomMap[$location] as $oneRoomMap) {
 			$availabilities[$oneRoomMap['roomName']] = array();
@@ -209,15 +209,19 @@ class MyAllocatorBooker extends Booker {
 				$units = $roomData['type'] == 'DORM' ? $numOfAvailBeds : $numOfAvailRooms;
 				$availabilities[$oneRoomMap['roomName']][$currYear . '-' . $currMonth . '-' . $currDay] = $units;
 				$remoteRoomId = $oneRoomMap['remoteRoomId'];
-				$allocations[] = array(
-					'RoomId' => $remoteRoomId, 
-					'StartDate' => "$currYear-$currMonth-$currDay", 
-					'EndDate' => "$currYear-$currMonth-$currDay",
-					'Units' => $units,
-					'MinStay' => 1,
-					'MaxStay' => 30,
-					'Price' => $price,
-					'PriceWeekend' => $price);
+				$allocations .= <<<EOT
+		<Allocation>
+			<RoomTypeId>$remoteRoomId</RoomTypeId>
+			<StartDate>$currYear-$currMonth-$currDay</StartDate>
+			<EndDate>$currYear-$currMonth-$currDay</EndDate>
+			<Units>$units</Units>
+			<Prices>
+				<Price>$price.00</Price>
+			</Prices>
+		</Allocation>
+
+EOT;
+
 				$currDate = date('Y-m-d', strtotime("$currDate +1 day"));
 				$idx += 1;
 			} while($currTS < $endTS);
@@ -227,11 +231,19 @@ class MyAllocatorBooker extends Booker {
 
 		$pid = constant('PROPERTY_ID_' . $location);
 		$auth = $this->getAuth($pid);
-		$request = array(
-			'Auth/UserId' => CUSTOMER_ID,
-			'Auth/UserPassword' => CUSTOMER_PASSWORD:
-			'Channels' => 'all',
-			'Allocations' => $allocations);
+		$request = <<<EOT
+<?xml version="1.0" encoding="UTF-8" ?>
+<SetAllocation>
+$auth
+	<Channels>
+		<Channel>all</Channel>
+	</Channels>
+	<Allocations>
+$allocations
+	</Allocations>
+</SetAllocation>
+
+EOT;
 
 		$resp = $this->processRequest($request);
 		echo "\n<!-- REQUEST: " . $request . "\n-->\n\n";
@@ -320,17 +332,21 @@ EOT;
 		}
 		return $list[0]->nodeValue;
 	}
+
 	function processRequest($request) {
-		//echo "Request: " . $request . "\n";
+		// echo "Request: " . $request . "\n";
+		logMessage($request);
 		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_URL, 'http://api.myallocator.com/');
+		curl_setopt($curl, CURLOPT_URL, 'http://api.myallocator.com/pms/v201408/xml/SetAllocation');
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
 		curl_setopt($curl, CURLOPT_TIMEOUT, 60);
 		curl_setopt($curl, CURLOPT_POST, 1);
 		curl_setopt($curl, CURLOPT_POSTFIELDS, 'xmlRequestString=' . urlencode($request));
 		$body = trim(curl_exec($curl));
+		// echo "Response: " . $body . "\n";
 		$matches = array();
+		logMessage($body);
 		preg_match('/<Success>([^<]*)<\/Success>/', $body, $matches);
 		$success = count($matches) > 0 ? $matches[1] : '';
 		if($success == 'true') {
@@ -426,5 +442,17 @@ return;
 
 
 
+function logMessage($message) {
+	$fh = fopen("sync." . date('Ymd') . ".log", "a");
+	if($fh) {
+		fwrite($fh, date('Y-m-d H:i:s') . "\n");
+		fwrite($fh, $message . "\n");
+		fclose($fh);
+	}
+}
+
+
+
 
 ?>
+

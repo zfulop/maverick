@@ -15,8 +15,12 @@ $SOURCES = array(
 	'hb2' => 'hostelbookers',
 	'boo' => 'booking.com',
 	'ago' => 'Agoda',
+	'hrs' => 'HRS',
 	'bnw' => 'BookNow - Tripadvisor',
 	'hi' => 'HiHostels',
+	'hbe' => 'Hotel Beds',
+	'hcu' => 'Hostel Culture',
+	'rep' => 'Travel Public',
 	'exp' => array('Hotel Collect Booking' => 'Expedia - Hotel Collect', 'Expedia Collect Booking' => 'Expedia - Expedia Collect')
 );
 
@@ -310,24 +314,24 @@ function createBooking($bookingData, $link) {
 		$descrId = $row['id'];
 		$sql = "DELETE FROM booking_guest_data WHERE booking_description_id=$descrId";
 		if(!mysql_query($sql, $link)) {
-			set_error("Cannot delete booking guest data when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
+			logMessage("Cannot delete booking guest data when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
 		}
 		$sql = "DELETE FROM booking_room_changes WHERE booking_id in (select id from bookings where description_id=$descrId)";
 		if(!mysql_query($sql, $link)) {
-			set_error("Cannot delete booking room changes when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
+			logMessage("Cannot delete booking room changes when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
 		}
 		$sql = "DELETE FROM bookings WHERE description_id=$descrId";
 		if(!mysql_query($sql, $link)) {
-			set_error("Cannot delete bookings when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
+			logMessage("Cannot delete bookings when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
 		}
 		$sql = "DELETE FROM booking_descriptions WHERE id=$descrId";
 		if(!mysql_query($sql, $link)) {
-			set_error("Cannot delete booking description when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
+			logMessage("Cannot delete booking description when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
 		}
 
 		$sql = "DELETE FROM payments WHERE booking_description_id=$descrId AND comment='*booking deposit*'";
 		if(!mysql_query($sql, $link)) {
-			set_error("Cannot delete booking description when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
+			logMessage("Cannot delete booking description when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
 		}
 
 	}
@@ -375,7 +379,8 @@ function createBooking($bookingData, $link) {
 		$lastNight = $bookingData['Rooms'][0]['EndDate'];
 		$arriveDateTs = strtotime($arriveDate);
 		$lastNightTs = strtotime($lastNight);
-		if($arriveDate < date('Y-m-d')) {
+		$cutoff = strtotime(date('Y-m-d') . " +1 day +3 hours");
+		if(time() < $cutoff) {
 			respond('54', false, "Cannot create booking: arrive date ($arriveDate) is in the past");
 			return false;
 		}
@@ -396,7 +401,33 @@ function createBooking($bookingData, $link) {
 		$descriptionId = mysql_insert_id($link);
 		$bookingDescriptionIds[] = $descriptionId;
 	}
-	
+
+	// Save the parking as a service change
+	$serviceChargeAmt = 0;
+	if(isset($bookingData['ExtraServices'])) {
+		foreach($bookingData['ExtraServices'] as $oneService) {
+			if(substr($oneService['Description'],0,6) == 'Parkol' and isset($oneService['Price'])) {
+				$amount = doubleval($oneService['Price']);
+				if(isset($bookingData['TotalCurrency'])) {
+					$curr = $bookingData['TotalCurrency'];
+				} else {
+					$curr = 'EUR';
+				}
+				$bdid = $bookingDescriptionIds[0];
+				$nowTime = date('Y-m-d H:i:s');
+				set_debug("Saving extra service as service_charge");
+				$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($bdid, $amount, '$curr', '$nowTime', '" . $oneService['Description'] . "', 'Parkolás')";
+				$result = mysql_query($sql, $link);
+				if(!$result) {
+					set_debug("Cannot save service charge: " . mysql_error($link) . " (SQL: $sql)");
+				} else {
+					$serviceChargeAmt += $amount;
+					set_debug("Save successful. SQL: $sql");
+				}
+			}
+		}
+	}
+
 	foreach($bookingData['Rooms'] as $roomData) {
 		$arriveDate = $roomData['StartDate'];
 		$arriveDateTs = strtotime($arriveDate);
@@ -500,28 +531,6 @@ function createBooking($bookingData, $link) {
 		}
 	}
 
-	if(isset($bookingData['ExtraServices'])) {
-		foreach($bookingData['ExtraServices'] as $oneService) {
-			if(substr($oneService['Description'],0,6) == 'Parkol' and isset($oneService['Price'])) {
-				$amount = doubleval($oneService['Price']);
-				if(isset($bookingData['TotalCurrency'])) {
-					$curr = $bookingData['TotalCurrency'];
-				} else {
-					$curr = 'EUR';
-				}
-				$bdid = $bookingDescriptionIds[0];
-				$nowTime = date('Y-m-d H:i:s');
-				set_debug("Saving extra service as service_charge");
-				$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($bdid, $amount, '$curr', '$nowTime', '" . $oneService['Description'] . "', 'Parkolás')";
-				$result = mysql_query($sql, $link);
-				if(!$result) {
-					set_debug("Cannot save service charge: " . mysql_error($link) . " (SQL: $sql)");
-				} else {
-					set_debug("Save successful. SQL: $sql");
-				}
-			}
-		}
-	}
 
 	respond(null, true);
 	$message = '';
