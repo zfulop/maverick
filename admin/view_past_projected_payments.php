@@ -116,7 +116,7 @@ if(!is_null($source) > 0 and count($source) > 0 and !in_array('', $source)) {
 
 $sqlFindBy = "";
 
-$sql = "SELECT p.currency, p.pay_mode, sum(p.amount) as amount, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN payments p ON bd.id=p.booking_description_id WHERE bd.last_night<='$pastEndDate' AND bd.last_night>='$pastStartDate' $whereClause GROUP BY p.currency, p.pay_mode, $dateVal";
+$sql = "SELECT p.currency, p.pay_mode, sum(p.amount) as amount, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN payments p ON bd.id=p.booking_description_id WHERE bd.first_night<='$pastEndDate' AND bd.first_night>='$pastStartDate' $whereClause GROUP BY p.currency, p.pay_mode, $dateVal";
 $result = mysql_query($sql, $link);
 $pastTable = array();
 if(!$result) {
