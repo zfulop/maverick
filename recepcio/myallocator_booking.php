@@ -380,7 +380,7 @@ function createBooking($bookingData, $link) {
 		$arriveDateTs = strtotime($arriveDate);
 		$lastNightTs = strtotime($lastNight);
 		$cutoff = strtotime(date('Y-m-d') . " +1 day +3 hours");
-		if(time() < $cutoff) {
+		if($cutoff < time()) {
 			respond('54', false, "Cannot create booking: arrive date ($arriveDate) is in the past");
 			return false;
 		}
