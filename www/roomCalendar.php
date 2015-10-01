@@ -46,7 +46,7 @@ for($i = 1; $i <= $items; $i++) {
 	$actBed = $availability > 0 ? 'roomCalBedAct' : 'roomCalBedInact';
 
 	$roomCalNumClass = 'roomCalNum';
-	if($availability < 10) {
+	if($availability >= 10) {
 		$roomCalNumClass = 'roomCalNum2';
 	}
     

@@ -56,6 +56,13 @@ function html_start($title = "Maverick Mgmt", $extraHeader = '', $showMenu = tru
 				sm.hide();
 			});
 		}
+
+		function toggleDaySelection(checkbox) {
+			$$('input.dayselect').each(function(chkBx) {
+				chkBx.checked = checkbox.checked;
+			});
+		}
+
 	</script>
 
 	$extraHeader

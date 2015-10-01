@@ -20,13 +20,16 @@ if(date('G') < 5 and !isset($_REQUEST['day_to_show'])) {
 
 $bdids = array();
 $arrivingToday = array();
-$sql = "SELECT * FROM booking_descriptions WHERE first_night='$today' and checked_in=0 AND cancelled=0";
+$sql = "SELECT bd.*, bd2.first_night AS prev_first_night FROM booking_descriptions bd LEFT OUTER JOIN booking_descriptions bd2 ON (bd.email=bd2.email AND bd.first_night>bd2.first_night) WHERE bd.first_night='$today' and bd.checked_in=0 AND bd.cancelled=0";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	trigger_error("Cannot get arriving guests for today: " . mysql_error($link) . " (SQL: $sql)");
 	set_error("Cannot get arriving guests for today");
 } else {
 	while($row = mysql_fetch_assoc($result)) {
+		if(in_array($row['id'], $bdids)) {
+			continue;
+		}
 		$arrivingToday[] = $row;
 		$bdids[] = $row['id'];
 	}
@@ -267,6 +270,9 @@ EOT;
 	foreach($arrivingToday as $bookingDescr) {
 		$descrId = $bookingDescr['id'];
 		$name = $bookingDescr['name_ext'] . ' ' . $bookingDescr['name'];
+		if(!is_null($bookingDescr['prev_first_night'])) {
+			$name = '<b>'. $name . '</b> ' . $bookingDescr['prev_first_night'];
+		}
 		$rooms = '';
 		$aTime = $bookingDescr['arrival_time'];
 		if(isset($bookings[$descrId])) {

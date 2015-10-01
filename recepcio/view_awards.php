@@ -26,11 +26,10 @@ echo <<<EOT
 <input type="hidden" id="id" name="id" value="">
 <table>
 <tr><td><label>Name</label><input name="name" id="name" style="width: 120px;"></td></tr>
-<tr><td><label>Javascript</label><textarea name="javascript" id="javascript" style="width: 320px; height: 120px;"></textarea></td></tr>
-<tr><td><label>HTML</label><textarea name="html" id="html" style="width: 320px; height: 120px;"></textarea></td></tr>
 <tr><td><label>URL</label><input name="url" id="url" style="width: 120px;"></td></tr>
 <tr><td><label>Image</label><input name="img" type="file" style="width: 120px;"></td></tr>
 <tr><td><label>Order</label><input name="order" id="order" style="width: 40px;"></td></tr>
+<tr><td><label>Is Apartment</label><input name="is_apartment" id="is_apartment" type="checkbox"></td></tr>
 
 
 EOT;
@@ -56,7 +55,7 @@ echo <<<EOT
 EOT;
 if($result) {
 	if(mysql_num_rows($result) > 0)
-		echo "	<tr><th>Order</th><th>Name</th><th>Javascript</th><th>Html</th><th>Image</th><th>URL</th><th>Description</th><th></th></tr>\n";
+		echo "	<tr><th>Order</th><th>Name</th><th>Image</th><th>URL</th><th>Description</th><th>Is Apartment</th><th></th></tr>\n";
 	else
 		echo "	<tr><td><i>No record found.</i></td></tr>\n";
 
@@ -80,6 +79,9 @@ if($result) {
 		echo "		document.getElementById('name').value='" . $row['name'] . "';\n";
 		echo "		document.getElementById('url').value='" . $row['url'] . "';\n";
 		echo "		document.getElementById('order').value='" . $row['_order'] . "';\n";
+		if($row['is_apartment'] == 1) {
+			echo "		document.getElementById('is_apartment').checked = true;\n";
+		}
 		foreach($record as $lang => $cols) {
 			echo "		document.getElementById('description_$lang').value='" . str_replace("'", "\\'", $cols['description']) . "';\n";
 		}
@@ -92,8 +94,6 @@ if($result) {
 		echo "</td><td>" . $row['name'] . "</td>\n";
 		$js = strlen($row['javascript']) > 0 ? 'Yes' : '';
 		$html = strlen($row['html']) > 0 ? 'Yes' : '';
-		echo "<td>$js</td>\n";
-		echo "<td>$html</td>\n";
 		echo "		<td>";
 		$fileParam = "";
 		if(!is_null($row['img']) and file_exists(AWARDS_IMG_DIR . $row['img'])) {
@@ -105,7 +105,7 @@ if($result) {
 		foreach($record as $lang => $cols) {
 			echo "			<strong>$lang</strong> " . $cols['description'] . "<br>\n";
 		}
-		echo "		</td>\n" ;
+		echo "		</td><td>" . ($row['is_apartment'] == 1 ? 'YES' : 'NO') . "</td>\n" ;
 		echo "		<td><a href=\"#\" onclick=\"edit" . $row['id'] . "();\">Edit</a> <a href=\"delete_award.php?id=" . $row['id'] . "$fileParam\">Delete</a></td>\n";
 		echo "	</tr>\n";
 	}

@@ -284,7 +284,7 @@ echo <<<EOT
 
 EOT;
 
-html_end($link);
+html_end();
 mysql_close($link);
 
 

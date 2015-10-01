@@ -102,11 +102,11 @@ foreach($SOURCES as $item) {
 
 $dateVal = '';
 if($timeGroup == 'month') {
-  $dateVal = 'LEFT(last_night,7)';
+  $dateVal = 'LEFT(first_night,7)';
 } elseif($timeGroup == 'week') {
-  $dateVal = 'concat(cast(YEAR(STR_TO_DATE(last_night,\'%Y/%m/%d\')) as char(4)),\'/\',cast(WEEK(STR_TO_DATE(last_night,\'%Y/%m/%d\')) as char(2)))';
+  $dateVal = 'concat(cast(YEAR(STR_TO_DATE(first_night,\'%Y/%m/%d\')) as char(4)),\'/\',cast(WEEK(STR_TO_DATE(first_night,\'%Y/%m/%d\')) as char(2)))';
 } else {
-  $dateVal = 'last_night';
+  $dateVal = 'first_night';
 }
 
 $whereClause = '';
@@ -116,7 +116,7 @@ if(!is_null($source) > 0 and count($source) > 0 and !in_array('', $source)) {
 
 $sqlFindBy = "";
 
-$sql = "SELECT p.currency, p.pay_mode, sum(p.amount) as amount, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN payments p ON bd.id=p.booking_description_id WHERE bd.first_night<='$pastEndDate' AND bd.first_night>='$pastStartDate' $whereClause GROUP BY p.currency, p.pay_mode, $dateVal";
+$sql = "SELECT p.currency, p.pay_mode, sum(p.amount) as amount, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN payments p ON bd.id=p.booking_description_id WHERE bd.first_night<='$pastEndDate' AND bd.first_night>='$pastStartDate' AND bd.cancelled<>1 $whereClause GROUP BY p.currency, p.pay_mode, $dateVal";
 $result = mysql_query($sql, $link);
 $pastTable = array();
 if(!$result) {
@@ -132,7 +132,7 @@ while($row = mysql_fetch_assoc($result)) {
   $pastTable[$row['pay_mode']][$row['date_val']][$row['currency']] = $row['amount'];
 }
 
-$sql = "SELECT sum(b.room_payment) as amount, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN bookings b ON bd.id=b.description_id WHERE bd.last_night<='$futureEndDate' AND bd.last_night>='$futureStartDate' $whereClause GROUP BY $dateVal";
+$sql = "SELECT sum(b.room_payment) as amount, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN bookings b ON bd.id=b.description_id WHERE bd.first_night<='$futureEndDate' AND bd.first_night>='$futureStartDate' AND bd.cancelled<>1 $whereClause GROUP BY $dateVal";
 $result = mysql_query($sql, $link);
 $futureTable = array();
 if(!$result) {
@@ -306,7 +306,7 @@ EOT;
 
 $futureStartDate = str_replace('/','-',$futureStartDate);
 $futureEndDate = str_replace('/','-',$futureEndDate);
-$currDate = $pastStartDate;
+$currDate = $futureStartDate;
 $dateCols = array();
 while($currDate <= $futureEndDate) {
 	$dateCol = '';
@@ -329,7 +329,6 @@ echo "</tr>\n";
 
 echo "  <tr>";
 foreach($dateCols as $dateCol) {
-	$dateCol = str_replace('-','/',$dateCol);
 	echo "    <td>\n";
 	if(isset($futureTable[$dateCol])) {
 		echo "      <div class=\"$curr\" style=\"text-align: right;\">" . number_format($futureTable[$dateCol]) . " EUR</div>\n";

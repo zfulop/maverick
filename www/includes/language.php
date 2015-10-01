@@ -6,7 +6,7 @@ function getLanguages() {
 		'deu' => 'Deutsch',
 		'fra' => 'Francais',
 		'ita' => 'Italiano',
-		'esp' => 'Espagnol'/*,
+		'esp' => 'Espanol'/*,
 		'por' => 'Portugal'*/);
 }
 

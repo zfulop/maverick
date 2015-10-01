@@ -1,7 +1,7 @@
 <?php
 
-function db_connect($dbName) {
-	$link = mysql_connect(constant("DB_HOST_" . strtoupper($dbName)), constant("DB_USER_" . strtoupper($dbName)), constant("DB_PASSWORD_" . strtoupper($dbName)));
+function db_connect($dbName, $forceNew = false) {
+	$link = mysql_connect(constant("DB_HOST_" . strtoupper($dbName)), constant("DB_USER_" . strtoupper($dbName)), constant("DB_PASSWORD_" . strtoupper($dbName)), $forceNew);
 	if(!$link) {
 		trigger_error("Cannot connect to DB: " . mysql_error());
 	}

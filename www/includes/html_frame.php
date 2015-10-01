@@ -74,13 +74,14 @@ function html_start($menuTitle, $extraHeader = '', $onloadScript='', $afterBody 
 	}
 
 	if($showTripadvisor) {
-		if(!isset($_SESSION['tripadvisor_excellence'])) {
-			$tripadvisor = $TRIPADVISOR_EXCELLENCE[$location][$lang];
-			$_SESSION['tripadvisor_excellence'] = 1;
-		} else {
-			$tripadvisor = $TRIPADVISOR_REVIEWS[$location][$lang];
-			unset($_SESSION['tripadvisor_excellence']);
-		}
+//		if(!isset($_SESSION['tripadvisor_excellence'])) {
+//			$tripadvisor = $TRIPADVISOR_EXCELLENCE[$location][$lang];
+//			$_SESSION['tripadvisor_excellence'] = 1;
+//		} else {
+//			$tripadvisor = $TRIPADVISOR_REVIEWS[$location][$lang];
+//			unset($_SESSION['tripadvisor_excellence']);
+//		}
+		$tripadvisor = $TRIPADVISOR_REVIEWS[$location][$lang];
 	}
 
 	echo <<<EOT
@@ -202,19 +203,12 @@ EOT;
 
 }
 
-function html_end($link, $extraFooter = '') {
+function html_end($extraFooter = '') {
 	$policy = POLICY;
 	$awards = AWARDS;
 	$findUs = FIND_US_ON_FACEBOOK;
 	$copyright = COPYRIGHT;
-	
-	$sql = "SELECT * FROM awards";
-	$result = mysql_query($sql, $link);
-	$awardsHtml = '';
-	while($row = mysql_fetch_assoc($result)) {
-		$awardsHtml .= '                        <a href="' . $row['url'] . '" target="_blank"><img class="footerAward" src="' . $row['img'] . '" alt="' . $row['name'] . '"></a>' . "\n";	
-	}
-echo <<<EOT
+	echo <<<EOT
 
         
       <footer id="footer">
@@ -234,11 +228,32 @@ echo <<<EOT
         <div class='fcont2'>
               <div class='footerPad'>
                   <div class='footerSplit'>
-                        $awards<br><br>
+                      $awards<br>
 
-$awardsHtml
-
-                        <div class='clearfix'></div>
+EOT;
+	foreach(getLocations() as $location) {
+		$locationName = getLocationName($location);
+		echo <<<EOT
+                      <div class='clearfix'></div>
+                      <div class="footerHead">
+                          <a class="footerLink" href="{$location}">$locationName</a>
+                      </div>
+                      <div class='clearfix'></div>
+EOT;
+		$conn = db_connect($location, true);
+		$isApt = 0;
+		if($location == 'apartments') {
+			$isApt = 1;
+		}
+		$sql = "SELECT * FROM awards WHERE is_apartment=$isApt ORDER BY _order";
+		$result = mysql_query($sql, $conn);
+		while($row = mysql_fetch_assoc($result)) {
+			echo '                      <a href="' . $row['url'] . '" target="_blank"><img class="footerAward" src="' . constant('AWARDS_IMG_URL_' . strtoupper($location)) . $row['img'] . '" alt="' . $row['name'] . '"></a>' . "\n";	
+		}
+		mysql_close($conn);
+	}
+	echo <<<EOT
+                      <div class='clearfix'></div>
                   </div>
               </div>
         </div> 

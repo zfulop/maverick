@@ -9,9 +9,13 @@ header('Location: view_awards.php');
 $id = intval($_REQUEST['id']);
 $name = $_REQUEST['name'];
 $url = $_REQUEST['url'];
-$js = str_replace(PHP_EOL, "", $_REQUEST['javascript']);
-$html = str_replace(PHP_EOL, "", $_REQUEST['html']);
+$js = '';
+$html = '';
 $order = intval($_REQUEST['order']);
+$apt = 0;
+if(isset($_REQUEST['is_apartment'])) {
+	$apt = 1;
+}
 if($order < 1) $order = 1;
 
 $img = false;
@@ -37,9 +41,9 @@ if(!$result) {
 }
 
 if($id < 1) {
-	$sql = "INSERT INTO awards (name, img, url, _order, javascript, html) VALUES ('$name', $img, '$url', $order, '$js', '$html')";
+	$sql = "INSERT INTO awards (name, img, url, _order, is_apartment) VALUES ('$name', $img, '$url', $order, $apt)";
 } else {
-	$sql = "UPDATE awards SET name='$name', url='$url', _order=$order";
+	$sql = "UPDATE awards SET name='$name', url='$url', _order=$order, is_apartment=$apt";
 	if($img != 'NULL') {
 		$sql .= ", img=$img";
 	}

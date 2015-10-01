@@ -187,7 +187,11 @@ $checkOutOurRooms = CHECKOUT_OUR_ROOMS;
 $watchTheIntroVideo = WATCH_INTRO_VIDEO;
 
 $awards = AWARDS;
-$sql = "SELECT * FROM awards";
+$isApt = 0;
+if($location == 'apartments') {
+	$isApt = 1;
+}
+$sql = "SELECT * FROM awards WHERE is_apartment=$isApt ORDER BY _order";
 $result = mysql_query($sql, $link);
 $awardsHtml = '';
 while($row = mysql_fetch_assoc($result)) {
@@ -311,7 +315,7 @@ $awardsHtml
             <div onClick='handleMoodVideo()' style='cursor: pointer'><i class='fa fa-fw fa-youtube-play vicon' style='margin-right: 10px;  font-size: 30px;'></i><span class='vtext1'>$watchTheIntroVideo</span><span class='vtext2'>close the intro video </span></div>
           </div>
           <div id='moodVideo' class='video-container'>
-            <iframe src='https://www.youtube.com/embed/R-emTwEMGnA?showinfo=0'></iframe>
+            <iframe src='https://www.youtube.com/embed/wJfQYUzmnqY?showinfo=0'></iframe>
           </div>
 
         </section>
@@ -497,7 +501,7 @@ $payingServices
 
 EOT;
 
-html_end($link);
+html_end();
 mysql_close($link);
 
 

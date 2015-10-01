@@ -57,7 +57,7 @@ $comment = COMMENT;
 $chooseMaverickToContact = CHOOSE_MAVERICK_TO_CONTACT;
 $sendMessage = SEND_MESSAGE;
 
-$poiJson = "poi-contact.json";
+$poiJson = "poi-contact-" . $lang . ".json";
 
 
 $firstnameValue = isset($_SESSION['contact_firstname']) ? $_SESSION['contact_firstname'] : '';
@@ -155,14 +155,6 @@ if(isset($_SESSION['contact_commentError'])) {
 
 
 
-$awards = AWARDS;
-$sql = "SELECT * FROM awards";
-$result = mysql_query($sql, $link);
-$awardsHtml = '';
-while($row = mysql_fetch_assoc($result)) {
-	$awardsHtml .= '                        <a href="' . $row['url'] . '" target="_blank"><img class="footerAward" src="' . $row['img'] . '" alt="' . $row['name'] . '"></a>' . "\n";	
-}
-
 
 echo <<<EOT
 
@@ -173,7 +165,6 @@ echo <<<EOT
 
 
       <div class="fluid-wrapper columns">
-        <div style="max-width: 1000px;">
           <section id="contact">
             <div class='location'>
                 <div class='contWrap'>
@@ -319,18 +310,11 @@ $destinationOptions
             </form>
           </section>
 
-          <section id="awards">
-              <h1>$awards</h1><br>
-$awardsHtml
-              <div class='clearfix'></div>
-          </section>
-
-        </div>
       </div>
 
 EOT;
 
-html_end($link);
+html_end();
 mysql_close($link);
 
 

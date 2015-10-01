@@ -2,11 +2,11 @@
 
 require("includes.php");
 require(RECEPCIO_BASE_DIR . "room_booking.php");
-require("../lodge_admin/common_booking.php");
+require(ADMIN_BASE_DIR . "common_booking.php");
 
 $link = db_connect();
 
-$roomTypeIds = intval($_REQUEST['room_type_ids']);
+$roomTypeIds = $_REQUEST['room_type_ids'];
 $_SESSION['room_price_room_type_ids'] = $roomTypeIds;
 $sql = "select * from room_types where id IN (" . implode(",", $roomTypeIds) . ")";
 $result = mysql_query($sql, $link);
@@ -14,6 +14,7 @@ if(!$result) {
 	trigger_error("Cannot get room type in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 	set_error("Cannot save price: cannot get room type");
 	mysql_close($link);
+	header("Location: " . $_SERVER['HTTP_REFERER']);
 	return;
 }
 
@@ -43,10 +44,13 @@ $_SESSION['room_price_days'] = $days;
 list($startYear,$startMonth,$startDay) = explode('-', $startDate);
 list($endYear,$endMonth,$endDay) = explode('-', $endDate);
 
+$startDateDash = str_replace('-', '/', $startDate);
+$endDateDash = str_replace('-', '/', $endDate);
+
 $todaySlash = date('Y/m/d');
 $roomTypes = loadRoomTypesWithAvailableBeds($link, $startDate, $endDate);
 $rooms = loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link);
-$sql = "SELECT * FROM prices_for_date WHERE room_type_id in (" . implode(',', $roomTypeIds) . ") AND date>='$startDate' AND date<='$endDate'";
+$sql = "SELECT * FROM prices_for_date WHERE room_type_id in (" . implode(',', $roomTypeIds) . ") AND date>='$startDateDash' AND date<='$endDateDash'";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	trigger_error("Cannot get old room prices in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -62,12 +66,15 @@ while($row = mysql_fetch_assoc($result)) {
 
 $historyValues = array();
 $newPriceValues = array();
+$priceSettingSkipped = array();
 foreach($roomTypeIds as $roomTypeId) {
 	$roomType = $roomTypes[$roomTypeId];
 	for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', strtotime($currDate . ' +1 day'))) {
 		$currDayOfWeek = date('N', strtotime($currDate));
 		if(!in_array($currDayOfWeek, $days)) {
-			set_message("Price setting skipped for date: $currDate");
+			if(!in_array($currDate, $priceSettingSkipped)) {
+				$priceSettingSkipped[] =  $currDate;
+			}
 			continue;
 		}
 		$dateStr = str_replace('-', '/', $currDate);
@@ -83,11 +90,6 @@ foreach($roomTypeIds as $roomTypeId) {
 			}
 		}
 		if($val > 0) {
-			$sql = "SELECT * FROM prices_for_date WHERE room_type_id=$roomTypeId AND date='$dateStr'";
-			$result = mysql_query($sql, $link);
-			if(!$result) {
-				trigger_error("Cannot get old room prices in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
-			}
 			if(isset($priceRows[$roomTypeId][$dateStr])) {
 				$bookings = getBookings($roomTypeId, $rooms, $currDate, $currDate);
 				$avgNumOfBeds = getAvgNumOfBedsOccupied($bookings, $currDate, $currDate);
@@ -99,7 +101,7 @@ foreach($roomTypeIds as $roomTypeId) {
 						$roomTypeId . ", " .
 						(is_null($priceRow['price_set_date']) ? 'NULL' : '\''.$priceRow['price_set_date'].'\'') . ", " .
 						"'$todaySlash', $occupancy, " .
-						(is_null($priceRow['discount_per_bed']) ? 'NULL' : '\''.$priceRow['dscount_per_bed'].'\'') . ")";
+						(is_null($priceRow['discount_per_bed']) ? 'NULL' : '\''.$priceRow['discount_per_bed'].'\'') . ")";
 			}
 
 			$sql = "DELETE FROM prices_for_date WHERE room_type_id=$roomTypeId AND date='$dateStr'";
@@ -114,16 +116,31 @@ foreach($roomTypeIds as $roomTypeId) {
 	}
 }
 
-$sql = "INSERT INTO prices_for_date_history (date, price_per_room, price_per_bed, room_type_id, price_set_date, price_unset_date, occupancy, discount_per_bed) VALUES " . implode(', ', $historyValues);
-$result = mysql_query($sql, $link);
-if(!$result) {
-	trigger_error("Cannot create room prices history in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+
+set_message("Price setting skipped for dates: " . implode(',', $priceSettingSkipped));
+
+if(count($historyValues) > 0) {
+	$sql = "INSERT INTO prices_for_date_history (date, price_per_room, price_per_bed, room_type_id, price_set_date, price_unset_date, occupancy, discount_per_bed) VALUES " . implode(', ', $historyValues);
+	$result = mysql_query($sql, $link);
+	if(!$result) {
+		trigger_error("Cannot create room prices history in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	} else {
+		set_message('price history saved (' . count($historyValues) . ' rows inserted)');
+	}
+} else {
+	set_message('No historical data saved');
 }
 
-$sql = "INSERT INTO prices_for_date (room_type_id, date, price_per_room, price_per_bed,     price_set_date, discount_per_bed) VALUES " . implode(', ', $newPriceValues);
-$result = mysql_query($sql, $link);
-if(!$result) {
-	trigger_error("Cannot create new room prices in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+if(count($newPriceValues) > 0) {
+	$sql = "INSERT INTO prices_for_date (room_type_id, date, price_per_room, price_per_bed, price_set_date, discount_per_bed) VALUES " . implode(', ', $newPriceValues);
+	$result = mysql_query($sql, $link);
+	if(!$result) {
+		trigger_error("Cannot create new room prices in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	} else {
+		set_message('new prices saved (' . count($newPriceValues) . ' rows inserted)');
+	}
+} else {
+	set_message('No price data saved');
 }
 
 mysql_close($link);

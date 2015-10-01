@@ -4,6 +4,42 @@ require("includes.php");
 require(RECEPCIO_BASE_DIR . "room_booking.php");
 
 
+$TYPES = array(
+	'DORM' => 0,
+	'PRIVATE' => 1,
+	'APARTMENT' => 2);
+
+$thisYear =  date('Y');
+$nextYear = $thisYear + 1;
+
+if(!isset($_SESSION['room_price_room_type_ids'])) {
+	$_SESSION['room_price_room_type_ids'] = array();
+}
+if(!isset($_SESSION['room_price_start_date'])) {
+	$_SESSION['room_price_start_date'] = date('Y-m-d');
+}
+if(!isset($_SESSION['room_price_end_date'])) {
+	$_SESSION['room_price_end_date'] = date('Y-m-d');
+}
+if(!isset($_SESSION['room_price_days'])) {
+	$_SESSION['room_price_days'] = array(1,2,3,4,5,6,7);
+}
+
+$rpRoomTypeIds = $_SESSION['room_price_room_type_ids'];
+
+$rpStartDate = $_SESSION['room_price_start_date'];
+$rpEndDate = $_SESSION['room_price_end_date'];
+
+$monChecked = in_array(1, $_SESSION['room_price_days']) ? 'checked' : '';
+$tueChecked = in_array(2, $_SESSION['room_price_days']) ? 'checked' : '';
+$wedChecked = in_array(3, $_SESSION['room_price_days']) ? 'checked' : '';
+$thuChecked = in_array(4, $_SESSION['room_price_days']) ? 'checked' : '';
+$friChecked = in_array(5, $_SESSION['room_price_days']) ? 'checked' : '';
+$satChecked = in_array(6, $_SESSION['room_price_days']) ? 'checked' : '';
+$sunChecked = in_array(7, $_SESSION['room_price_days']) ? 'checked' : '';
+
+
+
 $link = db_connect();
 
 $roomTypesHtmlOptions = '';
@@ -18,7 +54,7 @@ if(!$result) {
 }
 $roomTypes = array();
 while($row = mysql_fetch_assoc($result)) {
-	$roomTypesHtmlOptions .= '		<option value="' . $row['id'] . '">' . $row['name'] . "</option>\n";
+	$roomTypesHtmlOptions .= '		<option value="' . $row['id'] . '"' . (in_array($row['id'], $rpRoomTypeIds) ? ' selected' : '') . '>' . $row['name'] . "</option>\n";
 	$row['rooms'] = array();
 	$roomTypes[$row['id']] = $row;
 }
@@ -36,72 +72,29 @@ while($row = mysql_fetch_assoc($result)) {
 
 
 
-$TYPES = array(
-	'DORM' => 0,
-	'PRIVATE' => 1,
-	'APARTMENT' => 2);
-
-$thisYear =  date('Y');
-$nextYear = $thisYear + 1;
 
 
-if(!isset($_SESSION['room_price_start_year'])) {
-	$_SESSION['room_price_start_year'] = date('Y');
-}
-if(!isset($_SESSION['room_price_start_month'])) {
-	$_SESSION['room_price_start_month'] = date('m');
-}
-if(!isset($_SESSION['room_price_start_day'])) {
-	$_SESSION['room_price_start_day'] = date('d');
-}
+$extraHeader = <<<EOT
 
-if(!isset($_SESSION['room_price_end_year'])) {
-	$_SESSION['room_price_end_year'] = date('Y');
+<script src="js/datechooser/date-functions.js" type="text/javascript"></script>
+<script src="js/datechooser/datechooser.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="js/datechooser/datechooser.css">
+<!--[if lte IE 6.5]>
+<link rel="stylesheet" type="text/css" href="js/datechooser/select-free.css"/>
+<![endif]-->
+<script type="text/javascript">
+function submitPriceForm() {
+	$('price_form').submit();
+	if($('sync').checked) {
+		setTimeout(function(){ location.reload(); }, 5000);
+	}	
 }
-if(!isset($_SESSION['room_price_end_month'])) {
-	$_SESSION['room_price_end_month'] = date('m');
-}
-if(!isset($_SESSION['room_price_end_day'])) {
-	$_SESSION['room_price_end_day'] = date('d');
-}
-if(!isset($_SESSION['room_price_days'])) {
-	$_SESSION['room_price_days'] = array(1,2,3,4,5,6,7);
-}
+</script>
 
-$startYearOptions = '';
-for($y = date('Y'); $y < date('Y') + 3; $y++) {
-	$startYearOptions .= "	<option value=\"$y\"" . ($y == $_SESSION['room_price_start_year'] ? ' selected' : '') . ">$y</option>\n";
-}
-$startMonthOptions = '';
-for($m = 0; $m <= 12; $m++) {
-	$month  = ($m < 10 ? '0' . $m : $m);
-	$startMonthOptions .= "	<option value=\"$month\"" . ($month == $_SESSION['room_price_start_month'] ? ' selected' : '') . ">$month</option>\n";
-}
-$startDayValue = $_SESSION['room_price_start_day'];
-
-$endYearOptions = '';
-for($y = date('Y'); $y < date('Y') + 3; $y++) {
-	$endYearOptions .= "	<option value=\"$y\"" . ($y == $_SESSION['room_price_end_year'] ? ' selected' : '') . ">$y</option>\n";
-}
-$endMonthOptions = '';
-for($m = 0; $m <= 12; $m++) {
-	$month  = ($m < 10 ? '0' . $m : $m);
-	$endMonthOptions .= "	<option value=\"$month\"" . ($month == $_SESSION['room_price_end_month'] ? ' selected' : '') . ">$month</option>\n";
-}
-$endDayValue = $_SESSION['room_price_end_day'];
-
-$monChecked = in_array(1, $_SESSION['room_price_days']) ? 'checked' : '';
-$tueChecked = in_array(2, $_SESSION['room_price_days']) ? 'checked' : '';
-$wedChecked = in_array(3, $_SESSION['room_price_days']) ? 'checked' : '';
-$thuChecked = in_array(4, $_SESSION['room_price_days']) ? 'checked' : '';
-$friChecked = in_array(5, $_SESSION['room_price_days']) ? 'checked' : '';
-$satChecked = in_array(6, $_SESSION['room_price_days']) ? 'checked' : '';
-$sunChecked = in_array(7, $_SESSION['room_price_days']) ? 'checked' : '';
+EOT;
 
 
-
-
-html_start("Maverick Mgmt - Rooms ");
+html_start("Maverick Mgmt - Rooms ", $extraHeader);
 
 
 echo <<<EOT
@@ -189,33 +182,25 @@ $roomTypesHtmlOptions
 <table style="border: 1px solid rgb(0,0,0);">
 <tr><th colspan="2">Set price of a room for a date interval.</strong></th></tr>
 <tr><td colspan="2">To delete special price, set the date and leave the price field empty.</td></tr>
-<tr><td>Room type: </td><td><select style="display: inline; float: none;" name="room_type_id">
+<tr><td>Room type: </td><td><select style="display: inline; float: none; height: 100px;" multiple="true" name="room_type_ids[]">
 $roomTypesHtmlOptions
 </select></td></tr>
-<tr><td>Start date: </td><td><select style="display: inline; float: none;" name="start_year">
-$startYearOptions
-</select>/<select style="display: inline; float: none;" name="start_month">
-$startMonthOptions
-</select>/<input name="start_day" value="$startDayValue" size="2" style="display: inline; float: none;"></td></tr>
-<tr><td>End date: </td><td><select style="display: inline; float: none;" name="end_year">
-$endYearOptions
-</select>/<select style="display: inline; float: none;" name="end_month">
-$endMonthOptions
-</select>/<input name="end_day" value="$endDayValue" size="2" style="display: inline; float: none;"></td></tr>
-<tr><td>Days</td><td>
-	<div style="clear: left;">Mon <input style="float: left; display: block;" type="checkbox" name="days[]" value="1" $monChecked></div>
-	<div style="clear: left;">Tue <input style="float: left; display: block;" type="checkbox" name="days[]" value="2" $tueChecked></div>
-	<div style="clear: left;">Wed <input style="float: left; display: block;" type="checkbox" name="days[]" value="3" $wedChecked></div>
-	<div style="clear: left;">Thu <input style="float: left; display: block;" type="checkbox" name="days[]" value="4" $thuChecked></div>
-	<div style="clear: left;">Fri <input style="float: left; display: block;" type="checkbox" name="days[]" value="5" $friChecked></div>
-	<div style="clear: left;">Sat <input style="float: left; display: block;" type="checkbox" name="days[]" value="6" $satChecked></div>
-	<div style="clear: left;">Sun <input style="float: left; display: block;" type="checkbox" name="days[]" value="7" $sunChecked></div>
+<tr><td>Start date: </td><td><input name="start_date" id="rp_start_date" size="10" maxlength="10" type="text" value="$rpStartDate"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'rp_start_date', 'chooserSpanRPSD', 2008, 2025, 'Y-m-d', false);"><div id="chooserSpanRPSD" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div></td></tr>
+<tr><td>End date: </td><td><input name="end_date" id="rp_end_date" size="10" maxlength="10" type="text" value="$rpEndDate"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'rp_end_date', 'chooserSpanRPED', 2008, 2025, 'Y-m-d', false);"><div id="chooserSpanRPED" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div></td></tr>
+<tr><td>Days (<input style="float: left; display: block;" type="checkbox" onclick="toggleDaySelection(this);"> all)</td><td>
+	<div style="clear: left;">Mon <input class="dayselect" style="float: left; display: block;" type="checkbox" name="days[]" value="1" $monChecked></div>
+	<div style="clear: left;">Tue <input class="dayselect" style="float: left; display: block;" type="checkbox" name="days[]" value="2" $tueChecked></div>
+	<div style="clear: left;">Wed <input class="dayselect" style="float: left; display: block;" type="checkbox" name="days[]" value="3" $wedChecked></div>
+	<div style="clear: left;">Thu <input class="dayselect" style="float: left; display: block;" type="checkbox" name="days[]" value="4" $thuChecked></div>
+	<div style="clear: left;">Fri <input class="dayselect" style="float: left; display: block;" type="checkbox" name="days[]" value="5" $friChecked></div>
+	<div style="clear: left;">Sat <input class="dayselect" style="float: left; display: block;" type="checkbox" name="days[]" value="6" $satChecked></div>
+	<div style="clear: left;">Sun <input class="dayselect" style="float: left; display: block;" type="checkbox" name="days[]" value="7" $sunChecked></div>
 </td></tr>
 <tr><td>Bed or Room Price: </td><td><input name="price" size="4"></td></tr>
 <tr><td>Discount per bed (for apartments): </td><td><input name="discount_per_bed" size="4"></td></tr>
-<tr><td>Automatic sync: </td><td><input name="sync" type="checkbox" value="true" checked="true" onclick="if(this.checked) { document.getElementById('price_form').target='_blank'; } else { document.getElementById('price_form').target='_self'; }"></td></tr>
+<tr><td>Automatic sync: </td><td><input name="sync" id="sync" type="checkbox" value="true" checked="true" onclick="if(this.checked) { document.getElementById('price_form').target='_blank'; } else { document.getElementById('price_form').target='_self'; }"></td></tr>
 <tr><td colspan="2">
-	<input type="submit" value="Set price(s)">
+	<input type="button" onclick="if(confirm('Are you sure to save the prices?'))submitPriceForm();return false;" value="Set price(s)">
 	<input type="button" onclick="document.getElementById('price_form').style.display='none'; document.getElementById('price_btn').style.display='block'; return false;" value="Cancel">
 </td></tr>
 </table>

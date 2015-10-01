@@ -72,6 +72,17 @@ if($error) {
 	return;
 }
 
+$_SESSION['contact_firstname'] = '';
+$_SESSION['contact_lastname'] = '';
+$_SESSION['contact_email'] = '';
+$_SESSION['contact_email2'] = '';
+$_SESSION['contact_countryCode'] = '';
+$_SESSION['contact_phone'] = '';
+$_SESSION['contact_destination'] = '';
+$_SESSION['contact_nationality'] = '';
+$_SESSION['contact_comment'] = '';
+
+
 $thankYou = THANK_YOU;
 $thanksForContacting = THANKS_FOR_CONTACTING;
 $ourTeamWillContactYouShortly = OUR_TEAM_WILL_CONTACT_YOU_SHORTLY;
@@ -180,8 +191,7 @@ $message = <<<EOT
 
 EOT;
 
-//$toEmail = constant('CONTACT_EMAIL_' . strtoupper($destination));
-$toEmail = 'zfulop@zolilla.com';
+$toEmail = constant('CONTACT_EMAIL_' . strtoupper($destination));
 $toName = 'Reservation - ' . getLocationName();
 sendMail($email, $firstname . ' ' . $lastname, $toEmail, $toName, 'Website contact request', $message, $inlineAttachments = array(), $attachments = array());
 sendMail($toEmail, $toName, $email, $firstname . ' ' . $lastname, 'Maverick - ' . CONTACT, $message, $inlineAttachments = array(), $attachments = array());
@@ -205,7 +215,7 @@ echo <<<EOT
 
 EOT;
 
-html_end($link);
+html_end();
 mysql_close($link);
 
 ?>

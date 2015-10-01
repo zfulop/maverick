@@ -90,7 +90,7 @@ if($result) {
 			$record[$row2['lang']][$row2['column_name']] = $row2['value'];
 		}
 
-		echo "<script language=\"JavaScript\">\n";
+		echo "<script type=\"text/javascript\">\n";
 		echo "	function edit" . $row['id'] . "() {\n";
 		echo "		document.getElementById('so_form').reset();\n";
 		echo "		document.getElementById('so_form').style.display='block';\n";
@@ -104,9 +104,12 @@ if($result) {
 			if(!isset($cols['unit_name'])) {
 				$cols['unit_name'] = '';
 			}
-			echo "		document.getElementById('title_$lang').value='" . str_replace('\'', '\\\'', $cols['title']) . "';\n";
-			echo "		document.getElementById('description_$lang').value='" . str_replace('\'', '\\\'', $cols['description']) . "';\n";
-			echo "		document.getElementById('unit_name_$lang').value='" . str_replace('\'', '\\\'', $cols['unit_name']) . "';\n";
+			$string = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $cols['title']);
+			echo "		document.getElementById('title_$lang').value='" . str_replace('\'', '\\\'', $string) . "';\n";
+			$string = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $cols['description']);
+			echo "		document.getElementById('description_$lang').value='" . str_replace("\n", '', str_replace('\'', '\\\'', $string)) . "';\n";
+			$string = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $cols['unit_name']);
+			echo "		document.getElementById('unit_name_$lang').value='" . str_replace('\'', '\\\'', $string) . "';\n";
 		}
 		echo "		document.getElementById('free').checked=" . ($row['free_service'] == 1 ? 'true' : 'false') . ";\n";
 		echo "	}\n";

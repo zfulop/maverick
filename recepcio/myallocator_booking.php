@@ -344,6 +344,9 @@ function createBooking($bookingData, $link) {
 	$email = $customer['CustomerEmail'];
 	$phone = '';
 	$nationality = isset($customer['CustomerCountry']) ? $customer['CustomerCountry'] : '';
+	if($nationality == '') {
+		$nationality = isset($customer['CustomerNationality']) ? $customer['CustomerNationality'] : '';
+	}
 	if(isset($COUNTRY_ALIASES[$nationality])) {
 		$nationality = $COUNTRY_ALIASES[$nationality];
 	}

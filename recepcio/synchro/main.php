@@ -75,12 +75,18 @@ $loadLaterooms = in_array('laterooms', $_REQUEST['sites']) ? 'true' : 'false';
 $loadAgoda = in_array('agoda', $_REQUEST['sites']) ? 'true' : 'false';
 */
 
+$reloadParent = '';
+if((strpos($_SERVER['HTTP_REFERER'], 'view_rooms') > 0) or (strpos($_SERVER['HTTP_REFERER'], 'view_pricing') > 0)) {
+	$reloadParent = 'window.opener.location.reload(false);';
+}
+
 $extraHeader = <<<EOT
 
 <script type="text/javascript">
 	function init() {
  		$loadMyAllocator
 		$loadHrs
+		$reloadParent
 	}
 
 	function loadFrame(frameId, src) {

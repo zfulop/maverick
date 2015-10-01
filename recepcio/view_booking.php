@@ -17,8 +17,12 @@ $source = '';
 $bookingRef = '';
 $confirmedSelected = false;
 $confirmed = false;
-$cancelledSelected = false;
-$cancelled = false;
+$guestCancelledSelected = false;
+$guestCancelled = false;
+$recCancelledSelected = false;
+$recCancelled = false;
+$noShowCancelledSelected = false;
+$noShowCancelled = false;
 $checkedinSelected = false;
 $checkedin = false;
 $paidSelected = false;
@@ -33,8 +37,12 @@ if(isset($_REQUEST['new_search'])) {
 	$bookingRef = $_REQUEST['booking_ref'];
 	$confirmedSelected = isset($_REQUEST['confirmed_selected']);
 	$confirmed = isset($_REQUEST['confirmed']);
-	$cancelledSelected = isset($_REQUEST['cancelled_selected']);
-	$cancelled = isset($_REQUEST['cancelled']);
+	$guestCancelledSelected = isset($_REQUEST['guest_cancelled_selected']);
+	$guestCancelled = isset($_REQUEST['guest_cancelled']);
+	$recCancelledSelected = isset($_REQUEST['rec_cancelled_selected']);
+	$recCancelled = isset($_REQUEST['rec_cancelled']);
+	$noShowCancelledSelected = isset($_REQUEST['noshow_cancelled_selected']);
+	$noShowCancelled = isset($_REQUEST['noshow_cancelled']);
 	$checkedinSelected = isset($_REQUEST['checkedin_selected']);
 	$checkedin = isset($_REQUEST['checkedin']);
 	$paidSelected = isset($_REQUEST['paid_selected']);
@@ -47,8 +55,12 @@ if(isset($_REQUEST['new_search'])) {
 	$_SESSION['view_booking_booking_ref'] = $bookingRef;
 	$_SESSION['view_booking_confirmed_selected'] = $confirmedSelected;
 	$_SESSION['view_booking_confirmed'] = $confirmed;
-	$_SESSION['view_booking_cancelled_selected'] = $cancelledSelected;
-	$_SESSION['view_booking_cancelled'] = $cancelled;
+	$_SESSION['view_booking_guest_cancelled_selected'] = $guestCancelledSelected;
+	$_SESSION['view_booking_guest_cancelled'] = $guestCancelled;
+	$_SESSION['view_booking_rec_cancelled_selected'] = $recCancelledSelected;
+	$_SESSION['view_booking_rec_cancelled'] = $recCancelled;
+	$_SESSION['view_booking_noshow_cancelled_selected'] = $noShowCancelledSelected;
+	$_SESSION['view_booking_noshow_cancelled'] = $noShowCancelled;
 	$_SESSION['view_booking_checkedin_selected'] = $checkedinSelected;
 	$_SESSION['view_booking_checkedin'] = $checkedin;
 	$_SESSION['view_booking_paid_selected'] = $paidSelected;
@@ -61,8 +73,12 @@ if(isset($_REQUEST['new_search'])) {
 	$bookingRef = $_SESSION['view_booking_booking_ref'];
 	$confirmedSelected = $_SESSION['view_booking_confirmed_selected'];
 	$confirmed = $_SESSION['view_booking_confirmed'];
-	$cancelledSelected = $_SESSION['view_booking_cancelled_selected'];
-	$cancelled = $_SESSION['view_booking_cancelled'];
+	$guestCancelledSelected = $_SESSION['view_booking_guest_cancelled_selected'];
+	$guestCancelled = $_SESSION['view_booking_guest_cancelled'];
+	$recCancelledSelected = $_SESSION['view_booking_rec_cancelled_selected'];
+	$recCancelled = $_SESSION['view_booking_rec_cancelled'];
+	$noShowCancelledSelected = $_SESSION['view_booking_noshow_cancelled_selected'];
+	$noShowCancelled = $_SESSION['view_booking_noshow_cancelled'];
 	$checkedinSelected = $_SESSION['view_booking_checkedin_selected'];
 	$checkedin = $_SESSION['view_booking_checkedin'];
 	$paidSelected = $_SESSION['view_booking_paid_selected'];
@@ -70,12 +86,16 @@ if(isset($_REQUEST['new_search'])) {
 }
 
 $confirmChecked = $confirmedSelected ? 'checked' : '';
-$cancelChecked = $cancelledSelected ? 'checked' : '';
+$guestCancelChecked = $guestCancelledSelected ? 'checked' : '';
+$recCancelChecked = $recCancelledSelected ? 'checked' : '';
+$noShowCancelChecked = $noShowCancelledSelected ? 'checked' : '';
 $checkinChecked = $checkedinSelected ? 'checked' : '';
 $paidChecked = $paidSelected ? 'checked' : '';
 
 $confirmValueChecked = $confirmed ? 'checked' : '';
-$cancelValueChecked = $cancelled ? 'checked' : '';
+$guestCancelValueChecked = $guestCancelled ? 'checked' : '';
+$recCancelValueChecked = $recCancelled ? 'checked' : '';
+$noShowCancelValueChecked = $noShowCancelled ? 'checked' : '';
 $checkinValueChecked = $checkedin ? 'checked' : '';
 $paidValueChecked = $paid ? 'checked' : '';
 
@@ -161,7 +181,9 @@ echo <<<EOT
 	<tr><td>&nbsp;</td><td>Source:</td><td><select name="source">$sourceOptions</select></td></tr>
 	<tr><td>&nbsp;</td><td>Booking ref:</td><td><input name="booking_ref" value="$bookingRef"></td></tr>
 	<tr><td><input type="checkbox" name="confirmed_selected" value="1" $confirmChecked id="confirmed_selected" onchange="updateSearchField('confirmed_selected', 'confirmed_label', 'confirmed_input');"><td id="confirmed_label" style="color: #aaaaaa;">Confirmed:</td><td><input type="checkbox"  id="confirmed_input" disabled="true" name="confirmed" $confirmValueChecked value="1"></td></tr>
-	<tr><td><input type="checkbox" name="cancelled_selected" $cancelChecked value="1" id="cancelled_selected" onchange="updateSearchField('cancelled_selected', 'cancelled_label', 'cancelled_input');"><td id="cancelled_label" style="color: #aaaaaa;">Cancelled:</td><td><input type="checkbox"  id="cancelled_input" disabled="true" name="cancelled" value="1" $cancelValueChecked ></td></tr>
+	<tr><td><input type="checkbox" name="guest_cancelled_selected" $guestCancelChecked value="1" id="guest_cancelled_selected" onchange="updateSearchField('guest_cancelled_selected', 'guest_cancelled_label', 'guest_cancelled_input');"><td id="guest_cancelled_label" style="color: #aaaaaa;">Guest cancelled:</td><td><input type="checkbox"  id="guest_cancelled_input" disabled="true" name="guest_cancelled" value="1" $guestCancelValueChecked ></td></tr>
+	<tr><td><input type="checkbox" name="rec_cancelled_selected" $recCancelChecked value="1" id="rec_cancelled_selected" onchange="updateSearchField('rec_cancelled_selected', 'rec_cancelled_label', 'rec_cancelled_input');"><td id="rec_cancelled_label" style="color: #aaaaaa;">Reception cancelled:</td><td><input type="checkbox"  id="rec_cancelled_input" disabled="true" name="rec_cancelled" value="1" $recCancelValueChecked ></td></tr>
+	<tr><td><input type="checkbox" name="noshow_cancelled_selected" $noShowCancelChecked value="1" id="noshow_cancelled_selected" onchange="updateSearchField('noshow_cancelled_selected', 'noshow_cancelled_label', 'noshow_cancelled_input');"><td id="noshow_cancelled_label" style="color: #aaaaaa;">No Show:</td><td><input type="checkbox"  id="noshow_cancelled_input" disabled="true" name="noshow_cancelled" value="1" $noShowCancelValueChecked ></td></tr>
 	<tr><td><input type="checkbox" name="checkedin_selected" $checkinChecked value="1" id="checkedin_selected" onchange="updateSearchField('checkedin_selected', 'checkedin_label', 'checkedin_input');"><td id="checkedin_label" style="color: #aaaaaa;">Checked in:</td><td><input type="checkbox"  id="checkedin_input" disabled="true" name="checkedin" value="1" $checkinValueChecked></td></tr>
 	<tr><td><input type="checkbox" name="paid_selected" value="1" $paidChecked id="paid_selected" onchange="updateSearchField('paid_selected', 'paid_label', 'paid_input');"><td id="paid_label" style="color: #aaaaaa;">Paid:</td><td><input type="checkbox"  id="paid_input" disabled="true" name="paid" value="1" $paidValueChecked></td></tr>
 	<tr><td colspan="3"><input type="submit" value="Search"></td></tr>
@@ -248,10 +270,19 @@ if($confirmedSelected) {
 	$sql .= " AND booking_descriptions.confirmed=" . ($confirmed ? 1 : 0);
 	$searchFor .= "<br>" . ($confirmed ? '' : 'not ') . "confirmed";
 }
-if($cancelledSelected) {
-	$sql .= " AND booking_descriptions.cancelled=" . ($cancelled ? 1 : 0);
-	$searchFor .= "<br>" . ($cancelled ? '' : 'not ') . "cancelled";
-}
+//if($guestCancelledSelected or ) {
+//	$sql .= " AND booking_descriptions.cancelled=" . ($guestCancelled ? 1 : 0) AND ;
+//	$searchFor .= "<br>" . ($guestCancelled ? '' : 'not ') . "guest cancelled";
+//}
+//if($cancelledSelected) {
+//	$sql .= " AND booking_descriptions.cancelled=" . ($cancelled ? 1 : 0);
+//	$searchFor .= "<br>" . ($cancelled ? '' : 'not ') . "cancelled";
+//}
+//if($cancelledSelected) {
+//	$sql .= " AND booking_descriptions.cancelled=" . ($cancelled ? 1 : 0);
+//	$searchFor .= "<br>" . ($cancelled ? '' : 'not ') . "cancelled";
+//}
+
 if($checkedinSelected) {
 	$sql .= " AND booking_descriptions.checked_in=" . ($checkedin ? 1 : 0);
 	$searchFor .= "<br>" . ($checkedin ? '' : 'not ') . "checked in";

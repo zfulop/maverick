@@ -1,0 +1,21 @@
+[
+  {"name": "Maverick City Lodge",  "lat": 47.498072, "lng": 19.062733, "image": "/img/poi//maverick-city-lodge.png"},
+  {"name": "Maverick Hostel & Apartments",  "lat":  47.4927744, "lng": 19.0552752, "image": "/img/poi/mh_ma_active.png"},
+  {"name": "Maverick Apartments",  "lat": 47.491021, "lng": 19.052137, "image": "/img/poi/maverick-apartments.png"},
+  {"name": "Szimpla Bar (Kazinczy utca 14.)", "lat": 47.497015, "lng": 19.063348, "image": "/img/poi/bar.png"},
+  {"name": "Dohany Synagoge", "lat": 47.495596, "lng": 19.059852, "image": "/img/poi/landmark.png"},
+  {"name": "Spiler Restaurant (Gozsdu Udvar)", "lat": 47.499204, "lng": 19.058385, "image": "/img/poi/restaurant.png"},
+  {"name": "Corvintető, Club (Blaha Lujza tér)", "lat": 47.496374, "lng": 19.069024, "image": "/img/poi/bar.png"},
+  {"name": "Ostbahnhof", "lat": 47.500491, "lng": 19.082659, "image": "/img/poi/train.png"},
+  {"name": "Fogasház Bar, Klub, kulturell Zentrum (Akácfa u.51.)", "lat": 47.501576, "lng": 19.064113, "image": "/img/poi/bar.png"},
+  {"name": "Basilika", "lat": 47.500890, "lng": 19.053989, "image": "/img/poi/landmark.png"},
+  {"name": "Staatsoper", "lat": 47.502337, "lng": 19.058887, "image": "/img/poi/landmark.png"},
+  {"name": "Ötkert Klub und Restaurant (Zrinyi utca)", "lat": 47.500246, "lng": 19.048603, "image": "/img/poi/bar.png"},
+  {"name": "Kettenbrücke", "lat": 47.498956, "lng": 19.043775, "image": "/img/poi/landmark.png"},
+  {"name": "Burg", "lat": 47.501917, "lng": 19.035112, "image": "/img/poi/landmark.png"},
+  {"name": "Váci strasse, famos Promenade", "lat": 47.494266, "lng": 19.052401, "image": "/img/poi/landmark.png"},
+  {"name": "Schiffsfahrt(március 15. tér)", "lat": 47.492280, "lng": 19.050245, "image": "/img/poi/ship.png"},
+  {"name": "Csendes Bar (Ferenczy István u.5.)", "lat": 47.492684, "lng": 19.060180, "image": "/img/poi/bar.png"},
+  {"name": "Nationalmuseum", "lat": 47.491091, "lng": 19.061950, "image": "/img/poi/landmark.png"},
+  {"name": "Zentral Markthalle", "lat": 47.487299, "lng": 19.058286, "image": "/img/poi/landmark.png"}
+]
