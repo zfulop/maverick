@@ -850,7 +850,8 @@ function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$ro
 
 
 function createDbBooking($type, $numOfPerson, $discountedPayment, $roomId, $descriptionId, $time, $specialOfferId, $link, &$rooms) {
-	$sql = "INSERT INTO bookings (booking_type, num_of_person, room_payment, room_id, description_id, creation_time, special_offer_id) VALUES ('$type', '$numOfPerson', '$discountedPayment', $roomId, $descriptionId, '$time', $specialOfferId)";
+	$rtid = $rooms[$roomId]['room_type_id'];
+	$sql = "INSERT INTO bookings (booking_type, num_of_person, room_payment, room_id, description_id, creation_time, special_offer_id, original_room_type_id) VALUES ('$type', '$numOfPerson', '$discountedPayment', $roomId, $descriptionId, '$time', $specialOfferId, $rtid)";
 	set_debug($sql);
 	if(!mysql_query($sql, $link)) {
 		trigger_error("Cannot save booking: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);

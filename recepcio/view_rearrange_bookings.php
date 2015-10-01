@@ -16,8 +16,9 @@ $_SESSION['rearrange_room_changes'] = array();
 
 
 $rooms = array();
+$roomTypeNames = array();
 $roomIdToPosition = array();
-$sql = "SELECT r.id, r.name AS name, rt.name AS room_type_name, rt.price_per_bed, rt.price_per_room, rt.type, rt.num_of_beds FROM rooms r INNER JOIN room_types rt ON r.room_type_id=rt.id WHERE r.valid_to>='$endDate' AND r.valid_from<='$startDate' ORDER BY rt._order, r.name";
+$sql = "SELECT r.id, r.name AS name, rt.name AS room_type_name, rt.id as rtid, rt.price_per_bed, rt.price_per_room, rt.type, rt.num_of_beds FROM rooms r INNER JOIN room_types rt ON r.room_type_id=rt.id WHERE r.valid_to>='$endDate' AND r.valid_from<='$startDate' ORDER BY rt._order, r.name";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	trigger_error("Cannot get rooms: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -26,6 +27,7 @@ if(!$result) {
 	while($row = mysql_fetch_assoc($result)) {
 		$rooms[$row['id']] = $row;
 		$roomIdToPosition[$row['id']] = $pos;
+		$roomTypeNames[$row['rtid']] = $row['room_type_name'];
 		$pos += 1 + $row['num_of_beds'] * 20;
 	}
 }
@@ -86,7 +88,7 @@ foreach($bookings as $oneBooking) {
 			}
 		}
 		$name = str_replace('\'', "\\'", $oneBooking['name'].' '.$oneBooking['name_ext']) . ' <i>' . $oneBooking['source'] . '</i>';
-		$title = $rooms[$oneBooking['room_id']]['name'] . ' ' . $oneBooking['first_night'] . ' - ' . $oneBooking['last_night'];
+		$title = $rooms[$oneBooking['room_id']]['name'] . ' ' . $oneBooking['first_night'] . ' - ' . $oneBooking['last_night'] . ' ' . $roomTypeNames[$oneBooking['original_room_type_id']];
 		$numOfPers = $oneBooking['num_of_person'];
 		$js .= "		div = new Element('div', {'id': '$divId', 'class': 'booking_div', 'title': '$title'}).update('$name ($numOfPers)');\n";
 		$js .= "		div.addClassName('$currDate');\n";
