@@ -88,7 +88,7 @@ foreach($bookings as $oneBooking) {
 			}
 		}
 		$name = str_replace('\'', "\\'", $oneBooking['name'].' '.$oneBooking['name_ext']) . ' <i>' . $oneBooking['source'] . '</i>';
-		$title = $rooms[$oneBooking['room_id']]['name'] . ' ' . $oneBooking['first_night'] . ' - ' . $oneBooking['last_night'] . ' ' . $roomTypeNames[$oneBooking['original_room_type_id']];
+		$title = /*$rooms[$oneBooking['room_id']]['name'] . ' ' . */$oneBooking['first_night'] . ' - ' . $oneBooking['last_night'] . ' ' . $roomTypeNames[$oneBooking['original_room_type_id']];
 		$numOfPers = $oneBooking['num_of_person'];
 		$js .= "		div = new Element('div', {'id': '$divId', 'class': 'booking_div', 'title': '$title'}).update('$name ($numOfPers)');\n";
 		$js .= "		div.addClassName('$currDate');\n";

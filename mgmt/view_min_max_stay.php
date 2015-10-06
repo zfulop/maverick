@@ -15,17 +15,35 @@ if(!$result) {
 	}
 }
 
+$extraHeader = <<<EOT
 
-html_start("Maverick Mgmt - Min/Max Stay");
+
+<script src="js/prototype.js" type="text/javascript"></script>
+<script src="js/jquery.js"    type="text/javascript"></script>
+<script type="text/javascript">
+	 jQuery.noConflict();
+</script>
+<script src="js/datechooser/date-functions.js" type="text/javascript"></script>
+<script src="js/datechooser/datechooser.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="js/datechooser/datechooser.css">
+<!--[if lte IE 6.5]>
+<link rel="stylesheet" type="text/css" href="js/datechooser/select-free.css"/>
+<![endif]-->
+
+EOT;
+
+
+
+html_start("Maverick Mgmt - Min/Max Stay", $extraHeader);
 
 $fromDate = date('Y-m-d');
 
 echo <<<EOT
 
 <h2>Min/Max Stays</h2>
+<form action="save_min_max_stay.php" method="post" accept-charset="utf-8">
 <table>
 	<tr><th>From date</th><th>To date</th><th>Min stay</th><th>Max stay</th><th>&nbsp;</th></tr>
-	<form action="save_min_max_stay.php" method="post" accept-charset="utf-8">
 	<tr>
 		<td><input id="from_date" name="from_date" size="10" maxlength="10" type="text" value="$fromDate"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'from_date', 'chooserSpanFD', 2008, 2025, 'Y-m-d', false);"><div id="chooserSpanFD" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div></td>
 		<td><input id="to_date" name="to_date" size="10" maxlength="10" type="text" value=""><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'to_date', 'chooserSpanTD', 2008, 2025, 'Y-m-d', false);"><div id="chooserSpanTD" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div></td>
@@ -33,7 +51,6 @@ echo <<<EOT
 		<td><input name="max_stay" size="3" maxlength="3" type="text"></td>
 		<td><input type="submit" value="Save"></td>
 	</tr>
-	</form>
 
 EOT;
 foreach($minMaxStay as $row) {
@@ -43,6 +60,7 @@ foreach($minMaxStay as $row) {
 
 echo <<<EOT
 <table>
+</form>
 
 EOT;
 
