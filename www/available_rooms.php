@@ -480,7 +480,7 @@ EOT;
 }
 
 function getMinMaxStay($fromDate, $toDate, $link) {
-	$sql = "SELECT * FROM min_max_stay WHERE (from_date IS NULL OR from_date<'$fromDate') AND (to_date IS NULL OR to_date>'$toDate')";
+	$sql = "SELECT * FROM min_max_stay WHERE (from_date IS NULL OR from_date<='$fromDate') AND (to_date IS NULL OR to_date>='$fromDate')";
 	$result = mysql_query($sql, $link);
 	if(mysql_num_rows($result) > 0) {
 		$row = mysql_fetch_assoc($result);

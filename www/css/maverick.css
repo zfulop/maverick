@@ -1263,4 +1263,11 @@ section#contact-form h2 {
     
 }
 
+.noscroll {
+    
+    overflow: hidden !important;
+    position: absolute;
+    
+}
+
 

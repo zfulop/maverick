@@ -425,6 +425,7 @@
         var $target;
         $target = $(e.target);
         if ($target.is('#overlay .close')) {
+          $('html, body, .zoom-helper, .content-wrapper, .site-wrapper').removeClass('noscroll');
           e.preventDefault();
           $target.closest('#overlay').removeClass('opened');
           window.setTimeout(function() {
@@ -433,6 +434,7 @@
         }
       });
       $('.open-overlay').on('click', function(e) {
+        $('html, body, .zoom-helper, .content-wrapper, .site-wrapper').addClass('noscroll');
         var $overlay, $target, error, latitude, longitude, success;
         e.preventDefault();
         $target = $(e.target).closest('.open-overlay');
