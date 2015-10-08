@@ -113,6 +113,8 @@ if(count($toBook) < 1) {
 	return;
 }
 
+verifyBlacklist($name, $email, CONTACT_EMAIL, $link);
+
 $sql = "INSERT INTO booking_descriptions (name, name_ext, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time) VALUES ('$name', '$nameExt', '$gender', '$addr', '$nat', '$email', '$tel', '$fnight', '$lnight', $numOfNights, 0, 0, 0, 0, '$comment', '$source', '$arrivalTime')";
 set_debug($sql);
 

@@ -24,6 +24,7 @@ function html_start($title = "Maverick Reception", $extraHeader = '', $showMenu 
 	$bonApetit = ROOT_URL . 'view_bon_apetit.php';
 	$links = ROOT_URL . 'view_links.php';
 	$logout = ROOT_URL . 'logout.php';
+	$blacklist = ROOT_URL . 'view_blacklist.php';
 
 	$tooltipJs = ROOT_URL . 'js/wz_tooltip.js';
 
@@ -102,6 +103,7 @@ EOT;
 				<li><a href="$vacations" style="font-size: 14px; padding-right: 20px;">Vacations</a></li>
 				<li><a href="$mendingList" style="font-size: 14px; padding-right: 20px;">Mending List</a></li>
 				<li><a href="$shoppingList" style="font-size: 14px; padding-right: 20px;">Shopping List</a></li>
+				<li><a href="$blacklist" style="font-size: 14px; padding-right: 20px;">Blacklisted guests</a></li>
 			</ul>
 		</div>
 		<a href="#" style="float: left; font-size: 14px; padding-right: 20px;" id="moneyMainMenu" onclick="showMenu('moneyMenu', this);return false;">Money</a>

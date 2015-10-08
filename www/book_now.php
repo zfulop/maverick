@@ -131,6 +131,9 @@ $nationality = mysql_real_escape_string($nationality);
 $email = mysql_real_escape_string($email);
 $phone = mysql_real_escape_string($phone);
 $comment = mysql_real_escape_string($comment);
+
+verifyBlacklist("$firstname $lastname", $email, constant('CONTACT_EMAIL_' . strtoupper($location)), $link);
+
 $sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency) VALUES ('$name', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', 'saját', '', '$lang', '$currency')";
 set_debug($sql);
 

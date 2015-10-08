@@ -894,5 +894,18 @@ function cmpOrdNm($room1, $room2) {
 	return 0;
 }
 
+function verifyBlacklist($name, $email, $maverickEmail, $link) {
+	$sql = "SELECT * FROM blacklist WHERE name='$name' or email='$email'";
+	$result = mysql_query($sql, $link);
+	if(!$result) {
+		trigger_error("Cannot verify blacklist items: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	} elseif(mysql_num_rows($result) > 0) {
+		$msg = "Blacklist items matching $name or $email: ";
+		while($row = mysql_fetch_assoc($result)) {
+			$msg .= "\t" . $row['name'] . "\t" . $row['email'] . "\t" . $row['source'] . "\t" . $row['reason'] . "\n";
+		}
+		sendMail($email, $name, $maverickEmail, "Maverick Reception", "Blacklisted booking received for name: $name or email $email", $msg);
+	}
+}
 
 ?>

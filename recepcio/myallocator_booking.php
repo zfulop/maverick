@@ -395,6 +395,8 @@ function createBooking($bookingData, $link) {
 		$nights = round(($lastNightTs-$arriveDateTs) / (60*60*24)) + 1;
 		$lastNightTs = strtotime($lastNight);
 
+		verifyBlacklist("$firstname $lastname", $email, CONTACT_EMAIL, $link);
+
 		$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency, my_allocator_id, create_time) VALUES ('$firstname $lastname', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', '$source', '', '$lang', '$currency', '$myAllocatorId', '$nowTime')";
 		set_debug($sql);
 		if(!mysql_query($sql, $link)) {
