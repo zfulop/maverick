@@ -68,6 +68,8 @@ while($row = mysql_fetch_assoc($result)) {
 	$priceRows[$row['room_type_id']][$row['date']] = $row;
 }
 
+$newPriceMessage = '';
+$historyMessage = '';
 $historyValues = array();
 $newPriceValues = array();
 $priceSettingSkipped = array();
@@ -113,6 +115,7 @@ foreach($roomTypeIds as $roomTypeId) {
 						(is_null($priceRow['price_set_date']) ? 'NULL' : '\''.$priceRow['price_set_date'].'\'') . ", " .
 						"'$todaySlash', $occupancy, " .
 						(is_null($priceRow['surcharge_per_bed']) ? 'NULL' : '\''.$priceRow['surcharge_per_bed'].'\'') . ")";
+				$historyMessage .= "New history item: " . $roomType['name'] . " " . $priceRow['date'] . "<br>\n";
 			}
 
 			$sql = "DELETE FROM prices_for_date WHERE room_type_id=$roomTypeId AND date='$dateStr'";
@@ -123,6 +126,7 @@ foreach($roomTypeIds as $roomTypeId) {
 			
 			// For private and apartment set the room price, for dorm set the bed price.
 			$newPriceValues[] = "($roomTypeId, '$dateStr', " . ($roomType['type'] != 'DORM' ? $val : 'NULL') . ", " . ($roomType['type'] == 'DORM' ? $val : 'NULL') . ", '$todaySlash', $spb)";
+			$newPriceMessage .= "New price saved: " . $roomType['name'] . " $dateStr <br>\n";
 		}
 	}
 }
@@ -153,6 +157,9 @@ if(count($newPriceValues) > 0) {
 } else {
 	set_message('No price data saved');
 }
+
+set_message($newPriceMessage);
+set_message($historyMessage);
 
 mysql_close($link);
 
