@@ -414,6 +414,8 @@ EOT;
 	} else {
 		$alreadyBooked = ALREADY_BOOKED;
 		$selectionOfAvailability = "              <div class=\"right roomFullyBooked\">$alreadyBooked</div>";
+		$oldPricePerNight = '';
+		$pricePerNight = '';
 	}
 
 	$specialOfferHtml = '';
