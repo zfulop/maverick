@@ -99,6 +99,8 @@ $noShowCancelValueChecked = $noShowCancelled ? 'checked' : '';
 $checkinValueChecked = $checkedin ? 'checked' : '';
 $paidValueChecked = $paid ? 'checked' : '';
 
+$cancelSelected = ($noShowCancelledSelected or $recCancelledSelected or $guestCancelledSelected);
+
 
 $link = db_connect();
 
@@ -240,7 +242,7 @@ if(isset($_REQUEST['order'])) {
 $order = $_SESSION['view_booking_order'];
 
 
-$sql = "SELECT booking_descriptions.name, booking_descriptions.source, booking_descriptions.first_night, booking_descriptions.num_of_nights, booking_descriptions.last_night, booking_descriptions.confirmed, booking_descriptions.email, booking_descriptions.telephone, booking_descriptions.nationality, booking_descriptions.cancelled, booking_descriptions.checked_in, booking_descriptions.paid, bookings.*, rooms.name AS room_name FROM bookings INNER JOIN booking_descriptions ON bookings.description_id=booking_descriptions.id INNER JOIN rooms ON rooms.id=bookings.room_id WHERE 1=1";
+$sql = "SELECT booking_descriptions.name, booking_descriptions.source, booking_descriptions.first_night, booking_descriptions.num_of_nights, booking_descriptions.last_night, booking_descriptions.confirmed, booking_descriptions.email, booking_descriptions.telephone, booking_descriptions.nationality, booking_descriptions.cancelled, booking_descriptions.cancel_type, booking_descriptions.checked_in, booking_descriptions.paid, bookings.*, rooms.name AS room_name FROM bookings INNER JOIN booking_descriptions ON bookings.description_id=booking_descriptions.id INNER JOIN rooms ON rooms.id=bookings.room_id WHERE 1=1";
 $searchFor = '';
 if(strlen($fromDate) > 0) {
 	$sql .= " AND booking_descriptions.last_night>='" . str_replace('-', '/', $fromDate) . "'";
@@ -270,19 +272,24 @@ if($confirmedSelected) {
 	$sql .= " AND booking_descriptions.confirmed=" . ($confirmed ? 1 : 0);
 	$searchFor .= "<br>" . ($confirmed ? '' : 'not ') . "confirmed";
 }
-//if($guestCancelledSelected or ) {
-//	$sql .= " AND booking_descriptions.cancelled=" . ($guestCancelled ? 1 : 0) AND ;
-//	$searchFor .= "<br>" . ($guestCancelled ? '' : 'not ') . "guest cancelled";
-//}
-//if($cancelledSelected) {
-//	$sql .= " AND booking_descriptions.cancelled=" . ($cancelled ? 1 : 0);
-//	$searchFor .= "<br>" . ($cancelled ? '' : 'not ') . "cancelled";
-//}
-//if($cancelledSelected) {
-//	$sql .= " AND booking_descriptions.cancelled=" . ($cancelled ? 1 : 0);
-//	$searchFor .= "<br>" . ($cancelled ? '' : 'not ') . "cancelled";
-//}
-
+if($cancelSelected) {
+	$ors = array();
+	if($guestCancelledSelected) {
+		$ors[] = "(booking_descriptions.cancelled=" . ($guestCancelled ? 1 : 0) . " AND booking_descriptions.cancel_type='guest')";
+		$searchFor .= "<br>" . ($guestCancelled ? '' : 'not ') . "guest cancelled";
+	}
+	if($recCancelledSelected) {
+		$ors[] = "(booking_descriptions.cancelled=" . ($recCancelled ? 1 : 0) . " AND booking_descriptions.cancel_type='reception')";
+		$searchFor .= "<br>" . ($recCancelled ? '' : 'not ') . "reception cancelled";
+	}
+	if($noShowCancelledSelected) {
+		$ors[] = "(booking_descriptions.cancelled=" . ($noShowCancelled ? 1 : 0) . " AND booking_descriptions.cancel_type='no_show')";
+		$searchFor .= "<br>" . ($noShowCancelled ? '' : 'not ') . "no show";
+	}
+	if(count($ors) > 0) {
+		$sql .= " AND (" . implode(' OR ',$ors) . ")";
+	}
+}
 if($checkedinSelected) {
 	$sql .= " AND booking_descriptions.checked_in=" . ($checkedin ? 1 : 0);
 	$searchFor .= "<br>" . ($checkedin ? '' : 'not ') . "checked in";
@@ -295,6 +302,7 @@ if($paidSelected) {
 
 
 $sql .= " ORDER BY $order,booking_descriptions.id";
+$searchSql = $sql;
 
 $result = mysql_query($sql, $link);
 $cnt = 0;
@@ -426,7 +434,7 @@ foreach($bookings as $toShow) {
 		if($toShow['confirmed'])
 			echo "			<li>confirmed</li>\n";
 		if($toShow['cancelled'])
-			echo "			<li>cancelled</li>\n";
+			echo "			<li>" . $toShow['cancel_type'] . " cancelled</li>\n";
 		if($toShow['checked_in'])
 			echo "			<li>checked in</li>\n";
 		if($toShow['paid'])

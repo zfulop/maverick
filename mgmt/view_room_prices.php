@@ -52,12 +52,8 @@ echo "<p>\n";
 echo "<form action=\"save_room_prices.php\" target=\"_blank\" method=\"POST\" id=\"price_form\">\n";
 echo "<input type=\"hidden\" name=\"room_type_id\" value=\"$roomTypeId\">\n";
 echo "<input type=\"hidden\" name=\"year\" value=\"$year\">\n";
-echo "<input type=\"hidden\" name=\"start_year\" value=\"$year\">\n";
-echo "<input type=\"hidden\" name=\"start_month\" value=\"01\">\n";
-echo "<input type=\"hidden\" name=\"start_day\" value=\"01\">\n";
-echo "<input type=\"hidden\" name=\"end_year\" value=\"$year\">\n";
-echo "<input type=\"hidden\" name=\"end_month\" value=\"12\">\n";
-echo "<input type=\"hidden\" name=\"end_day\" value=\"31\">\n";
+echo "<input type=\"hidden\" name=\"start_date\" value=\"$year-01-01\">\n";
+echo "<input type=\"hidden\" name=\"end_date\" value=\"$year-12-31\">\n";
 echo "<table border=\"1\">\n";
 echo "	<tr><td></td>";
 for($i = 1; $i <= 31; $i++) {
@@ -70,7 +66,7 @@ if($roomType['type'] == 'DORM') {
 } elseif($roomType['type'] == 'PRIVATE') {
 	echo "<strong style=\"font-size: 150%;\">Prices are per ROOM</strong><br>";
 } elseif($roomType['type'] == 'APARTMENT') {
-	echo "<strong style=\"font-size: 150%;\">Input format in each cell: room price &lt;new line&gt; discount per bed</strong><br>";
+	echo "<strong style=\"font-size: 150%;\">Input format in each cell: room price &lt;new line&gt; surcharge per bed</strong><br>";
 }
 
 for($i = 1; $i <= 12; $i++) {
@@ -87,18 +83,18 @@ for($i = 1; $i <= 12; $i++) {
 		$val2 = '';
 		if(isset($prices[$dateStr])) {
 			$val = $type == 'DORM' ? $prices[$dateStr]['price_per_bed'] : $prices[$dateStr]['price_per_room'];
-			$val2 = $prices[$dateStr]['discount_per_bed'];
+			$val2 = $prices[$dateStr]['surcharge_per_bed'];
 		}
 		echo "<input style=\"width: 20px; font-size: 9px;\" name=\"$dateStr\" value=\"$val\">";
 		if($type == 'APARTMENT') {
-			echo "<br><input style=\"width: 20px; font-size: 9px;\" name=\"dpb_$dateStr\" value=\"$val2\">";
+			echo "<br><input style=\"width: 20px; font-size: 9px;\" name=\"spb_$dateStr\" value=\"$val2\">";
 		}
 		echo "</td>\n";
 	}
 	if(date("t", $monthDt) < 31) {
 		echo "		<td colspan=\"" . (31 - date("t", $monthDt)) . "\"></td>\n";
 	}
-	echo "		<td>EUR&nbsp;for&nbsp;room<br>%&nbsp;discount&nbsp;per&nbsp;bed</td>\n";
+	echo "		<td>EUR&nbsp;for&nbsp;room<br>%&nbsp;surcharge&nbsp;per&nbsp;bed</td>\n";
 	echo "	</tr>\n";
 }
 

@@ -9,7 +9,7 @@ header('Location: view_rooms.php');
 $id = intval($_REQUEST['id']);
 $name = $_REQUEST['name'];
 $pricePerBed = floatval($_REQUEST['price_per_bed']);
-$discountPerBed = intval($_REQUEST['discount_per_bed']);
+$surchargePerBed = intval($_REQUEST['surcharge_per_bed']);
 $pricePerRoom = floatval($_REQUEST['price_per_room']);
 $numOfBeds = intval($_REQUEST['num_of_beds']);
 $numOfExtraBeds = intval($_REQUEST['num_of_extra_beds']);
@@ -29,9 +29,9 @@ if(!$result) {
 }
 
 if($id < 1) {
-	$sql = "INSERT INTO room_types (name, type, num_of_beds, num_of_extra_beds, price_per_room, price_per_bed, discount_per_bed, _order) VALUES ('$name', '$type', $numOfBeds, $numOfExtraBeds, $pricePerRoom, $pricePerBed, $discountPerBed, $order)";
+	$sql = "INSERT INTO room_types (name, type, num_of_beds, num_of_extra_beds, price_per_room, price_per_bed, surcharge_per_bed, _order) VALUES ('$name', '$type', $numOfBeds, $numOfExtraBeds, $pricePerRoom, $pricePerBed, $surchargePerBed, $order)";
 } else {
-	$sql = "UPDATE room_types SET name='$name', type='$type', num_of_beds=$numOfBeds, num_of_extra_beds=$numOfExtraBeds, price_per_room=$pricePerRoom, price_per_bed=$pricePerBed, _order=$order, discount_per_bed=$discountPerBed WHERE id=$id";
+	$sql = "UPDATE room_types SET name='$name', type='$type', num_of_beds=$numOfBeds, num_of_extra_beds=$numOfExtraBeds, price_per_room=$pricePerRoom, price_per_bed=$pricePerBed, _order=$order, surcharge_per_bed=$surchargePerBed WHERE id=$id";
 }
 
 $result = mysql_query($sql, $link);

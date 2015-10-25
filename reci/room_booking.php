@@ -1,7 +1,7 @@
 <?php
 
 function loadRoomTypes($link, $lang = 'eng') {
-	$sql = "SELECT rt.id, rt.price_per_bed, rt.price_per_room, rt.discount_per_bed, rt.type, rt.num_of_beds, lt1.value AS name, lt2.value AS description, lt3.value AS short_description, rt._order, 0 AS num_of_beds_avail FROM room_types rt " . 
+	$sql = "SELECT rt.id, rt.price_per_bed, rt.price_per_room, rt.surcharge_per_bed, rt.type, rt.num_of_beds, lt1.value AS name, lt2.value AS description, lt3.value AS short_description, rt._order, 0 AS num_of_beds_avail FROM room_types rt " . 
 	"INNER JOIN lang_text lt1 ON (lt1.table_name='room_types' AND lt1.column_name='name' AND lt1.row_id=rt.id AND lt1.lang='$lang') " . 
 	"INNER JOIN lang_text lt2 ON (lt2.table_name='room_types' AND lt2.column_name='description' AND lt2.row_id=rt.id AND lt2.lang='$lang') " . 
 	"LEFT OUTER JOIN lang_text lt3 ON (lt3.table_name='room_types' AND lt3.column_name='short_description' AND lt3.row_id=rt.id AND lt3.lang='$lang') ORDER BY rt._order";
@@ -60,11 +60,13 @@ function loadSpecialOffers($startDate, $endDate, $link, $lang = 'eng') {
 		$specialOffers[$row['id']] = $row;
 	}
 
-	$sql = "SELECT * FROM special_offer_dates WHERE special_offer_id IN (" . implode(',',array_keys($specialOffers)) . ")";
-	$result = mysql_query($sql, $link);
-	while($row = mysql_fetch_assoc($result)) {
-		if(isset($specialOffers[$row['special_offer_id']])) {
-			$specialOffers[$row['special_offer_id']]['dates'][] = $row;
+	if(count($specialOffers) > 0) {
+		$sql = "SELECT * FROM special_offer_dates WHERE special_offer_id IN (" . implode(',',array_keys($specialOffers)) . ")";
+		$result = mysql_query($sql, $link);
+		while($row = mysql_fetch_assoc($result)) {
+			if(isset($specialOffers[$row['special_offer_id']])) {
+				$specialOffers[$row['special_offer_id']]['dates'][] = $row;
+			}
 		}
 	}
 
@@ -83,7 +85,7 @@ function &loadOnlyRooms($startYear, $startMonth, $startDay, $endYear, $endMonth,
 	$lastNightDate = "$endYear/$endMonth/$endDay";
 
 	$rooms = array();
-	$sql = "SELECT r.id, r.room_type_id, r.name AS name, rt.name AS room_type_name, rt.type, rt.num_of_beds, rt.price_per_room, rt.price_per_bed, rt.discount_per_bed, rt._order FROM rooms r INNER JOIN room_types rt ON (r.room_type_id=rt.id) WHERE r.valid_to>='$lastNightDate' AND r.valid_from<='$arriveDate'";
+	$sql = "SELECT r.id, r.room_type_id, r.name AS name, rt.name AS room_type_name, rt.type, rt.num_of_beds, rt.price_per_room, rt.price_per_bed, rt.surcharge_per_bed, rt._order FROM rooms r INNER JOIN room_types rt ON (r.room_type_id=rt.id) WHERE r.valid_to>='$lastNightDate' AND r.valid_from<='$arriveDate'";
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot get rooms: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -266,8 +268,8 @@ function getPrice($arriveTS, $nights, &$roomData, $numOfPerson) {
 			//set_debug('get apartment price');
 			$price = getRoomPrice($currYear, $currMonth, $currDay, $roomData);
 			//set_debug('room price: ' . $price);
-			//set_debug('data: ' . print_r(array('num of person'=>$numOfPerson,'room beds'=>$roomData['num_of_beds'],'discount per bed'=>getDiscountPerBed($currYear, $currMonth, $currDay, $roomData)),true));
-			$price = $price - $price * ($roomData['num_of_beds'] - $numOfPerson) * getDiscountPerBed($currYear, $currMonth, $currDay, $roomData) / 100.0;
+			//set_debug('data: ' . print_r(array('num of person'=>$numOfPerson,'room beds'=>$roomData['num_of_beds'],'surcharge per bed'=>getSurchargePerBed($currYear, $currMonth, $currDay, $roomData)),true));
+			$price = $price + $price * ($roomData['num_of_beds'] - $numOfPerson) * getSurchargePerBed($currYear, $currMonth, $currDay, $roomData) / 100.0;
 			$totalPrice += $price;
 		}
 	}
@@ -319,18 +321,18 @@ function getRoomPrice($year, $month, $day, &$room) {
 }
 
 
-function getDiscountPerBed($year, $month, $day, &$room) {
+function getSurchargePerBed($year, $month, $day, &$room) {
 	$retVal = null;
 	$month = __getNormalizedDate($month);
 	$day = __getNormalizedDate($day);
 	$dt = $year . '/' . $month . '/' . $day;
 	if(isset($room['prices'][$dt])) {
-		if(!is_null($room['prices'][$dt]['discount_per_bed']))
-			$retVal = $room['prices'][$dt]['discount_per_bed'];
+		if(!is_null($room['prices'][$dt]['surcharge_per_bed']))
+			$retVal = $room['prices'][$dt]['surcharge_per_bed'];
 		else
-			$retVal = $room['discount_per_bed'];
+			$retVal = $room['surcharge_per_bed'];
 	} else {
-		$retVal = $room['discount_per_bed'];
+		$retVal = $room['surcharge_per_bed'];
 	}
 	return $retVal;
 }
@@ -560,7 +562,7 @@ function specialOfferApplies($specialOffer, $roomType, $nights, $arriveDate, $nu
 		return false;
 	}
 
-	if(!is_null($specialOffer['nights']) and $nights != $specialOffer['nights']) {
+	if(!is_null($specialOffer['nights']) and $nights < $specialOffer['nights']) {
 		return false;
 	}
 
@@ -848,7 +850,8 @@ function saveBookings($toBook, $roomChanges, $startDate, $endDate, &$rooms, &$ro
 
 
 function createDbBooking($type, $numOfPerson, $discountedPayment, $roomId, $descriptionId, $time, $specialOfferId, $link, &$rooms) {
-	$sql = "INSERT INTO bookings (booking_type, num_of_person, room_payment, room_id, description_id, creation_time, special_offer_id) VALUES ('$type', '$numOfPerson', '$discountedPayment', $roomId, $descriptionId, '$time', $specialOfferId)";
+	$rtid = $rooms[$roomId]['room_type_id'];
+	$sql = "INSERT INTO bookings (booking_type, num_of_person, room_payment, room_id, description_id, creation_time, special_offer_id, original_room_type_id) VALUES ('$type', '$numOfPerson', '$discountedPayment', $roomId, $descriptionId, '$time', $specialOfferId, $rtid)";
 	set_debug($sql);
 	if(!mysql_query($sql, $link)) {
 		trigger_error("Cannot save booking: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -891,5 +894,18 @@ function cmpOrdNm($room1, $room2) {
 	return 0;
 }
 
+function verifyBlacklist($name, $email, $maverickEmail, $link) {
+	$sql = "SELECT * FROM blacklist WHERE name='$name' or email='$email'";
+	$result = mysql_query($sql, $link);
+	if(!$result) {
+		trigger_error("Cannot verify blacklist items: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	} elseif(mysql_num_rows($result) > 0) {
+		$msg = "Blacklist items matching $name or $email: ";
+		while($row = mysql_fetch_assoc($result)) {
+			$msg .= "\t" . $row['name'] . "\t" . $row['email'] . "\t" . $row['source'] . "\t" . $row['reason'] . "\n";
+		}
+		sendMail($email, $name, $maverickEmail, "Maverick Reception", "Blacklisted booking received for name: $name or email $email", $msg);
+	}
+}
 
 ?>

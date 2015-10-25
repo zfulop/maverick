@@ -194,7 +194,7 @@ $roomTypesHtmlOptions
 	<div style="clear: left;">Sun <input class="dayselect" style="float: left; display: block;" type="checkbox" name="days[]" value="7" $sunChecked></div>
 </td></tr>
 <tr><td>Bed or Room Price: </td><td><input name="price" size="4"></td></tr>
-<tr><td>Discount per bed (for apartments): </td><td><input name="discount_per_bed" size="4"></td></tr>
+<tr><td>Surcharge per bed (for apartments): </td><td><input name="surcharge_per_bed" size="4"></td></tr>
 <tr><td>Automatic sync: </td><td><input name="sync" id="sync" type="checkbox" value="true" checked="true" onclick="if(this.checked) { document.getElementById('price_form').target='_blank'; } else { document.getElementById('price_form').target='_self'; }"></td></tr>
 <tr><td colspan="2">
 	<input type="button" onclick="if(confirm('Are you sure to save the prices?'))submitPriceForm('price_form', 'sync');return false;" value="Set price(s)">
@@ -301,18 +301,18 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 		if($occupancy >= 100) {
 			$color = 'white';
 		}
-		$dpbHtml = '';
+		$spbHtml = '';
 		if(isApartment($roomType)) {
 			$room = findRoom($rooms, $roomTypeId);
-			$dpbValue = getDiscountPerBed($currYear, $currMonth, $currDay, $room);
-			$dpbHtml = ", <input name=\"dpb$roomTypeId|$currYear-$currMonth-$currDay\" value=\"$dpbValue\" style=\"float: none; display: inline; font-size=70%; width: 25px; height: 20px;\" >%";
+			$spbValue = getSurchargePerBed($currYear, $currMonth, $currDay, $room);
+			$spbHtml = ", <input name=\"spb$roomTypeId|$currYear-$currMonth-$currDay\" value=\"$spbValue\" style=\"float: none; display: inline; font-size=70%; width: 25px; height: 20px;\" >%";
 		}
 		echo <<<EOT
 		<td class="$cssClass" style="background: rgb($red, $green, $blue); color: $color;">
 			<!-- $roomTypeDump -->
 			<div style="float: right; font-size: 60%;">$occupancy%</div>
 			<div class="absolute_value" ><a href="view_pricing_detail.php?room_type_id=$roomTypeId&date=$currDate" data-ot="" data-ot-group="tips" data-ot-hide-trigger="tip" data-ot-show-on="click" data-ot-hide-on="click" data-ot-fixed="true" data-ot-ajax="true">$price&nbsp;&#8364;</a><a href="#" style="font-size: 70%;" onclick="$('setprice_$roomTypeId$currDate').show();return false;">▼</a></div>
-			<div id="setprice_$roomTypeId$currDate" style="display: none;"><input name="$roomTypeId|$currYear-$currMonth-$currDay" value="$priceValue" style="float: none; display: inline; font-size=70%; width: 25px; height: 20px;">&#8364;$dpbHtml</div>
+			<div id="setprice_$roomTypeId$currDate" style="display: none;"><input name="$roomTypeId|$currYear-$currMonth-$currDay" value="$priceValue" style="float: none; display: inline; font-size=70%; width: 25px; height: 20px;">&#8364;$spbHtml</div>
 		</td>
 
 EOT;
@@ -358,8 +358,8 @@ function admin_getRoomPrice($currDate, &$rooms, &$roomType) {
 		} elseif(isApartment($roomType)) {
 			$price = getRoomPrice($year, $month, $day, $selectedRoom);
 			//set_debug('room price: ' . $price);
-			//set_debug('data: ' . print_r(array('num of person'=>$numOfPerson,'room beds'=>$roomData['num_of_beds'],'discount per bed'=>getDiscountPerBed($currYear, $currMonth, $currDay, $roomData)),true));
-			$price = array(($price - $price * ($roomType['num_of_beds'] - 2) * getDiscountPerBed($year, $month, $day, $selectedRoom) / 100.0), $price);
+			//set_debug('data: ' . print_r(array('num of person'=>$numOfPerson,'room beds'=>$roomData['num_of_beds'],'surcharge per bed'=>getSurchargePerBed($currYear, $currMonth, $currDay, $roomData)),true));
+			$price = array(($price + $price * ($roomType['num_of_beds'] - 2) * getSurchargePerBed($year, $month, $day, $selectedRoom) / 100.0), $price);
 		}
 	}
 	return $price;

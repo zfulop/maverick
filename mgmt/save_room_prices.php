@@ -6,7 +6,11 @@ require(ADMIN_BASE_DIR . "common_booking.php");
 
 $link = db_connect();
 
-$roomTypeIds = $_REQUEST['room_type_ids'];
+if(isset($_REQUEST['room_type_ids']) and is_array($_REQUEST['room_type_ids'])) {
+	$roomTypeIds = $_REQUEST['room_type_ids'];
+} else {
+	$roomTypeIds = array($_REQUEST['room_type_id']);
+}
 $_SESSION['room_price_room_type_ids'] = $roomTypeIds;
 $sql = "select * from room_types where id IN (" . implode(",", $roomTypeIds) . ")";
 $result = mysql_query($sql, $link);
@@ -80,13 +84,13 @@ foreach($roomTypeIds as $roomTypeId) {
 		$dateStr = str_replace('-', '/', $currDate);
 		if(isset($_REQUEST['price'])) {
 			$val = intval($_REQUEST['price']);
-			$dpb = intval($_REQUEST['discount_per_bed']);
+			$spb = intval($_REQUEST['surcharge_per_bed']);
 		} else {
 			$val = intval($_REQUEST[$dateStr]);
-			if(isset($_REQUEST['dpb_' . $dateStr])) {
-				$dpb = intval($_REQUEST['dpb_' . $dateStr]);
+			if(isset($_REQUEST['spb_' . $dateStr])) {
+				$spb = intval($_REQUEST['spb_' . $dateStr]);
 			} else {
-				$dpb = 0;
+				$spb = 0;
 			}
 		}
 		if($val > 0) {
@@ -95,13 +99,20 @@ foreach($roomTypeIds as $roomTypeId) {
 				$avgNumOfBeds = getAvgNumOfBedsOccupied($bookings, $currDate, $currDate);
 				$occupancy = round($avgNumOfBeds / $roomTypes[$roomTypeId]['available_beds'] * 100);
 				$priceRow = $priceRows[$roomTypeId][$dateStr];
+	
+				$newPricePerRoom = ((isPrivate($roomType) or isApartment($roomType)) ? $val : null);
+				$newPricePerBed = (isDorm($roomType) ? $val : null);
+				if(isSamePrice($newPricePerRoom, $newPricePerBed, $spb, $priceRow)) {
+					continue;
+				}
+
 				$historyValues[] = "('" . $priceRow['date'] . "', " .
 						(is_null($priceRow['price_per_room']) ? 'NULL' : $priceRow['price_per_room']) . ", " .
 						(is_null($priceRow['price_per_bed']) ? 'NULL' : $priceRow['price_per_bed']) . ", " .
 						$roomTypeId . ", " .
 						(is_null($priceRow['price_set_date']) ? 'NULL' : '\''.$priceRow['price_set_date'].'\'') . ", " .
 						"'$todaySlash', $occupancy, " .
-						(is_null($priceRow['discount_per_bed']) ? 'NULL' : '\''.$priceRow['discount_per_bed'].'\'') . ")";
+						(is_null($priceRow['surcharge_per_bed']) ? 'NULL' : '\''.$priceRow['surcharge_per_bed'].'\'') . ")";
 			}
 
 			$sql = "DELETE FROM prices_for_date WHERE room_type_id=$roomTypeId AND date='$dateStr'";
@@ -111,7 +122,7 @@ foreach($roomTypeIds as $roomTypeId) {
 			}
 			
 			// For private and apartment set the room price, for dorm set the bed price.
-			$newPriceValues[] = "($roomTypeId, '$dateStr', " . ($roomType['type'] != 'DORM' ? $val : 'NULL') . ", " . ($roomType['type'] == 'DORM' ? $val : 'NULL') . ", '$todaySlash', $dpb)";
+			$newPriceValues[] = "($roomTypeId, '$dateStr', " . ($roomType['type'] != 'DORM' ? $val : 'NULL') . ", " . ($roomType['type'] == 'DORM' ? $val : 'NULL') . ", '$todaySlash', $spb)";
 		}
 	}
 }
@@ -120,7 +131,7 @@ foreach($roomTypeIds as $roomTypeId) {
 set_message("Price setting skipped for dates: " . implode(',', $priceSettingSkipped));
 
 if(count($historyValues) > 0) {
-	$sql = "INSERT INTO prices_for_date_history (date, price_per_room, price_per_bed, room_type_id, price_set_date, price_unset_date, occupancy, discount_per_bed) VALUES " . implode(', ', $historyValues);
+	$sql = "INSERT INTO prices_for_date_history (date, price_per_room, price_per_bed, room_type_id, price_set_date, price_unset_date, occupancy, surcharge_per_bed) VALUES " . implode(', ', $historyValues);
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot create room prices history in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -132,7 +143,7 @@ if(count($historyValues) > 0) {
 }
 
 if(count($newPriceValues) > 0) {
-	$sql = "INSERT INTO prices_for_date (room_type_id, date, price_per_room, price_per_bed, price_set_date, discount_per_bed) VALUES " . implode(', ', $newPriceValues);
+	$sql = "INSERT INTO prices_for_date (room_type_id, date, price_per_room, price_per_bed, price_set_date, surcharge_per_bed) VALUES " . implode(', ', $newPriceValues);
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot create new room prices in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -144,5 +155,19 @@ if(count($newPriceValues) > 0) {
 }
 
 mysql_close($link);
+
+
+function isSamePrice($newPricePerRoom, $newPricePerBed, $spb, $priceRow) {
+	if(!is_null($newPricePerRoom) and ($newPricePerRoom != $priceRow['price_per_room'])) {
+		return false;
+	}
+	if(!is_null($newPricePerBed) and ($newPricePerBed != $priceRow['price_per_bed'])) {
+		return false;
+	}
+	if(!is_null($spb) and ($dpb != $priceRow['surcharge_per_bed'])) {
+		return false;
+	}
+	return true;
+}
 
 ?>

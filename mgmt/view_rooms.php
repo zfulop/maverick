@@ -119,7 +119,7 @@ echo <<<EOT
 	<tr><td><label>Number of extra beds</label></td><td><input name="num_of_extra_beds" id="num_of_extra_beds" style="width: 40px;"></td></tr>
 	<tr><td><label>Price per room</label></td><td><input name="price_per_room" id="price_per_room" style="width: 40px;"> <span>Euro</span></td></tr>
 	<tr><td><label>Price per bed</label></td><td><input name="price_per_bed" id="price_per_bed" style="width: 40px;"> <span>Euro</span></td></tr>
-	<tr><td><label>Discount per bed (for apartments)</label></td><td><input name="discount_per_bed" id="discount_per_bed" style="width: 40px;"><span>%</span></td></tr>
+	<tr><td><label>Surcharge per bed (for apartments)</label></td><td><input name="surcharge_per_bed" id="surcharge_per_bed" style="width: 40px;"><span>%</span></td></tr>
 	<tr><td><label>Order</label></td><td><input name="order" id="order" style="width: 40px;"></td></tr>
 
 EOT;
@@ -197,7 +197,7 @@ $roomTypesHtmlOptions
 	<div style="clear: left;">Sun <input class="dayselect" style="float: left; display: block;" type="checkbox" name="days[]" value="7" $sunChecked></div>
 </td></tr>
 <tr><td>Bed or Room Price: </td><td><input name="price" size="4"></td></tr>
-<tr><td>Discount per bed (for apartments): </td><td><input name="discount_per_bed" size="4"></td></tr>
+<tr><td>Surcharge per bed (for apartments): </td><td><input name="surcharge_per_bed" size="4"></td></tr>
 <tr><td>Automatic sync: </td><td><input name="sync" id="sync" type="checkbox" value="true" checked="true" onclick="if(this.checked) { document.getElementById('price_form').target='_blank'; } else { document.getElementById('price_form').target='_self'; }"></td></tr>
 <tr><td colspan="2">
 	<input type="button" onclick="if(confirm('Are you sure to save the prices?'))submitPriceForm();return false;" value="Set price(s)">
@@ -213,7 +213,7 @@ $roomTypesHtmlOptions
 
 EOT;
 if(count($roomTypes) > 0)
-	echo "	<tr><th>Order</th><th>Name</th><th>Type</th><th>Price per bed</th><th>Price per room</th><th>Discount per bed</th><th># of beds</th><th># of extra beds</th><th></th></tr>\n";
+	echo "	<tr><th>Order</th><th>Name</th><th>Type</th><th>Price per bed</th><th>Price per room</th><th>Surcharge per bed</th><th># of beds</th><th># of extra beds</th><th></th></tr>\n";
 else
 	echo "	<tr><td><i>No record found.</i></td></tr>\n";
 
@@ -237,7 +237,7 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 	echo "		document.getElementById('room_type_name').value='" . $roomType['name'] . "';\n";
 	echo "		document.getElementById('price_per_room').value='" . $roomType['price_per_room'] . "';\n";
 	echo "		document.getElementById('price_per_bed').value='" . $roomType['price_per_bed'] . "';\n";
-	echo "		document.getElementById('discount_per_bed').value='" . $roomType['discount_per_bed'] . "';\n";
+	echo "		document.getElementById('surcharge_per_bed').value='" . $roomType['surcharge_per_bed'] . "';\n";
 	echo "		document.getElementById('num_of_beds').value='" . $roomType['num_of_beds'] . "';\n";
 	echo "		document.getElementById('num_of_extra_beds').value='" . $roomType['num_of_extra_beds'] . "';\n";
 	echo "		document.getElementById('type').selectedIndex=" . $TYPES[$roomType['type']] . ";\n";
@@ -258,7 +258,7 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 	echo "<td>" . $roomType['type'] . "</td>";
 	echo "<td>" . $roomType['price_per_bed'] . "</td>";
 	echo "<td>" . $roomType['price_per_room'] . "</td>";
-	echo "<td>" . $roomType['discount_per_bed'] . "</td>";
+	echo "<td>" . $roomType['surcharge_per_bed'] . "</td>";
 	echo "<td>" . $roomType['num_of_beds'] . "</td>";
 	echo "<td>" . $roomType['num_of_extra_beds'] . "</td>";
 	echo "<td>\n";
