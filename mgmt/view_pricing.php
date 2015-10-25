@@ -270,6 +270,11 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 	echo "\t<tr><th>" . $roomType['name'] . "</th><td>" . $roomType['available_beds'] . "</td>";
 	$currDateTs = strtotime($startDate);
 	$cssClass = 'odd';
+	if($roomType['type'] == 'DORM') {
+		$numOfBedsInRoom = null;
+	} else {
+		$numOfBedsInRoom = $roomType['num_of_beds'];
+	}
 	while($currDateTs <= $endDateTs) {
 		$cssClass = ($cssClass == 'odd' ? 'even' : 'odd');
 		$currDate = date('Y-m-d', $currDateTs);
