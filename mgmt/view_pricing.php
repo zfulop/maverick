@@ -294,13 +294,7 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 		$red = intval((4 - 3*$occupancy / 100.0) * 171);
 		$green = intval((4 - 3*$occupancy / 100.0) * 26);
 		$blue = intval((4 - 3*$occupancy / 100.0) * 11);
-		$price = admin_getRoomPrice($currDate, $rooms, $roomType);
-		if(is_array($price)) {
-			$priceValue = $price[1];
-			$price = $price[0];
-		} else {
-			$priceValue = $price;
-		}
+		$priceValue = admin_getRoomPrice($currDate, $rooms, $roomType);
 		$roomTypeDump = print_r($roomType, true);
 		$color = 'black';
 		if($occupancy >= 100) {
@@ -316,8 +310,8 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 		<td class="$cssClass" style="background: rgb($red, $green, $blue); color: $color;">
 			<!-- $roomTypeDump -->
 			<div style="float: right; font-size: 60%;">$occupancy%</div>
-			<div class="absolute_value" ><a href="view_pricing_detail.php?room_type_id=$roomTypeId&date=$currDate" data-ot="" data-ot-group="tips" data-ot-hide-trigger="tip" data-ot-show-on="click" data-ot-hide-on="click" data-ot-fixed="true" data-ot-ajax="true">$price&nbsp;&#8364;</a><a href="#" style="font-size: 70%;" onclick="$('setprice_$roomTypeId$currDate').show();return false;">▼</a></div>
-			<div id="setprice_$roomTypeId$currDate" style="display: none;"><input name="$roomTypeId|$currYear-$currMonth-$currDay" value="$priceValue" style="float: none; display: inline; font-size=70%; width: 25px; height: 20px;">&#8364;$spbHtml</div>
+			<div class="absolute_value" ><a href="view_pricing_detail.php?room_type_id=$roomTypeId&date=$currDate" data-ot="" data-ot-group="tips" data-ot-hide-trigger="tip" data-ot-show-on="click" data-ot-hide-on="click" data-ot-fixed="true" data-ot-ajax="true">$priceValue&nbsp;&#8364;</a><a href="#" style="font-size: 70%;" onclick="$('setprice_$roomTypeId$currDate').show();return false;">▼</a></div>
+			<div id="setprice_$roomTypeId$currDate" style="display: none;"><input name="$roomTypeId|$currYear-$currMonth-$currDay" value="" style="float: none; display: inline; font-size=70%; width: 25px; height: 20px;">&#8364;$spbHtml</div>
 		</td>
 
 EOT;
@@ -364,7 +358,6 @@ function admin_getRoomPrice($currDate, &$rooms, &$roomType) {
 			$price = getRoomPrice($year, $month, $day, $selectedRoom);
 			//set_debug('room price: ' . $price);
 			//set_debug('data: ' . print_r(array('num of person'=>$numOfPerson,'room beds'=>$roomData['num_of_beds'],'surcharge per bed'=>getSurchargePerBed($currYear, $currMonth, $currDay, $roomData)),true));
-			$price = array(($price + $price * ($roomType['num_of_beds'] - 2) * getSurchargePerBed($year, $month, $day, $selectedRoom) / 100.0), $price);
 		}
 	}
 	return $price;
