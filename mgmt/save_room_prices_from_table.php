@@ -89,7 +89,7 @@ for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', str
 				(is_null($priceRow['price_set_date']) ? 'NULL' : '\''.$priceRow['price_set_date'].'\'') . ", " .
 				"'$todaySlash', $occupancy, " .
 				(is_null($priceRow['surcharge_per_bed']) ? 'NULL' : '\''.$priceRow['surcharge_per_bed'].'\'') . ")";
-			$historyMessage .= "New history item: " . $roomTypeDate['name'] . " " . $priceRow['date'] . "<br>\n";
+			$historyMessage .= "New history item: " . $roomTypeData['name'] . " " . $priceRow['date'] . "<br>\n";
 
 		}
 
@@ -101,7 +101,7 @@ for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', str
 		}
 
 		$newPriceValues[] = "($roomTypeId, '$currDateSlash', " . (is_null($newPricePerRoom) ? 'NULL' : $newPricePerRoom) . ", " . (is_null($newPricePerBed) ? 'NULL' : $newPricePerBed) . ", '$todaySlash', " . (is_null($spb) ? 'NULL' : $spb) . ")";
-		$newPriceMessage .= "New price saved: " . $roomTypeData['name'] . " $dateStr <br>\n";
+		$newPriceMessage .= "New price saved: " . $roomTypeData['name'] . " $currDate <br>\n";
 
 	}
 }
