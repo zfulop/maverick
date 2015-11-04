@@ -50,4 +50,15 @@ function initLanguage() {
 	setlocale(LC_ALL, LOCALE);
 }
 
+function stripAccents($str) {
+	$str = utf8_decode($str);
+	$str = strtr($str,	
+		utf8_decode("()!$'?: ,&+-/.ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŐŰÙÚÛÜÝßàáâãäåæçèéêëìíîïðñòóôõöőøùúûüűýÿ"),
+			    "______________SOZsozYYuAAAAAAACEEEEIIIIDNOOOOOOOUUUUUYsaaaaaaaceeeeiiiionooooooouuuuuyy");
+
+	$str = utf8_encode($str);
+	return $str;
+}
+
+
 ?>

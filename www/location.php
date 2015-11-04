@@ -387,9 +387,7 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 		$price = $roomType['price_per_room'];
 		$priceStartingFrom = sprintf(PRICE_STARTING_FROM_PER_ROOM, formatMoney(convertCurrency($price, 'EUR', $currency), getCurrency()));
 	} elseif(isApartment($roomType)) {
-		// the price of apartment for 2 people
-		// room price - (num of beds-2)*discount per bed*room price
-		$price = $roomType['price_per_room'] - $roomType['price_per_room'] * ($roomType['num_of_beds'] - 2) * $roomType['discount_per_bed'] / 100.0;
+		$price = $roomType['price_per_room'];
 		$priceStartingFrom = sprintf(PRICE_STARTING_FROM_PER_APARTMENT, formatMoney(convertCurrency($price, 'EUR', $currency), getCurrency()));
 	}
 	$name = $roomType['name'];
