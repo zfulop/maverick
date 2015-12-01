@@ -2,6 +2,11 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 $roomTypeId = $_REQUEST['room_type_id'];
@@ -33,7 +38,7 @@ while($row = mysql_fetch_assoc($result)) {
 $type = $roomType['type'];
 
 
-html_start("Maverick Mgmt - Room Prices ");
+html_start("Room Prices ");
 
 echo "<h2>" . $roomType['name'] . "</h2>\n";
 echo "<table>\n";

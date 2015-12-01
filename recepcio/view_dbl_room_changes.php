@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $extraHeader = <<<EOT
 
 <script src="js/datechooser/date-functions.js" type="text/javascript"></script>
@@ -14,7 +21,7 @@ $extraHeader = <<<EOT
 
 EOT;
 
-html_start("Maverick Reception - Multiple room changes", $extraHeader);
+html_start("Multiple room changes", $extraHeader);
 
 echo <<<EOT
 

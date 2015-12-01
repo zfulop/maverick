@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $link = db_connect();
 
 $name = $_REQUEST['name'];

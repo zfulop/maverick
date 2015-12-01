@@ -2,6 +2,11 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 $images = array();
@@ -26,7 +31,7 @@ while($row = mysql_fetch_assoc($result)) {
 	$images[$row['room_type_id']][$row['filename']][$row['lang']] = $row['description'];
 }
 
-html_start("Maverick Mgmt - Room images");
+html_start("Room images");
 
 echo <<<EOT
 

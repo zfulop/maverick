@@ -3,6 +3,13 @@
 require("includes.php");
 require("room_booking.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 foreach($_SESSION as $code => $val) {
 	if(substr($code, 0, 3) == 'EB_') {
 		unset($_SESSION[$code]);

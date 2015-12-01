@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $link = db_connect();
 
 if(isset($_REQUEST['vacation_month'])) {
@@ -52,7 +59,7 @@ if($result) {
 mysql_close($link);
 
 
-html_start("Maverick Reception - Vacations");
+html_start("Vacations");
 
 
 echo <<<EOT

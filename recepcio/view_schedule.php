@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $link = db_connect();
 
 if(!isset($_SESSION['schedule_year'])) {
@@ -143,7 +150,7 @@ $extraHeader =<<<EOT
 
 EOT;
 
-html_start("Maverick Reception - Reception/Cleaning Schedule", $extraHeader);
+html_start("Reception/Cleaning Schedule", $extraHeader);
 
 
 echo <<<EOT

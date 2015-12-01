@@ -3,6 +3,11 @@
 require("includes.php");
 require("site_text_common.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 
 $langTexts = loadConstants();
 foreach($_REQUEST as $key => $value) {

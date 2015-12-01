@@ -2,6 +2,13 @@
 
 require 'includes.php';
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $currDate = str_replace('-', '/', $_REQUEST['date']);
 $roomIds = array();
 for($i = 1; $i < 10; $i++) {

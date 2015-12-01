@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $id = intval($_REQUEST['guest_data_id']);
 $bookingDescrId = $_REQUEST['booking_description_id'];
 $name = $_REQUEST['name'];

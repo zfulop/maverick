@@ -1,8 +1,0 @@
-AuthUserFile  /var/hosting/web/maverickhostel.com/website/recepcio/.htpasswd
-AuthName "Maverick Hostel - Recepcio"
-AuthType Basic
-<Limit GET POST>
-require valid-user
-</Limit>
-
-AddHandler x-httpd-php5 .php

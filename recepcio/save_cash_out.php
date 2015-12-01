@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $type = $_REQUEST['type'];
 $receiver = $_REQUEST['receiver'];
 $timeOfPayment = date('Y-m-d H:i:s');

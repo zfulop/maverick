@@ -2,6 +2,10 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_ADMIN)) {
+	return;
+}
+
 header('Location: ' . $_SERVER['HTTP_REFERER']);
 
 $link = db_connect();

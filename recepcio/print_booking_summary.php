@@ -1,7 +1,14 @@
 <?php
 
 require("includes.php");
-require("includes/fpdf.php");
+require("../includes/fpdf.php");
+
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
 
 $link = db_connect();
 

@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $link = db_connect();
 
 $serviceChargeTypeOptions = "";
@@ -18,7 +25,7 @@ while($row = mysql_fetch_assoc($result)) {
 
 $currencyOptions = "<option value=\"EUR\">EUR</option><option value=\"HUF\">HUF</option>";
 
-html_start("Maverick Reception - Services");
+html_start("Services");
 
 
 echo <<<EOT

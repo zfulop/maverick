@@ -2,6 +2,11 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 $searchOrder = "audit.time_of_event";
@@ -49,7 +54,7 @@ $extraHeader = <<<EOT
 
 EOT;
 
-html_start("Maverick Admin - Audit", $extraHeader);
+html_start("Audit", $extraHeader);
 
 
 

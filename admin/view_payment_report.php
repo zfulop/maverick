@@ -2,7 +2,9 @@
 
 require("includes.php");
 
-
+if(!checkLogin(SITE_ADMIN)) {
+	return;
+}
 
 $link = db_connect();
 
@@ -184,10 +186,10 @@ EOT;
 
 
 
-html_start("Maverick Admin - Payment reporting", $extraHeader);
+html_start("Payment reporting", $extraHeader);
 
 
-$fromName = $_SERVER['PHP_AUTH_USER'];
+$fromName = $_SESSION['login_user'];
 
 echo <<<EOT
 

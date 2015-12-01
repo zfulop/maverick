@@ -3,6 +3,11 @@
 require("includes.php");
 require(RECEPCIO_BASE_DIR . "room_booking.php");
 
+if(!checkLogin(SITE_ADMIN)) {
+	return;
+}
+
+
 $link = db_connect();
 
 
@@ -323,7 +328,7 @@ if($includeY2y) {
 	}
 }
 
-html_start("Maverick Admin - Lead time", $extraHeader, 'init();');
+html_start("Lead time", $extraHeader, 'init();');
 
 
 echo <<<EOT

@@ -2,6 +2,13 @@
 
 require 'includes.php';
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 if(count($_SESSION['rearrange_room_changes']) < 1) {
 	set_error("There are no room changes.");
 	header("Location: " . $_SERVER['HTTP_REFERER']);

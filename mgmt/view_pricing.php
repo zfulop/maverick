@@ -4,6 +4,11 @@ require("includes.php");
 require(RECEPCIO_BASE_DIR . "room_booking.php");
 require(ADMIN_BASE_DIR . "common_booking.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 
@@ -130,7 +135,7 @@ $roomTypes = loadRoomTypesWithAvailableBeds($link, $startDate, $endDate);
 mysql_close($link);
 
 
-html_start("Maverick Admin - Pricing", $extraHeader);
+html_start("Pricing", $extraHeader);
 
 
 if(!isset($_SESSION['room_price_room_type_ids'])) {

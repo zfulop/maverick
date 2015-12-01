@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $link = db_connect();
 
 $sql = "SELECT * FROM awards ORDER BY _order";
@@ -10,7 +17,7 @@ if(!$result) {
 	trigger_error("Cannot get awards in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 }
 
-html_start("Maverick Reception - Awards");
+html_start("Awards");
 
 
 echo <<<EOT

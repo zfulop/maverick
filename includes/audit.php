@@ -40,7 +40,7 @@ define('AUDIT_UNCANCEL_BOOKING', 'UNCANCEL_BOOKING');
 define('AUDIT_UNCONFIRM_BOOKING', 'UNCONFIRM_BOOKING');
 
 function audit($type, $data, $bookingId, $bookingDescriptionId, $link) {
-	$login = $_SERVER['REMOTE_USER'];
+	$login = $_SESSION['login_user'];
 	$time = date('Y-m-d H:i:s');
 	if(is_null($bookingId)) {
 		$bookingId = 'NULL';

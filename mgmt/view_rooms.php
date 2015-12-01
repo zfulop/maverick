@@ -3,6 +3,11 @@
 require("includes.php");
 require(RECEPCIO_BASE_DIR . "room_booking.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 
 $TYPES = array(
 	'DORM' => 0,
@@ -94,7 +99,7 @@ function submitPriceForm() {
 EOT;
 
 
-html_start("Maverick Mgmt - Rooms ", $extraHeader);
+html_start("Rooms ", $extraHeader);
 
 
 echo <<<EOT

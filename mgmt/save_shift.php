@@ -2,6 +2,11 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 header('Location: view_shifts.php');

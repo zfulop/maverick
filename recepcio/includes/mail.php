@@ -20,7 +20,7 @@ function sendMail($fromEmail, $fromName, $toEmail, $toName, $subject, $message, 
 		$mail->AddEmbeddedImage($path, $cid, basename($path));
 	}
 
-	$locale = LOCALE;
+	$locale = 'en_US';
 	list($lang, $co) = explode('_', $locale);
 	$mail->SetLanguage($lang, PHP_MAILER_LANGUAGE_DIR);
 

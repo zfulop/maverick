@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $link = db_connect();
 
 $roomTypes = array();
@@ -35,7 +42,7 @@ $extraHeader =<<<EOT
 
 EOT;
 
-html_start("Maverick Reception - Special Offers", $extraHeader);
+html_start("Special Offers", $extraHeader);
 
 
 echo <<<EOT

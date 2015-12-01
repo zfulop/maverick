@@ -3,9 +3,14 @@
 require("includes.php");
 require("site_text_common.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $langTexts = loadConstants();
 
-html_start("Maverick Reception - Website Texts");
+html_start("Website Texts");
 
 
 echo <<<EOT

@@ -4,6 +4,11 @@ require("includes.php");
 require(RECEPCIO_BASE_DIR . "room_booking.php");
 require(ADMIN_BASE_DIR . "common_booking.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 if(isset($_REQUEST['room_type_ids']) and is_array($_REQUEST['room_type_ids'])) {

@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $link = db_connect();
 
 $viewDay = null;
@@ -181,7 +188,7 @@ EOT;
 
 
 
-html_start("Maverick Reception - Cash Register", $extraHeader);
+html_start("Cash Register", $extraHeader);
 
 
 $fromName = $_SERVER['REMOTE_USER'];

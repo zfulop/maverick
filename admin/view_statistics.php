@@ -3,8 +3,11 @@
 require("includes.php");
 require(RECEPCIO_BASE_DIR . "room_booking.php");
 
-$link = db_connect();
+if(!checkLogin(SITE_ADMIN)) {
+	return;
+}
 
+$link = db_connect();
 
 $extraHeader = <<<EOT
 
@@ -420,7 +423,7 @@ if($includeY2y) {
 
 mysql_close($link);
 
-html_start("Maverick Admin - Statistics", $extraHeader, 'init();');
+html_start("Statistics", $extraHeader, 'init();');
 
 
 echo <<<EOT

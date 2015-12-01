@@ -2,6 +2,13 @@
 
 require 'includes.php';
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $sourceCurrency = $_REQUEST['source_currency'];
 $destCurrency = $_REQUEST['destination_currency'];
 $date = $_REQUEST['date_of_conversion'];

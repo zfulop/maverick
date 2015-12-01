@@ -683,10 +683,10 @@ $result = sendMail('reservation@mavericklodges.com', $locationName,
 //set_debug("Send mail response: $result");
 //
 
-if($location == 'hostel') {
-	$editBookingUrl = "http://recepcio.maverickhostel.com/edit_booking.php?description_id=$descriptionId";
-} else {
+if($location == 'lodge') {
 	$editBookingUrl = "http://recepcio.mavericklodges.com/edit_booking.php?description_id=$descriptionId";
+} else {
+	$editBookingUrl = "http://recepcio.maverickhostel.com/edit_booking.php?description_id=$descriptionId";
 }
 
 $recepcioMessage = <<<EOT

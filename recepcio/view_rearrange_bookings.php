@@ -3,6 +3,13 @@
 require("includes.php");
 require("room_booking.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $link = db_connect();
 
 $startDate = $_REQUEST['start_date'];
@@ -238,7 +245,7 @@ EOT;
 
 $incldeWzTooltip = false;
 
-html_start("Maverick Reception - Rearrange bookings for period: $startDate - $endDate", $extraHeader, true, 'UpdateTableHeaders(); jQuery(window).scroll(UpdateTableHeaders);initBookings();initDroppables();');
+html_start("Rearrange bookings for period: $startDate - $endDate", $extraHeader, true, 'UpdateTableHeaders(); jQuery(window).scroll(UpdateTableHeaders);initBookings();initDroppables();');
 
 echo <<<EOT
 

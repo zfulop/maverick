@@ -2,6 +2,11 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $imgFile = saveUploadedImage('photo', PHOTOS_DIR, 600, 600);
 $thumb = createThumbnail($imgFile, 115, 115);
 if($imgFile === false)

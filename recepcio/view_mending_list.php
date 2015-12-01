@@ -3,6 +3,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $link = db_connect();
 
 
@@ -41,7 +48,7 @@ foreach($colors as $color => $code) {
 
 
 
-html_start("Maverick Reception - Mending List", $extraHeader);
+html_start("Mending List", $extraHeader);
 
 $today = date('Y-m-d');
 

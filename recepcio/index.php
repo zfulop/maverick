@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $link = db_connect();
 
 if(isset($_REQUEST['day_to_show'])) {
@@ -20,7 +27,7 @@ if(date('G') < 5 and !isset($_REQUEST['day_to_show'])) {
 
 $bdids = array();
 $arrivingToday = array();
-$sql = "SELECT bd.*, bd2.first_night AS prev_first_night FROM booking_descriptions bd LEFT OUTER JOIN booking_descriptions bd2 ON ((bd.email=bd2.email OR bd.name=bd2.name) AND bd.first_night>bd2.first_night) WHERE bd.first_night='$today' and bd.checked_in=0 AND bd.cancelled=0";
+$sql = "SELECT bd.*, bd2.first_night AS prev_first_night FROM booking_descriptions bd LEFT OUTER JOIN booking_descriptions bd2 ON (((bd.email<>'' AND bd.email=bd2.email) OR bd.name=bd2.name) AND bd.first_night>bd2.first_night AND bd2.cancelled<>1) WHERE bd.first_night='$today' and bd.checked_in=0 AND bd.cancelled=0";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	trigger_error("Cannot get arriving guests for today: " . mysql_error($link) . " (SQL: $sql)");

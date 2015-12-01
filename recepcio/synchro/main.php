@@ -4,6 +4,13 @@
 require('../includes.php');
 require('../room_booking.php');
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 if(file_exists('captcha/hrs.png')) {
 	unlink('captcha/hrs.png');
 }
@@ -29,24 +36,24 @@ $currDate = $startDate;
 $currEndDate = min($endDate, date('Y-m-d', strtotime($startDate . ' +1 month')));
 $cntr = 0;
 while($currDate < $endDate) {
-	list($startYear, $startMonth, $startDay) = explode('-', $currDate);
-	list($endYear, $endMonth, $endDay) = explode('-', $currEndDate);
-	if(strlen($startDay) == 1)
-		$startDay = '0' . $startDay;
-	if(strlen($startMonth) == 1)
-		$startMonth = '0' . $startMonth;
-	if(strlen($endDay) == 1)
-		$endDay = '0' . $endDay;
-	if(strlen($endMonth) == 1)
-		$endMonth = '0' . $endMonth;
-	$params = "start_year=$startYear&start_month=$startMonth&start_day=$startDay&end_year=$endYear&end_month=$endMonth&end_day=$endDay";
+	list($currStartYear, $currStartMonth, $currStartDay) = explode('-', $currDate);
+	list($currEndYear, $currEndMonth, $currEndDay) = explode('-', $currEndDate);
+	if(strlen($currStartDay) == 1)
+		$currStartDay = '0' . $currStartDay;
+	if(strlen($currStartMonth) == 1)
+		$currStartMonth = '0' . $currStartMonth;
+	if(strlen($currEndDay) == 1)
+		$currEndDay = '0' . $currEndDay;
+	if(strlen($currEndMonth) == 1)
+		$currEndMonth = '0' . $currEndMonth;
+	$params = "start_year=$currStartYear&start_month=$currStartMonth&start_day=$currStartDay&end_year=$currEndYear&end_month=$currEndMonth&end_day=$currEndDay";
 	$paramsArray[] = $params;
 	$datesArray[] = "$currDate - $currEndDate";
-	$currDate = date('Y-m-d', strtotime($currEndDate . ' +1 day'));
-	$currEndDate = min($endDate, date('Y-m-d', strtotime($currDate . ' +1 month')));
 	$loadHrs .= in_array('hrs', $_REQUEST['sites']) ? "loadFrame('hrs$cntr', 'hrs.php?$params');\n" : '';
 	$loadMyAllocator .= in_array('myallocator', $_REQUEST['sites']) ? "loadFrame('myallocator$cntr', 'myallocator.php?$params');\n" : '';
-
+	$currDate = $currEndDate;
+	$currEndDate = min($endDate, date('Y-m-d', strtotime($currDate . ' +1 month')));
+	$cntr += 1;
 }
 $diff = strtotime($endDate) - strtotime($startDate);
 

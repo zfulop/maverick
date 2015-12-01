@@ -3,6 +3,12 @@
 require("includes.php");
 require("room_booking.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
 set_debug("add_booking.php START");
 
 $link = db_connect();

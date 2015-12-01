@@ -2,6 +2,11 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 $login = $_REQUEST['login'];
@@ -23,7 +28,7 @@ if($result) {
 mysql_close($link);
 
 
-html_start("Maverick Mgmt - Receptionists - Hours worked for month $year-$month");
+html_start("Receptionists - Hours worked for month $year-$month");
 
 
 echo <<<EOT

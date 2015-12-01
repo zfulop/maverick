@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $extraHeader = <<<EOT
 
 <script src="js/datechooser/date-functions.js" type="text/javascript"></script>
@@ -20,7 +27,7 @@ foreach(getCurrencies() as $curr) {
 }
 
 
-html_start("Maverick Reception - Exchange Rates", $extraHeader);
+html_start("Exchange Rates", $extraHeader);
 
 $currencies = getCurrencies();
 $numOfCurrencies = count($currencies);

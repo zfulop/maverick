@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $timeOfDayClose = date('Y-m-d H:i:s');
 $hufCasse = $_REQUEST['casseHUF'];
 $eurCasse = $_REQUEST['casseEUR'];

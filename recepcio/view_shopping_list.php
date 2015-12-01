@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $extraHeader = <<<EOT
 
 <script src="js/datechooser/date-functions.js" type="text/javascript"></script>
@@ -14,7 +21,7 @@ $extraHeader = <<<EOT
 
 EOT;
 
-html_start("Maverick Reception - Shopping List", $extraHeader);
+html_start("Shopping List", $extraHeader);
 
 $today = date('Y-m-d');
 echo <<<EOT

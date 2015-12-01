@@ -2,6 +2,11 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 header('Location: view_min_max_stay.php');
 
 $link = db_connect();

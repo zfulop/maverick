@@ -2,6 +2,10 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
 
 
 $link = db_connect();
@@ -216,7 +220,7 @@ EOT;
 
 
 
-html_start("Maverick Mgmt - Report", $extraHeader);
+html_start("Report", $extraHeader);
 
 
 $fromName = $_SERVER['REMOTE_USER'];

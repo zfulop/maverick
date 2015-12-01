@@ -3,6 +3,11 @@
 $START_DATE = '2014-09-20';
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 $sql = "SELECT bd.* FROM booking_descriptions bd INNER JOIN payments pc ON (bd.id=pc.booking_description_id AND pc.pay_mode='CASH' AND pc.storno<>1 AND pc.type='Szobabevétel') LEFT OUTER JOIN payments pc3 ON (bd.id=pc3.booking_description_id AND pc3.pay_mode='CASH3' AND pc3.storno<>1) WHERE bd.cancelled<>1 AND pc3.id is null AND pc.time_of_payment>'$START_DATE'";
@@ -29,7 +34,7 @@ if($result) {
 
 mysql_close($link);
 
-html_start("Maverick Mgmt - Cash payment bookings");
+html_start("Cash payment bookings");
 
 echo <<<EOT
 

@@ -3,6 +3,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $link = db_connect();
 
 
@@ -28,7 +35,7 @@ $extraHeader = <<<EOT
 EOT;
 
 
-html_start("Maverick Reception - Blacklist", $extraHeader);
+html_start("Blacklist", $extraHeader);
 
 $today = date('Y-m-d');
 

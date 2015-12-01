@@ -2,6 +2,11 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 $minMaxStay = array();
@@ -34,7 +39,7 @@ EOT;
 
 
 
-html_start("Maverick Mgmt - Min/Max Stay", $extraHeader);
+html_start("Min/Max Stay", $extraHeader);
 
 $fromDate = date('Y-m-d');
 

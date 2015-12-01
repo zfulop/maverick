@@ -2,8 +2,11 @@
 
 require("includes.php");
 
-$link = mysql_connect(DB_HOST, DB_USER, DB_PASSWORD);
-mysql_select_db(DB_NAME, $link);
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+$link = db_connect();
 
 header('Location: view_shifts.php');
 

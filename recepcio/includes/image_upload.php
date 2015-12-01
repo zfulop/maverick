@@ -30,12 +30,7 @@
 			$ext = substr($fname, $pntPos + 1);
 			$fname = substr($fname, 0, $pntPos);
 		}
-		$fname = utf8_decode($fname);
-		$fname = strtr($fname,	
-			utf8_decode("()!$'?: ,&+-/.ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŐŰÙÚÛÜÝßàáâãäåæçèéêëìíîïðñòóôõöőøùúûüűýÿ"),
-			            "______________SOZsozYYuAAAAAAACEEEEIIIIDNOOOOOOOUUUUUYsaaaaaaaceeeeiiiionooooooouuuuuyy");
-
-		$fname = utf8_encode($fname);
+		$fname = stripAccents($fname);
 		$dir .= ( substr($dir,-1) != "/") ? "/" : "";
 		if(!file_exists($dir)) {
 			mkdir($dir, 0777);
@@ -50,6 +45,15 @@
 		return $file;
 	}
 
+	function stripAccents($str) {
+		$str = utf8_decode($str);
+		$str = strtr($str,	
+			utf8_decode("()!$'?: ,&+-/.ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŐŰÙÚÛÜÝßàáâãäåæçèéêëìíîïðñòóôõöőøùúûüűýÿ"),
+			            "______________SOZsozYYuAAAAAAACEEEEIIIIDNOOOOOOOUUUUUYsaaaaaaaceeeeiiiionooooooouuuuuyy");
+
+		$str = utf8_encode($str);
+		return $str;
+	}
 
 	function fitImageIntoBox($img_file, $maxWidth, $maxHeight) {
 		list($width, $height, $type, $attr) = getimagesize($img_file);

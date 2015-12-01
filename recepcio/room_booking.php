@@ -905,7 +905,7 @@ function verifyBlacklist($name, $email, $maverickEmail, $link) {
 		return;
 	}
 	while($row = mysql_fetch_assoc($result)) {
-		if($row['email'] == $email or isNameMatch($row['name'], $name)) {
+		if((strlen($row['email']) > 0 and $row['email'] == $email) or isNameMatch($row['name'], $name)) {
 			$msg = "Blacklist items matching $name or $email: ";
 			$msg .= "Blacklisted name: " . $row['name'] . ", email: " . $row['email'] . ", source: " . $row['source'] . ", reason: " . $row['reason'] . "\n";
 			sendMail($email, $name, $maverickEmail, "Maverick Reception", "Blacklisted booking received for name: $name or email $email", $msg);
@@ -915,8 +915,12 @@ function verifyBlacklist($name, $email, $maverickEmail, $link) {
 }
 
 function isNameMatch($dbName, $nameToCheck) {
+	$nameToCheck = strtolower($nameToCheck);
+	$nameToCheck = stripAccents($nameToCheck);
 	foreach(explode(' ', $dbName) as $namePart) {
-		if(strpos($nameToCheck, $namePart) === false) {
+		$namePart = stripAccents($namePart);
+		$namePart = strtolower($namePart);
+		if(strstr($nameToCheck, $namePart) === false) {
 			return false;
 		}
 	}

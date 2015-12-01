@@ -1,7 +1,0 @@
-AuthUserFile  C:\Projects\maverick\Repository\recepcio\.htpasswd
-AuthName "Maverick Hostel - Recepcio"
-AuthType Basic
-<Limit GET POST>
-require valid-user
-</Limit>
-

@@ -3,6 +3,13 @@
 require("includes.php");
 require("room_booking.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $descrId = intval($_REQUEST['booking_description_id']);
 header('Location: edit_booking.php?description_id=' . $descrId);
 

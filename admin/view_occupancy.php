@@ -4,6 +4,11 @@ require("includes.php");
 require(RECEPCIO_BASE_DIR . "room_booking.php");
 require("common_booking.php");
 
+if(!checkLogin(SITE_ADMIN)) {
+	return;
+}
+
+
 $link = db_connect();
 
 
@@ -150,7 +155,7 @@ $groupDaysOptions .= "		<option value=\"7\"" . ($groupDays == 7 ? ' selected' : 
 $groupDaysOptions .= "		<option value=\"14\"" . ($groupDays == 14 ? ' selected' : '') . ">2 weeks</option>";
 $groupDaysOptions .= "		<option value=\"month\"" . ($groupDays == 'month' ? ' selected' : '') . ">1 month</option>";
 
-html_start("Maverick Admin - Occupancy", $extraHeader, "hideAlternativeOccupancy()");
+html_start("Occupancy", $extraHeader, "hideAlternativeOccupancy()");
 
 
 echo <<<EOT

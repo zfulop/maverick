@@ -3,6 +3,10 @@
 require("includes.php");
 require(RECEPCIO_BASE_DIR . "room_booking.php");
 
+if(!checkLogin(SITE_ADMIN)) {
+	return;
+}
+
 $link = db_connect();
 
 
@@ -30,6 +34,9 @@ if(isset($_REQUEST['past_start_date'])) {
 if(isset($_REQUEST['past_end_date'])) {
   $_SESSION['cashflow_past_end_date'] = $_REQUEST['past_end_date'];
 }
+if(isset($_REQUEST['past_date_by'])) {
+  $_SESSION['cashflow_past_date_by'] = $_REQUEST['past_date_by'];
+}
 if(isset($_REQUEST['future_start_date'])) {
   $_SESSION['cashflow_future_start_date'] = $_REQUEST['future_start_date'];
 }
@@ -41,6 +48,10 @@ if(isset($_REQUEST['source'])) {
 }
 if(isset($_REQUEST['time_group'])) {
   $_SESSION['cashflow_time_group'] = $_REQUEST['time_group'];
+}
+
+if(!isset($_SESSION['cashflow_past_date_by'])) {
+  $_SESSION['cashflow_past_date_by'] = 'payment';
 }
 if(!isset($_SESSION['cashflow_past_start_date'])) {
   $_SESSION['cashflow_past_start_date'] = date('Y/m') . '/01';
@@ -116,7 +127,20 @@ if(!is_null($source) > 0 and count($source) > 0 and !in_array('', $source)) {
 
 $sqlFindBy = "";
 
-$sql = "SELECT p.currency, p.pay_mode, sum(p.amount) as amount, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN payments p ON bd.id=p.booking_description_id WHERE bd.first_night<='$pastEndDate' AND bd.first_night>='$pastStartDate' AND bd.cancelled<>1 $whereClause GROUP BY p.currency, p.pay_mode, $dateVal";
+if($_SESSION['cashflow_past_date_by'] == 'arrive') {
+	$dateCol = 'bd.first_night';
+} else {
+	$dateCol = 'SUBSTR(time_of_payment,1,10)';
+	$pastEndDate = str_replace('/', '-', $pastEndDate);
+	$pastStartDate = str_replace('/', '-', $pastStartDate);
+}
+
+$sql = "SELECT p.currency, p.pay_mode, sum(p.amount) as amount, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN payments p ON bd.id=p.booking_description_id WHERE $dateCol<='$pastEndDate' AND $dateCol>='$pastStartDate' AND bd.cancelled<>1 $whereClause GROUP BY p.currency, p.pay_mode, $dateVal";
+
+$pastEndDate = str_replace('-', '/', $pastEndDate);
+$pastStartDate = str_replace('-', '/', $pastStartDate);
+
+
 $result = mysql_query($sql, $link);
 $pastTable = array();
 if(!$result) {
@@ -139,17 +163,32 @@ if(!$result) {
 	trigger_error("Cannot execute query. " . mysql_error($link) . " (SQL: $sql)");
 }
 while($row = mysql_fetch_assoc($result)) {
-  if(!isset($future[$row['date_val']])) {
-    $futureTable[$row['date_val']] = array();
-  }
   $futureTable[$row['date_val']] = $row['amount'];
+}
+
+
+$sql = "SELECT sum(p.amount) as amount, p.currency, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN payments p ON bd.id=p.booking_description_id WHERE bd.first_night<='$futureEndDate' AND bd.first_night>='$futureStartDate' AND bd.cancelled<>1 $whereClause GROUP BY p.currency, $dateVal";
+$result = mysql_query($sql, $link);
+$futureTablePayment = array();
+if(!$result) {
+	trigger_error("Cannot execute query. " . mysql_error($link) . " (SQL: $sql)");
+}
+while($row = mysql_fetch_assoc($result)) {
+  if(!isset($futureTablePayment[$row['date_val']])) {
+    $futureTablePayment[$row['date_val']] = convertAmount($row['amount'], $row['currency'], 'EUR', date('Y-m-d'));;
+  } else {
+    $futureTablePayment[$row['date_val']] += convertAmount($row['amount'], $row['currency'], 'EUR', date('Y-m-d'));;
+  }
 }
 
 
 
 mysql_close($link);
 
-html_start("Maverick Admin - Cashflow view", $extraHeader);
+$arriveChecked = ($_SESSION['cashflow_past_date_by'] == 'arrive' ? 'checked' : '');
+$paymentChecked = ($_SESSION['cashflow_past_date_by'] == 'payment' ? 'checked' : '');
+
+html_start("Cashflow view", $extraHeader);
 
 
 echo <<<EOT
@@ -164,6 +203,9 @@ echo <<<EOT
   <tr><td>Past end date:</td><td>
     <input id="past_end_date" name="past_end_date" size="10" maxlength="10" type="text" value="$pastEndDate"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'past_end_date', 'chooserSpanPED', 2008, 2025, 'Y/m/d', false);">
     <div id="chooserSpanPED" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div>
+  </td></tr>
+  <tr><td>Past date search by:</td><td>
+    <input type="radio" name="past_date_by" style="float:none;display:inline;" value="arrive" $arriveChecked> Arrival  <input type="radio" style="float:none;display:inline;" name="past_date_by" value="payment" $paymentChecked> Date of payment
   </td></tr>
   <tr><td>Furture start date:</td><td>
     <input id="future_start_date" name="future_start_date" size="10" maxlength="10" type="text" value="$futureStartDate"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'future_start_date', 'chooserSpanFSD', 2008, 2025, 'Y/m/d', false);">
@@ -196,13 +238,6 @@ if($pastStartDate == $pastEndDate) {
 	return;
 }
 
-echo <<<EOT
-
-<h2>Past range</h2>
-<table>
-  <tr><th></th>
-EOT;
-
 $pastStartDate = str_replace('/','-',$pastStartDate);
 $pastEndDate = str_replace('/','-',$pastEndDate);
 $currDate = $pastStartDate;
@@ -222,6 +257,22 @@ while($currDate <= $pastEndDate) {
 	}
 	$dateCol = str_replace('-','/',$dateCol);
 	$dateCols[] = $dateCol;
+}
+
+
+$cols = count($dateCols) + 1;
+
+echo <<<EOT
+
+<table>
+  <tr><td colspan="$cols"><h2>Past range</h2></td></tr>
+  <tr><th></th>
+EOT;
+
+$pastStartDate = str_replace('/','-',$pastStartDate);
+$pastEndDate = str_replace('/','-',$pastEndDate);
+$currDate = $pastStartDate;
+foreach($dateCols as $dateCol) {
 	echo "<th style=\"text-align:left;\">$dateCol</th>";
 }
 echo "</tr>\n";
@@ -282,7 +333,7 @@ foreach($TYPES as $type) {
 	}
 	echo "  </tr>";
 }
-echo "	<tr><td colspan=\"" . (count($dateCols) + 1) . "\"><hr></td></tr>\n";
+echo "	<tr><td colspan=\"$cols\"><hr></td></tr>\n";
 echo "  <tr><td style=\"font-weight: bold;\">Totals</td>";
 foreach($dateCols as $dateCol) {
 	$dateCol = str_replace('-','/',$dateCol);
@@ -294,14 +345,13 @@ foreach($dateCols as $dateCol) {
 	}
 	echo "    </td>\n";
 }
-echo "</table>\n";
-
+echo "  </tr>\n";
 
 echo <<<EOT
 
-<h2>Future range</h2>
-<table>
-  <tr>
+  <tr><td colspan="$cols"><br><br></td></tr>
+  <tr><td colspan="$cols"><h2>Future range</h2></td></tr>
+  <tr><td></td>
 EOT;
 
 $futureStartDate = str_replace('/','-',$futureStartDate);
@@ -327,16 +377,22 @@ while($currDate <= $futureEndDate) {
 }
 echo "</tr>\n";
 
-echo "  <tr>";
+echo "  <tr><td></td>";
 foreach($dateCols as $dateCol) {
 	echo "    <td>\n";
 	if(isset($futureTable[$dateCol])) {
-		echo "      <div class=\"$curr\" style=\"text-align: right;\">" . number_format($futureTable[$dateCol]) . " EUR</div>\n";
+		$amt = $futureTable[$dateCol];
+		$pmt = '';
+		if(isset($futureTablePayment[$dateCol])) {
+			$amt -= $futureTablePayment[$dateCol];
+			$pmt = $futureTablePayment[$dateCol];
+		}
+		echo "      <div class=\"EUR\" style=\"text-align: right;\">" . number_format($amt) . " EUR <span style=\"font-size:70%;\">(" . number_format($pmt) . ")</span></div>\n";
 	}
 	echo "    </td>\n";
 }
 echo "  </tr>";
-echo "</table>\n";
+echo "</table><br><br><br>\n";
 
 
 html_end();

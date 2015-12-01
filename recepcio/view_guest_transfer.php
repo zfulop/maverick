@@ -2,6 +2,13 @@
 
 require("includes.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $extraHeader = <<<EOT
 
 <script src="js/datechooser/date-functions.js" type="text/javascript"></script>
@@ -28,7 +35,7 @@ while($row = mysql_fetch_assoc($result)) {
 	}
 }
 
-html_start("Maverick Reception - Guest Transfer", $extraHeader);
+html_start("Guest Transfer", $extraHeader);
 
 $today = date('Y-m-d');
 echo <<<EOT

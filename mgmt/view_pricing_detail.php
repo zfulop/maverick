@@ -4,6 +4,11 @@ require("includes.php");
 require(RECEPCIO_BASE_DIR . "room_booking.php");
 require(ADMIN_BASE_DIR . "common_booking.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 
@@ -48,6 +53,8 @@ $priceTitle = 'Room price';
 if($isDorm) {
 	$priceTitle = 'Bed price';
 }
+
+
 echo <<<EOT
 
 <table class="bookings" style="width: 600px;">

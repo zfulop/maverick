@@ -2,6 +2,12 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
+
 header('Location: view_rooms.php');
 
 $link = db_connect();

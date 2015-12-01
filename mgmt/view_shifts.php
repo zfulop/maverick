@@ -2,6 +2,11 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 $searchOrder = "start_time";
@@ -20,7 +25,7 @@ $extraHeader = <<<EOT
 
 EOT;
 
-html_start("Maverick Mgmt - Work Shifts", $extraHeader);
+html_start("Work Shifts", $extraHeader);
 
 
 

@@ -4,6 +4,13 @@ require("includes.php");
 require("room_booking.php");
 
 
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
+
 foreach($_SESSION as $code => $val) {
 	if(substr($code, 0, 3) == 'EB_') {
 		unset($_SESSION[$code]);
@@ -142,7 +149,7 @@ $extraHeader = <<<EOT
 
 EOT;
 
-html_start("Maverick Reception - Booking", $extraHeader);
+html_start("Booking", $extraHeader);
 
 $thisyear = date('Y');
 

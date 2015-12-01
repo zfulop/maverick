@@ -3,6 +3,13 @@
 require("includes.php");
 require("room_booking.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 foreach($_SESSION as $code => $val) {
 	if(substr($code, 0, 3) == 'EB_') {
 		unset($_SESSION[$code]);
@@ -112,7 +119,7 @@ EOT;
 $onloadScript = 'UpdateTableHeaders();jQuery(window).scroll(function() { UpdateTableHeaders(); });';
 
 
-html_start("Maverick Reception - View Prices", $extraHeader, true, $onloadScript);
+html_start("View Prices", $extraHeader, true, $onloadScript);
 
 $thisyear = date('Y');
 

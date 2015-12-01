@@ -2,8 +2,14 @@
 
 $incldeWzTooltip = true;
 
-function html_start($title = "Maverick Reception", $extraHeader = '', $showMenu = true, $onloadScript = '') {
+function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadScript = '') {
 	global $incldeWzTooltip;
+
+	$title = $_SESSION['login_hotel_name'] . ' - Recepcio - ' . $title;
+	$loginName = $_SESSION['login_user'];
+
+	$logout = ROOT_URL . 'logout.php';
+	$changePassword = ROOT_URL . 'change_password.php';
 
 	$actualities = ROOT_URL . 'index.php';
 	$availability = ROOT_URL . 'view_availability.php';
@@ -76,14 +82,12 @@ $tooltipJsHtml
 EOT;
 
 	if($showMenu) {
-		$myself = $_SERVER['REMOTE_USER'];
 		$ex = getExchangeRate('EUR', 'HUF', date('Y-m-d'));
 		echo <<<EOT
 
 <div style="position: fixed; width: 98%; height: 50px; background: white; margin: 0px; padding: 0px;">
 	<div style="text-align: right; height: 25px;">
 		<span style="font-size: 14px; padding-right: 20px;">Current exchange rate: 1 EUR = $ex Ft</span>
-		Logged in as $myself, <a href="$logout" style="font-size: 14px; padding-right: 20px; font-weight: bold;">LOGOUT</a>
 	</div>
 	<div style="text-align: center; border-style: solid; height: 25px; position: relative; background: rgb(220, 220, 220);">
 		<a href="$actualities" style="float: left; font-size: 14px; padding-left: 20px; padding-right: 20px;">TODAY</a>
@@ -125,6 +129,16 @@ EOT;
 				<li><a href="$links" style="font-size: 14px; padding-right: 20px;">Links</a></li>
 			</ul>
 		</div>
+		<div style="float: right;padding-right:50px;">
+			<a href="#" style="float: left; font-size: 14px; padding-right: 20px;" id="accountMainMenu" onclick="showMenu('accountMenu', this);return false;">$loginName</a>
+			<div id="accountMenu" class="submenu" onmouseleave="$(this).hide();">
+				<ul>
+					<li><a href="$logout" style="float: left; font-size: 14px; padding-right: 20px;">Logout</a></li>
+					<li><a href="$changePassword" style="float: left; font-size: 14px; padding-right: 20px;">Change&nbsp;password</a></li>
+				</ul>
+			</div>
+		</div>
+
 	</div>
 </div>
 <div style="height: 60px;">

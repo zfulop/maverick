@@ -3,6 +3,13 @@
 require("includes.php");
 require("room_booking.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $SOURCES = array();
 
 
@@ -344,7 +351,7 @@ while($row = mysql_fetch_assoc($result)) {
 
 
 $nationalityOptions = '';
-$countries = file_get_contents('includes/countries.txt');
+$countries = file_get_contents('../includes/countries.txt');
 foreach(explode("\n", $countries) as $cntry) {
 	$cntry = trim($cntry);
 	if(strlen($cntry) < 1)

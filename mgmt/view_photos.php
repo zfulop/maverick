@@ -2,6 +2,11 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 $sql = "SELECT images.*, lang_text.value AS description, lang_text.lang FROM images LEFT OUTER JOIN lang_text ON (lang_text.table_name='images' AND lang_text.column_name='description' AND row_id=images.id)";
@@ -16,7 +21,7 @@ while($row = mysql_fetch_assoc($result)) {
 	$images[$row['filename']][$row['lang']] = $row['description'];
 }
 
-html_start("Maverick Mgmt - Photos");
+html_start("Photos");
 
 $langEmptyParams = '';
 $langDescrParams = '';

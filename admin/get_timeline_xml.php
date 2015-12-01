@@ -4,6 +4,10 @@ require("includes.php");
 require(RECEPCIO_BASE_DIR . "room_booking.php");
 require("common_booking.php");
 
+if(!checkLogin(SITE_ADMIN)) {
+	return;
+}
+
 $link = db_connect();
 
 

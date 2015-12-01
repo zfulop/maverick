@@ -2,6 +2,11 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 $sources = array();
@@ -40,7 +45,7 @@ if(!$result) {
 
 
 
-html_start("Maverick Mgmt - Lists");
+html_start("Lists");
 
 
 echo <<<EOT

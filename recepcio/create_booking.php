@@ -3,6 +3,13 @@
 require("includes.php");
 require("room_booking.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 set_debug("create_booking.php START");
 
 foreach($_REQUEST as $code => $val) {

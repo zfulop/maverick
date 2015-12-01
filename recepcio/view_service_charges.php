@@ -3,6 +3,12 @@
 require("includes.php");
 
 
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $link = db_connect();
 
 $startDate = '';
@@ -105,7 +111,7 @@ if($selectedService != '') {
 mysql_close($link);
 
 
-html_start("Maverick Reception - Service Charges", $extraHeader);
+html_start("Service Charges", $extraHeader);
 
 echo <<<EOT
 <form action="view_service_charges.php" method="GET"  style="display: block; float: left; ">

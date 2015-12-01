@@ -3,6 +3,13 @@
 require("includes.php");
 require("room_booking.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 foreach($_SESSION as $code => $val) {
 	if(substr($code, 0, 3) == 'EB_') {
 		unset($_SESSION[$code]);
@@ -200,7 +207,7 @@ EOT;
 $onloadScript = 'UpdateTableHeaders();jQuery(window).scroll(function() { UpdateTableHeaders(); });setNextCell();';
 
 
-html_start("Maverick Reception - Availability ($avStartDate - $avEndDate)", $extraHeader, true, $onloadScript);
+html_start("Availability ($avStartDate - $avEndDate)", $extraHeader, true, $onloadScript);
 
 
 $syncStartDate = date('Y-m-d');

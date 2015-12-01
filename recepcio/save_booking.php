@@ -3,6 +3,13 @@
 require("includes.php");
 require("room_booking.php");
 
+
+if(!checkLogin(SITE_RECEPTION)) {
+	return;
+}
+
+
+
 $descrId = $_REQUEST['description_id'];
 header('Location: edit_booking.php?description_id=' . $descrId);
 set_debug("save_booking.php START");

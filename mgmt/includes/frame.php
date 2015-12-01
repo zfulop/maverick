@@ -2,11 +2,15 @@
 
 $incldeWzTooltip = true;
 
-function html_start($title = "Maverick Mgmt", $extraHeader = '', $showMenu = true, $onloadScript = '') {
+function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadScript = '') {
 	global $incldeWzTooltip;
+	$title = $_SESSION['login_hotel_name'] . ' - Mgmt - ' . $title;
+	$loginName = $_SESSION['login_user'];
 
+	$logout = MGMT_ROOT_URL . 'logout.php';
+	$changePassword = MGMT_ROOT_URL . 'change_password.php';
 	$index = MGMT_ROOT_URL . 'index.php';
-	$receptionists = MGMT_ROOT_URL . 'view_receptionists.php';
+	$users = MGMT_ROOT_URL . 'view_users.php';
 	$report = MGMT_ROOT_URL . 'view_money_report.php';
 	$cashBookings = MGMT_ROOT_URL . 'view_cash_bookings.php';
 	$cleaners = MGMT_ROOT_URL . 'view_cleaners.php';
@@ -83,7 +87,7 @@ EOT;
 		<a href="#" style="float: left; font-size: 14px; padding-right: 20px;" id="employeeMainMenu" onclick="showMenu('employeeMenu', this);return false;">Employees</a>
 		<div id="employeeMenu" class="submenu" onmouseleave="$(this).hide();">
 			<ul>
-				<li><a href="$receptionists" style="float: left; font-size: 14px; padding-right: 20px;">Receptionists</a></li>
+				<li><a href="$users" style="float: left; font-size: 14px; padding-right: 20px;">Users</a></li>
 				<li><a href="$cleaners" style="float: left; font-size: 14px; padding-right: 20px;">Cleaners</a></li>
 				<li><a href="$shifts" style="float: left; font-size: 14px; padding-right: 20px;">Work Shifts</a></li>
 				<li><a href="$vacations" style="float: left; font-size: 14px; padding-right: 20px;">Vacations</a></li>
@@ -113,8 +117,16 @@ EOT;
 				<li><a href="$minMax" style="float: left; font-size: 14px; padding-right: 20px;">Min/Max Stay</a></li>
 			</ul>
 		</div>
+		<div style="float: right;padding-right:50px;">
+			<a href="#" style="float: left; font-size: 14px; padding-right: 20px;" id="accountMainMenu" onclick="showMenu('accountMenu', this);return false;">$loginName</a>
+			<div id="accountMenu" class="submenu" onmouseleave="$(this).hide();">
+				<ul>
+					<li><a href="$logout" style="float: left; font-size: 14px; padding-right: 20px;">Logout</a></li>
+					<li><a href="$changePassword" style="float: left; font-size: 14px; padding-right: 20px;">Change&nbsp;password</a></li>
+				</ul>
+			</div>
+		</div>
 	</div>
-</div>
 <div style="height: 60px;">
 </div>
 

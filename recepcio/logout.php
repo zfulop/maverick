@@ -1,8 +1,10 @@
 <?php
 
+require("includes.php");
 
-header('HTTP/1.1 401 Unauthorized');
-header('WWW-Authenticate: Basic realm="Maverickhostel Reception"');
+logout();
+set_message("Successfully logged out");
+header("Location: view_login.php");
 
 
 

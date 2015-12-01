@@ -26,3 +26,21 @@ body {
 	height: 25px;
 	line-height: 25px;
 }
+
+div.submenu {
+	border: 1px solid black;
+	text-align: left;
+	margin: 0px;
+	padding: 5px;
+	background: rgb(220, 220, 220);
+	position: absolute;
+	top: 25px;
+	display: none;
+}
+
+div.submenu ul {
+	list-style: none;
+	padding: 0px;
+	margin: 0px;
+}
+

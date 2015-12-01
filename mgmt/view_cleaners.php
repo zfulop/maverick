@@ -2,6 +2,11 @@
 
 require("includes.php");
 
+if(!checkLogin(SITE_MGMT)) {
+	return;
+}
+
+
 $link = db_connect();
 
 $sql = "SELECT * FROM cleaners ORDER BY name";
@@ -26,7 +31,7 @@ for($i = 1; $i <= 12; $i++) {
 }
 
 
-html_start("Maverick Mgmt - Cleaners");
+html_start("Cleaners");
 
 
 echo <<<EOT
