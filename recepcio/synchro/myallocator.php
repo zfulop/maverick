@@ -8,17 +8,7 @@ ini_set('display_errors', 'On');
 
 require("../includes.php");
 require('../room_booking.php');
-require('../includes/simple_html_dom.php');
 require('booker.php');
-
-
-define('CUSTOMER_ID','maverick');
-define('CUSTOMER_PASSWORD','Palesz22');
-define('PROPERTY_ID_HOSTEL','1650');
-define('PROPERTY_ID_LODGE','1748');
-define('PROPERTY_ID_APARTMENT','5637');
-define('VENDOR_ID','maverickhostel');
-define('VENDOR_PASSWORD','kPnFxw85RS');
 
 
 class MyAllocatorBooker extends Booker {
@@ -28,155 +18,25 @@ class MyAllocatorBooker extends Booker {
 
 
 
-	var $roomMap = array(
-		'HOSTEL' => array(
-			array(
-				'roomName' => 'The_Blue_Brothers_6_Bed',
-				'roomIds' => array(35),
-				'remoteRoomId' => '9131'
-				),
-			array(
-				'roomName' => 'Mss_Peach_5_Bed',
-				'roomIds' => array(36),
-				'remoteRoomId' => '9130'
-				),
-			array(
-				'roomName' => 'Double_room_shared_bathroom',
-				'roomIds' => array(39, 40),
-				'remoteRoomId' => '9133'
-				),
-			array(
-				'roomName' => 'Double_room_private_bathroom_ensuites_with_NEW_rooms',
-				'roomIds' => array(46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 66, 67, 68, 69, 75),
-				'remoteRoomId' => '9134'
-				),
-			array(
-				'roomName' => 'NEW_Maverick_ensuite_3_Bed',
-				'roomIds' => array(59, 62, 73),
-				'remoteRoomId' => '9135'
-				),
-			array(
-				'roomName' => 'NEW_Maverick_ensuite_4_Bed',
-				'roomIds' => array(60, 71, 72),
-				'remoteRoomId' => '9136'
-				),
-			array(
-				'roomName' => 'NEW_Maverick_ensuite_5_Bed',
-				'roomIds' => array(61, 74),
-				'remoteRoomId' => '9137'
-			),
-			array(
-				'roomName' => 'Mr Green',
-				'roomIds' => array(42),
-				'remoteRoomId' => '9132'
-			),
-			array(
-				'roomName' => 'HW 4 bedded extra private ensuite',
-				'roomIds' => array(63),
-				'remoteRoomId' => '10032'
-			),
-			array(
-				'roomName' => '5 bed Dorm with private bathroom',
-				'roomIds' => array(64),
-				'remoteRoomId' => '9431'
-			),
-			array(
-				'roomName' => 'Single room ensuite',
-				'roomIds' => array(65),
-				'remoteRoomId' => '24369'
-			)
-		),
-		'APARTMENT' => array(
-			array(
-				'roomName' => 'Studio Apartment',
-				'roomIds' => array(82),
-				'remoteRoomId' => '29812'
-				),
-			array(
-				'roomName' => 'Deluxe Studio Apartment',
-				'roomIds' => array(80,81),
-				'remoteRoomId' => '29813'
-				),
-			array(
-				'roomName' => 'One-bedroom apartment, Ferenciek',
-				'roomIds' => array(78,79),
-				'remoteRoomId' => '29814'
-				),
-			array(
-				'roomName' => 'One-bedroom apartment, Belgrád',
-				'roomIds' => array(77),
-				'remoteRoomId' => '29815'
-				),
-			array(
-				'roomName' => 'Two-bedroom apartment, Deák',
-				'roomIds' => array(76),
-				'remoteRoomId' => '29816'
-				)
-		),
-		'LODGE' => array(
-			array(
-				'roomName' => 'Double Private Room',
-				'roomIds' => array(89,90,106,107),
-				'remoteRoomId' => '10035'
-				),
-			array(
-				'roomName' => 'Double Private Ensuite Room',
-				'roomIds' => array(65,78,79,80,81,82,83,84,85,86,87,88,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,108),
-				'remoteRoomId' => '10036'
-				),
-			array(
-				'roomName' => 'Triple Private Ensuite Room',
-				'roomIds' => array(109,110,111,115),
-				'remoteRoomId' => '10037'
-				),
-			array(
-				'roomName' => 'Quadruple Private Ensuite Room',
-				'roomIds' => array(112,113,114,116),
-				'remoteRoomId' => '10038'
-				),
-			array(
-				'roomName' => '4 bed mixed dorm',
-				'roomIds' => array(74,75,76),
-				'remoteRoomId' => '10066'
-				),
-			array(
-				'roomName' => '6 bed mixed dorm',
-				'roomIds' => array(67,68,69,70,71,72),
-				'remoteRoomId' => '10067'
-				),
-			array(
-				'roomName' => '8 bed mixed dorm',
-				'roomIds' => array(77),
-				'remoteRoomId' => '10068'
-				),
-			array(
-				'roomName' => 'Female 6 bed dorm',
-				'roomIds' => array(117,118),
-				'remoteRoomId' => '16475'
-				)
-		)
-	);
-
-
-
 	/////////////////////////////////////////////////////////////
 	function update($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, &$rooms) {
+		global $myallocatorRoomMap;
 		echo "<b>myalocator.com synchronization update</b><br>";
 		$location = strtoupper(LOCATION);
-		$this->updateLocation($location, $startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $rooms);
-		if($location == 'HOSTEL') {
-			$this->updateLocation('APARTMENT', $startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $rooms);
+		foreach(array_keys($myallocatorRoomMap) as $propertyId) {
+			$this->updateLocation($propertyId, $startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $rooms);
 		}
 		echo "<b>myallocator.com synchronization update finished</b><br><br><br>";
 	}
 
-	function updateLocation($location, $startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, &$rooms) {
-		echo "Location is: $location <br>\n";
+	function updateLocation($propertyId, $startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, &$rooms) {
+		global $myallocatorRoomMap;
+		echo "Location is: $propertyId <br>\n";
 		//echo "<!-- " . print_r($rooms, true) . "-->\n";
 		$endTS = strtotime("$endYear-$endMonth-$endDay");
 		$allocations = '';
 		$availabilities = array();
-		foreach($this->roomMap[$location] as $oneRoomMap) {
+		foreach($myallocatorRoomMap[$propertyId] as $oneRoomMap) {
 			$availabilities[$oneRoomMap['roomName']] = array();
 			//echo "Updating price and availability for room: " . $oneRoomMap['roomName'] . "...<br>\n";
 
@@ -229,8 +89,7 @@ EOT;
 			//echo "done.<br>\n";
 		}
 
-		$pid = constant('PROPERTY_ID_' . $location);
-		$auth = $this->getAuth($pid);
+		$auth = $this->getAuth($propertyId);
 		$request = <<<EOT
 <?xml version="1.0" encoding="UTF-8" ?>
 <SetAllocation>
@@ -274,14 +133,14 @@ EOT;
 	}
 
 	function getAuth($propertyId = null) {
-		$customerID = CUSTOMER_ID;
-		$customerPassword = CUSTOMER_PASSWORD;
+		$customerID = MYALLOCATOR_CUSTOMER_ID;
+		$customerPassword = MYALLOCATOR_CUSTOMER_PASSWORD;
 		$propertyLine = '';
 		if(!is_null($propertyId)) {
 			$propertyLine = "		<PropertyId>$propertyId</PropertyId>";
 		}
-		$vendorID = VENDOR_ID;
-		$vendorPassword = VENDOR_PASSWORD;
+		$vendorID = MYALLOCATOR_VENDOR_ID;
+		$vendorPassword = MYALLOCATOR_VENDOR_PASSWORD;
 
 		$auth = <<<EOT
 	<Auth>
@@ -455,4 +314,3 @@ function logMessage($message) {
 
 
 ?>
-

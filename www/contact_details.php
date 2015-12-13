@@ -294,7 +294,7 @@ $nationalityOptions
                 </div>
                 
                 <div class="field $countryErrorClass hidden-label">
-                  <label for="data_country">$countryTitle:</label>
+                  <label for="data_country">$countryTitle *:</label>
                   <div class="fake-select">
                     <span class="value"></span>
                     <span class="open-select icon-down"></span>

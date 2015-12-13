@@ -146,8 +146,34 @@ $extraHeader = <<<EOT
 
 </script>
 
+<style>
+
+.rtOption {
+  font-size: 120%;
+}
+
+.rOption {
+  padding-left: 10px;
+}
+
+</style>
+
 
 EOT;
+
+$roomsHtmlOptions = '';
+$sql = "SELECT r.id, r.name as room_name, rt.name as room_type_name FROM rooms r INNER JOIN room_types rt on r.room_type_id=rt.id ORDER BY rt.name, r.name";
+$result = mysql_query($sql, $link);
+$rtName = null;
+while($row = mysql_fetch_assoc($result)) {
+	if($rtName != $row['room_type_name']) {
+		$rtName = $row['room_type_name'];
+		$roomsHtmlOptions .= "<option disabled=\"true\" class=\"rtOption\">$rtName</option>\n";
+	}
+	$roomsHtmlOptions .= "<option class=\"rOption\" value=\"" . $row['id'] . "\">" . $row['room_name'] . "</option>\n";
+}
+
+
 
 html_start("Booking", $extraHeader);
 
@@ -233,6 +259,40 @@ echo <<<EOT
 	</td></tr>
 </table>
 </form>
+
+
+
+<form action="lock_rooms.php" method="GET" style="float: left;">
+<table style="border: 1px solid black; padding: 5px; margin: 10px;">
+	<tr><th colspan="2">Lock rooms (make them unavailable)</th></tr>
+	<tr>
+		<td>Rooms: </td>
+		<td>
+			<select name="rooms[]" style="height: 150px;" multiple="multiple">
+$roomsHtmlOptions
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>First night: </td>
+		<td>
+			<input id="start_date3" name="first_night" size="10" maxlength="10" type="text"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'start_date3', 'chooserSpanSD3', 2008, 2025, 'Y-m-d', false);"> 
+			<div id="chooserSpanSD3" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>Last night: </td>
+		<td>
+			<input id="end_date3" name="last_night" size="10" maxlength="10" type="text"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'end_date3', 'chooserSpanED3', 2008, 2025, 'Y-m-d', false);"> 
+			<div id="chooserSpanED3" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div>
+		</td>
+	</tr>
+	<tr><td colspan="2">
+		<input type="submit" value="Lock rooms">
+	</td></tr>
+</table>
+</form>
+
 
 
 

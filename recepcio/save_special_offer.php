@@ -88,9 +88,9 @@ if(!mysql_query($sql, $link)) {
 }
 
 foreach(getLanguages() as $lang => $name) {
-	$title = $_REQUEST["title_$lang"];
-	$text = $_REQUEST["text_$lang"];
-	$roomName = $_REQUEST["room_name_$lang"];
+	$title = mysql_real_escape_string($_REQUEST["title_$lang"]);
+	$text = mysql_real_escape_string($_REQUEST["text_$lang"]);
+	$roomName = mysql_real_escape_string($_REQUEST["room_name_$lang"]);
 	$sql = "INSERT INTO lang_text (table_name, column_name, row_id, lang, value) VALUES ('special_offers', 'title', $id, '$lang', '$title')";
 	if(!mysql_query($sql, $link)) {
 		trigger_error("Cannot save special offers title in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);

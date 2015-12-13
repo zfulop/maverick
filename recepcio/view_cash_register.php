@@ -191,7 +191,7 @@ EOT;
 html_start("Cash Register", $extraHeader);
 
 
-$fromName = $_SERVER['REMOTE_USER'];
+$fromName = $_SESSION['login_user'];
 
 echo <<<EOT
 

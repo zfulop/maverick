@@ -16,16 +16,20 @@ $ROLES = array(
 
 function checkLogin($site) {
 	global $ROLES;
+	$redirect = $_SERVER['REQUEST_URI'];
 	if(!isset($_SESSION['logged_in'])) {
-		header('Location: view_login.php');
+		$_SESSION['login_redirect'] = $redirect;
+		header('Location: /view_login.php');
 		return false;
 	}
 	if(!isset($ROLES[$site])) {
-		header('Location: view_login.php');
+		$_SESSION['login_redirect'] = $redirect;
+		header('Location: /view_login.php');
 		return false;
 	}
 	if(!in_array($_SESSION['login_role'], $ROLES[$site])) {
-		header('Location: view_login.php');
+		$_SESSION['login_redirect'] = $redirect;
+		header('Location: /view_login.php');
 		logout();
 		return false;
 	}

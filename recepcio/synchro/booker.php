@@ -12,7 +12,7 @@ class Booker {
 	function init() {
 	}
 
-	function update($roomId, $startDateYear, $startDateMonth, $startDateDay, $endDateYear, $endDateMonth, $endDateDay, $nbBeds = null) {
+	function update($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, &$rooms) {
 	}
 
 	/**
