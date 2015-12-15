@@ -1,5 +1,7 @@
 <?php
 
+ini_set("include_path", '/home/zolika/php:' . ini_get("include_path") );
+
 require('includes/config.php');
 require('includes/error_handler.php');
 require('includes/language.php');

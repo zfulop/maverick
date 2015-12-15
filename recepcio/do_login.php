@@ -8,10 +8,14 @@ $hostel = $_REQUEST['hostel'];
 
 if(doLogin($name, $pwd, $hostel)) {
 	set_message("Successfully logged in");
-	header("Location: index.php");
+	if(isset($_SESSION['login_redirect'])) {
+		header("Location: " . $_SESSION['login_redirect']);
+	} else {
+		header("Location: /index.php");
+	}
 } else {
 	set_error("Cannot login");
-	header("Location: view_login.php");
+	header("Location: /view_login.php");
 }
 
 

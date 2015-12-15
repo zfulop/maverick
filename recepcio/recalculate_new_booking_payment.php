@@ -19,14 +19,14 @@ $link = db_connect();
 $roomPayment = 0;
 
 
-$arr = split("/", $_REQUEST['first_night']);
+$arr = explode("/", $_REQUEST['first_night']);
 if(count($arr) != 3) {
 	echo "{\"roomPayment\":\"0\",\"message\": \"first night date not set.\"}";
 	mysql_close($link);
 	return;
 }
 list($startYear, $startMonth, $startDay) = $arr;
-$arr = split("/", $_REQUEST['last_night']);
+$arr = explode("/", $_REQUEST['last_night']);
 if(count($arr) != 3) {
 	echo "{\"roomPayment\":\"0\",\"message\": \"last night date not set.\"}";
 	mysql_close($link);

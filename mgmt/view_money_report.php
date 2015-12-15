@@ -223,7 +223,7 @@ EOT;
 html_start("Report", $extraHeader);
 
 
-$fromName = $_SERVER['REMOTE_USER'];
+$fromName = $_SESSION['login_user'];
 
 echo <<<EOT
 

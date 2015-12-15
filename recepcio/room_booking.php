@@ -575,6 +575,14 @@ function specialOfferApplies($specialOffer, $roomType, $nights, $arriveDate, $nu
 			return false;
 		}
 	}
+
+	if(!is_null($specialOffer['early_bird_day_count'])) {
+		$cutoffDate = date('Y-m-d', strtotime(date('Y-m-d') . ' +' . $specialOffer['early_bird_day_count'] . ' day'));
+		if($arriveDate < $cutoffDate) {
+			return false;
+		}
+	}
+
 	set_debug("it applies!");
 
 	return true;
@@ -920,6 +928,9 @@ function isNameMatch($dbName, $nameToCheck) {
 	foreach(explode(' ', $dbName) as $namePart) {
 		$namePart = stripAccents($namePart);
 		$namePart = strtolower($namePart);
+		if(trim($namePart) == '') {
+			continue;
+		}
 		if(strstr($nameToCheck, $namePart) === false) {
 			return false;
 		}

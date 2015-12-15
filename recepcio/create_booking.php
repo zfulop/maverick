@@ -18,18 +18,18 @@ foreach($_REQUEST as $code => $val) {
 
 $link = db_connect();
 
-$name = mysql_escape_string($_REQUEST['name']);
-$nameExt = mysql_escape_string($_REQUEST['name_ext']);
+$name = mysql_real_escape_string($_REQUEST['name']);
+$nameExt = mysql_real_escape_string($_REQUEST['name_ext']);
 $gender = $_REQUEST['gender'];
-$addr = mysql_escape_string($_REQUEST['address']);
-$nat = mysql_escape_string($_REQUEST['nationality']);
-$email = mysql_escape_string($_REQUEST['email']);
-$tel = mysql_escape_string($_REQUEST['telephone']);
-$deposit = mysql_escape_string($_REQUEST['deposit']);
+$addr = mysql_real_escape_string($_REQUEST['address']);
+$nat = mysql_real_escape_string($_REQUEST['nationality']);
+$email = mysql_real_escape_string($_REQUEST['email']);
+$tel = mysql_real_escape_string($_REQUEST['telephone']);
+$deposit = mysql_real_escape_string($_REQUEST['deposit']);
 $depositCurrency = $_REQUEST['deposit_currency'];
-$comment = mysql_escape_string($_REQUEST['comment']);
-$source = mysql_escape_string($_REQUEST['source']);
-$arrivalTime = mysql_escape_string($_REQUEST['arrival_time']);
+$comment = mysql_real_escape_string($_REQUEST['comment']);
+$source = mysql_real_escape_string($_REQUEST['source']);
+$arrivalTime = mysql_real_escape_string($_REQUEST['arrival_time']);
 
 $fnight = $_REQUEST['first_night'];
 $lnight = $_REQUEST['last_night'];

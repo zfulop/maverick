@@ -50,6 +50,13 @@ function html_start($title = null, $extraHeader = '', $onloadScript = '', $onres
 				chkBx.checked = checkbox.checked;
 			});
 		}
+		
+		function sendHeartbeat() {
+			new Ajax.Request('/heartbeat.php', {
+			});
+			setTimeout(sendHeartbeat, 60000);
+		}
+
 
 	</script>
 
@@ -57,7 +64,7 @@ function html_start($title = null, $extraHeader = '', $onloadScript = '', $onres
 
 </head>
 
-<body style="font-size: 12px;" onload="hideSubMenu();$onloadScript" onresize="$onresizeScript">
+<body style="font-size: 12px;" onload="hideSubMenu();sendHeartbeat();$onloadScript" onresize="$onresizeScript">
 
 <script type="text/javascript" src="$tooltipJs"></script>
 

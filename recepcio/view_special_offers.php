@@ -122,7 +122,8 @@ $roomTypeOptions
 	</div></td></tr>
 	<tr><td><label>Number of nights</label></td><td><input style="width: 60px;" name="num_of_nights" id="num_of_nights"></td></tr>
 	<tr><td><label>Discount</label></td><td><input style="width: 30px;" name="discount" id="discount">%</td></tr>
-	<tr><td><label>Start relative to booking</label></td><td><input style="width: 30px;" name="num_of_days_before_arrival" id="num_of_days_before_arrival"> days before arrival</td></tr>
+	<tr><td><label>Start relative to booking</label></td><td>Offer is valid from <input style="width: 30px;" name="num_of_days_before_arrival" id="num_of_days_before_arrival"> days to 0 days before arrival</td></tr>
+	<tr><td><label>Early Bird</label></td><td>Book at least <input style="width: 30px;" name="early_bird_day_count" id="early_bird_day_count"> days before arrival</td></tr>
 	<tr><td><label>Visible</label></td><td><input type="checkbox" style="width: 30px;" name="visible" id="visible"></td></tr>
 </table>
 </fieldset>
@@ -150,7 +151,7 @@ if(!$result) {
 }
 if($result) {
 	if(mysql_num_rows($result) > 0)
-		echo "	<tr><th><a href=\"view_special_offers.php?order=name\">Name</a></th><th><a href=\"view_special_offers.php?order=room_type_name\">Room types</a></th><th>Validity</th><th><a href=\"view_special_offer.php?order=visible\">Visible</a></th><th>Discount</th><th>Nights</th><th>Valid X days before arrival</th><th>Lang</th><th>Title</th><th>Description</th><th>Room name</th><th></th></tr>\n";
+		echo "	<tr><th><a href=\"view_special_offers.php?order=name\">Name</a></th><th><a href=\"view_special_offers.php?order=room_type_name\">Room types</a></th><th>Validity</th><th><a href=\"view_special_offer.php?order=visible\">Visible</a></th><th>Discount</th><th>Nights</th><th>Valid X days before arrival</th><th>Early Bird</th><th>Lang</th><th>Title</th><th>Description</th><th>Room name</th><th></th></tr>\n";
 	else
 		echo "	<tr><td><i>No record found.</i></td></tr>\n";
 
@@ -187,6 +188,7 @@ if($result) {
 		echo "		document.getElementById('num_of_nights').value='" . $row['nights'] . "';\n";
 		echo "		document.getElementById('discount').value='" . $row['discount_pct'] . "';\n";
 		echo "		document.getElementById('num_of_days_before_arrival').value='" . $row['valid_num_of_days_before_arrival'] . "';\n";
+		echo "		document.getElementById('early_bird_day_count').value='" . $row['early_bird_day_count'] . "';\n";
 		echo "		document.getElementById('visible').checked=" . ($row['visible'] == 1 ? 'true' : 'false') . ";\n";
 		if(strlen($row['room_type_ids']) > 0) {
 			$ids = explode(",", $row['room_type_ids']);
@@ -235,6 +237,7 @@ if($result) {
 				echo "<td valign=\"middle\" rowspan=\"" . count($record) . "\">" . $row['discount_pct'] . "%</td>";
 				echo "<td valign=\"middle\" rowspan=\"" . count($record) . "\">" . $row['nights'] . "</td>";
 				echo "<td valign=\"middle\" rowspan=\"" . count($record) . "\">" . $row['valid_num_of_days_before_arrival'] . "</td>";
+				echo "<td valign=\"middle\" rowspan=\"" . count($record) . "\">" . $row['early_bird_day_count'] . "</td>";
 			}
 			echo "<td>$lang</td><td><strong>" . $cols['title'] . "</strong></td><td>" . $cols['text'] . "</td><td>" . (isset($cols['room_name']) ? $cols['room_name'] : '') . "</td>";
 			if($first) {

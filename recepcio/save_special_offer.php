@@ -29,6 +29,10 @@ $numOfDaysBeforeArrival = intval($_REQUEST['num_of_days_before_arrival']);
 if($numOfDaysBeforeArrival < 1) {
 	$numOfDaysBeforeArrival = 'NULL';
 }
+$earlyBirdDayCount = intval($_REQUEST['early_bird_day_count']);
+if($earlyBirdDayCount < 1) {
+	$earlyBirdDayCount = 'NULL';
+}
 $roomTypeIds = implode(",",$_REQUEST['room_type_ids']);
 if(strlen($roomTypeIds) < 1) {
 	$roomTypeIds = 'NULL';
@@ -38,9 +42,9 @@ if(strlen($roomTypeIds) < 1) {
 
 
 if($id < 1) {
-	$sql = "INSERT INTO special_offers (name, start_date, end_date, discount_pct, nights, room_type_ids, valid_num_of_days_before_arrival, visible) VALUES ('$name', '$startDate', '$endDate', $discount, $nights, $roomTypeIds, $numOfDaysBeforeArrival, $visible)";
+	$sql = "INSERT INTO special_offers (name, start_date, end_date, discount_pct, nights, room_type_ids, valid_num_of_days_before_arrival, early_bird_day_count, visible) VALUES ('$name', '$startDate', '$endDate', $discount, $nights, $roomTypeIds, $numOfDaysBeforeArrival, $earlyBirdDayCount, $visible)";
 } else {
-	$sql = "UPDATE special_offers SET name='$name', start_date='$startDate', end_date='$endDate', discount_pct=$discount, nights=$nights, room_type_ids=$roomTypeIds, valid_num_of_days_before_arrival=$numOfDaysBeforeArrival, visible=$visible WHERE id=$id";
+	$sql = "UPDATE special_offers SET name='$name', start_date='$startDate', end_date='$endDate', discount_pct=$discount, nights=$nights, room_type_ids=$roomTypeIds, valid_num_of_days_before_arrival=$numOfDaysBeforeArrival, early_bird_day_count=$earlyBirdDayCount, visible=$visible WHERE id=$id";
 }
 
 $result = mysql_query($sql, $link);

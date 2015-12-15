@@ -66,6 +66,13 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 				chkBx.checked = checkbox.checked;
 			});
 		}
+		
+		function sendHeartbeat() {
+			new Ajax.Request('/heartbeat.php', {
+			});
+			setTimeout(sendHeartbeat, 60000);
+		}
+
 
 	</script>
 
@@ -73,7 +80,7 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 
 </head>
 
-<body style="font-size: 12px; padding: 0px; margin: 0px 10px 10px 10px;" onload="hideSubMenu();$onloadScript">
+<body style="font-size: 12px; padding: 0px; margin: 0px 10px 10px 10px;" onload="hideSubMenu();sendHeartbeat();$onloadScript">
 
 $tooltipJsHtml
 

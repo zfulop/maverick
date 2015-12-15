@@ -543,7 +543,8 @@ function createBooking($bookingData, $link) {
 		$firstName = $bookingData['Customers'][0]['CustomerFName'];
 		$lastName = $bookingData['Customers'][0]['CustomerLName'];
 
-		$message .= "<a href=\"http://" . $_SERVER['HTTP_HOST'] . "/edit_booking.php?description_id=$descriptionId\">View booking</a><br>\n";
+		//$message .= "<a href=\"http://" . $_SERVER['HTTP_HOST'] . "/edit_booking.php?description_id=$descriptionId\">View booking</a><br>\n";
+		$message .= "<a href=\"http://recepcio.roomcaptain.com/edit_booking.php?description_id=$descriptionId\">View booking</a><br>\n";
 		$message .= "$firstName $lastName - $email<br>\n";
 		$message .= "<pre>$comment</pre><br><br>\n";
 	}
