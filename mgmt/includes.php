@@ -2,23 +2,32 @@
 
 date_default_timezone_set('Europe/Budapest');
 
-require('includes/config.php');
-require('../includes/message.php');
-require('includes/frame.php');
-require('../includes/image_upload.php');
-require('../includes/language.php');
-require('../includes/error_handler.php');
-require('../includes/db_config.php');
-require('../includes/db.php');
-require('../includes/audit.php');
-require('../includes/exchange.php');
-require('../includes/login.php');
+define('ROOT_DIR', '/home/zolika/roomcaptain_mgmt/');
 
+require(ROOT_DIR . 'includes/config.php');
+require(ROOT_DIR . '../includes/message.php');
+require(ROOT_DIR . 'includes/frame.php');
+require(ROOT_DIR . '../includes/image_upload.php');
+require(ROOT_DIR . '../includes/language.php');
+require(ROOT_DIR . '../includes/error_handler.php');
+require(ROOT_DIR . '../includes/db_config.php');
+require(ROOT_DIR . '../includes/db.php');
+require(ROOT_DIR . '../includes/audit.php');
+require(ROOT_DIR . '../includes/login.php');
 
 //set_error_handler('printOutErrorHandler');
 set_error_handler('sessionErrorHandler');
 
-
 session_start();
+
+if(isset($_SESSION['login_hotel'])) {
+	$configFile = ROOT_DIR . '../includes/config/' . $_SESSION['login_hotel'] . '.php';
+	if(file_exists($configFile)) {
+		require($configFile);
+	}
+}
+
+require(ROOT_DIR . '../includes/exchange.php');
+
 
 ?>

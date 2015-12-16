@@ -339,8 +339,8 @@ function createBooking($bookingData, $link) {
 
 	$currency = $bookingData['TotalCurrency'];
 	$customer = $bookingData['Customers'][0];
-	$firstname = mysql_escape_string($customer['CustomerFName']);
-	$lastname = mysql_escape_string($customer['CustomerLName']);
+	$firstname = mysql_real_escape_string($customer['CustomerFName'], $link);
+	$lastname = mysql_real_escape_string($customer['CustomerLName'], $link);
 	$email = $customer['CustomerEmail'];
 	$phone = '';
 	$nationality = isset($customer['CustomerCountry']) ? $customer['CustomerCountry'] : '';
@@ -350,10 +350,10 @@ function createBooking($bookingData, $link) {
 	if(isset($COUNTRY_ALIASES[$nationality])) {
 		$nationality = $COUNTRY_ALIASES[$nationality];
 	}
-	$city = isset($customer['CustomerCity']) ? mysql_escape_string($customer['CustomerCity']) : '';
-	$country = isset($customer['CustomerCountry']) ? mysql_escape_string($customer['CustomerCountry']) : '';
+	$city = isset($customer['CustomerCity']) ? mysql_real_escape_string($customer['CustomerCity'], $link) : '';
+	$country = isset($customer['CustomerCountry']) ? mysql_real_escape_string($customer['CustomerCountry'], $link) : '';
 	$address = $city . ', ' . $country;
-	$comment = mysql_escape_string(print_r($bookingData, true));
+	$comment = mysql_real_escape_string(print_r($bookingData, true), $link);
 
 	$source = (isset($bookingData['Channel']) and isset($SOURCES[$bookingData['Channel']])) ? $SOURCES[$bookingData['Channel']] : '';
 	if(is_array($source) and ($bookingData['Channel'] == 'exp')) {

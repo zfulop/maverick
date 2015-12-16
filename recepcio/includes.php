@@ -2,9 +2,7 @@
 
 date_default_timezone_set('Europe/Budapest');
 
-//define('ROOT_DIR', '/home/zolika/roomcaptain_recepcio/');
-define('ROOT_DIR', '/Projects/maverick/Repository/recepcio/');
-define('EXCHANGE_TABLE_FILE', '/Projects/maverick/Repository/includes/exchange_table.php');
+define('ROOT_DIR', '/home/zolika/roomcaptain_recepcio/');
 
 require(ROOT_DIR . 'includes/config.php');
 require(ROOT_DIR . '../includes/message.php');
@@ -15,7 +13,6 @@ require(ROOT_DIR . '../includes/error_handler.php');
 require(ROOT_DIR . '../includes/db.php');
 require(ROOT_DIR . '../includes/db_config.php');
 require(ROOT_DIR . '../includes/audit.php');
-require(ROOT_DIR . '../includes/exchange.php');
 require(ROOT_DIR . '../includes/mail.php');
 require(ROOT_DIR . '../includes/login.php');
 
@@ -31,6 +28,8 @@ if(isset($_SESSION['login_hotel'])) {
 		require($configFile);
 	}
 }
+
+require(ROOT_DIR . '../includes/exchange.php');
 
 
 ?>

@@ -19,8 +19,8 @@ $id = intval($_REQUEST['id']);
 $order = intval($_REQUEST['order']);
 if($order < 1) $order = 1;
 $free = isset($_REQUEST['free']) ? 1 : 0;
-$name = mysql_real_escape_string($_REQUEST['title_eng']);
-$description = mysql_real_escape_string($_REQUEST['description_eng']);
+$name = mysql_real_escape_string($_REQUEST['title_eng'], $link);
+$description = mysql_real_escape_string($_REQUEST['description_eng'], $link);
 $currency = $_REQUEST['currency'];
 $price = $_REQUEST['price'];
 $serviceChargeType = $_REQUEST['service_charge_type'];
@@ -94,7 +94,7 @@ mysql_query("COMMIT", $link);
 mysql_close($link);
 
 function saveLangText($paramName,$lang, $id, $link) {
-	$value = mysql_real_escape_string($_REQUEST[$paramName . '_' . $lang]);
+	$value = mysql_real_escape_string($_REQUEST[$paramName . '_' . $lang], $link);
 	$sql = "INSERT INTO lang_text (table_name, column_name, row_id, lang, value) VALUES ('services', '$paramName', $id, '$lang', '$value')";
 	if(!mysql_query($sql, $link)) {
 		trigger_error("Cannot save service $paramName in recepcion interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);

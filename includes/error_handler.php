@@ -1,8 +1,17 @@
 <?php
 
+
+$ajaxErrors = array();
+
 /////////////////////////////////////////////////////
 // This file contains the error hahdling function. //
 /////////////////////////////////////////////////////
+
+function ajaxErrorHandler($errno, $errstr, $errfile, $errline, $errcontext) {
+	global $ajaxErrors;
+	$ajaxErrors[] = array('errno' => $errno, 'errstr' => $errstr, 'errfile' => $errfile, 'errcontext' => print_r($errcontext, true));
+}
+
 
 // This is the error handler that is set when reporting errors to avoid infinite loop of
 // errors.

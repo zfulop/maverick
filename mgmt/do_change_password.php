@@ -24,7 +24,7 @@ if($nPwd <> $nPwd2) {
 
 $link = db_connect();
 
-$sql = "UPDATE users SET password='" . mysql_real_escape_string(crypt($nPwd)) . "' WHERE id=" . $_SESSION['login_user_id'];
+$sql = "UPDATE users SET password='" . mysql_real_escape_string(crypt($nPwd), $link) . "' WHERE id=" . $_SESSION['login_user_id'];
 $result = mysql_query($sql, $link);
 if(!$result) {
 	trigger_error("Could not change password. " . mysql_error($link) . " (SQL: $sql)");

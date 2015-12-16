@@ -11,5 +11,9 @@ define('DB_LODGE_NAME', 'Maverick City Lodge');
 define('DB_HOSTEL_USERNAME', 'hosteluser');
 define('DB_HOSTEL_PASSWORD', 'DgrVX348?By{');
 define('DB_HOSTEL_NAME', 'Maverick Hostel');
+//Test Hostel
+define('DB_TEST_HOSTEL_USERNAME', 'testhosteluser');
+define('DB_TEST_HOSTEL_PASSWORD', '0h{r,FT6^[.r');
+define('DB_TEST_HOSTEL_NAME', 'Test Hostel');
 
 ?>

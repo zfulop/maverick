@@ -12,12 +12,12 @@ $link = db_connect();
 header('Location: view_users.php');
 
 $id = $_REQUEST['id'];
-$username = mysql_real_escape_string($_REQUEST['username']);
-$name = mysql_real_escape_string($_REQUEST['name']);
-$email = mysql_real_escape_string($_REQUEST['email']);
-$telephone = mysql_real_escape_string($_REQUEST['telephone']);
-$role = mysql_real_escape_string($_REQUEST['role']);
-$pwd = mysql_real_escape_string(crypt(''));
+$username = mysql_real_escape_string($_REQUEST['username'], $link);
+$name = mysql_real_escape_string($_REQUEST['name'], $link);
+$email = mysql_real_escape_string($_REQUEST['email'], $link);
+$telephone = mysql_real_escape_string($_REQUEST['telephone'], $link);
+$role = mysql_real_escape_string($_REQUEST['role'], $link);
+$pwd = mysql_real_escape_string(crypt(''), $link);
 
 if($role == 'MANAGER' and $_SESSION['login_role'] != 'ADMIN') {
 	set_error('MANAGER role can only be assigned by an ADMIN user');

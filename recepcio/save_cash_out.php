@@ -8,17 +8,17 @@ if(!checkLogin(SITE_RECEPTION)) {
 }
 
 
+$link = db_connect();
+
 
 $type = $_REQUEST['type'];
 $receiver = $_REQUEST['receiver'];
 $timeOfPayment = date('Y-m-d H:i:s');
 $amount = str_replace(",", ".", $_REQUEST['amount']);
 $currency = $_REQUEST['currency'];
-$comment = mysql_escape_string($_REQUEST['comment']);
+$comment = mysql_escape_string($_REQUEST['comment'], $link);
 $payMode = $_REQUEST['pay_mode'];
 
-
-$link = db_connect();
 
 $sql = "INSERT INTO cash_out (type, receiver, time_of_payment, amount, currency, comment, pay_mode) VALUES ('$type', '$receiver', '$timeOfPayment', $amount, '$currency',  '$comment', '$payMode')";
 

@@ -1,5 +1,9 @@
 <?php
 
+if(!defined('EXCHANGE_TABLE_FILE')) {
+	define('EXCHANGE_TABLE_FILE', '/home/zolika/includes/config/exchange_table.php');
+}
+
 require EXCHANGE_TABLE_FILE;
 
 // the exchange rate table is in the exchange_table.php file. That file

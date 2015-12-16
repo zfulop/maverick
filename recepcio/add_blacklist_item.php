@@ -11,11 +11,11 @@ if(!checkLogin(SITE_RECEPTION)) {
 
 $link = db_connect();
 
-$name = mysql_escape_string($_REQUEST['name']);
-$email = mysql_escape_string($_REQUEST['email']);
-$source = mysql_escape_string($_REQUEST['source']);
+$name = mysql_escape_string($_REQUEST['name'], $link);
+$email = mysql_escape_string($_REQUEST['email'], $link);
+$source = mysql_escape_string($_REQUEST['source'], $link);
 $today = date('Y-m-d');
-$reason = mysql_escape_string($_REQUEST['reason']);
+$reason = mysql_escape_string($_REQUEST['reason'], $link);
 
 
 $sql = "INSERT INTO blacklist (name,email,source,reason,date_of_entry) VALUES ('$name', '$email','$source','$reason','$today')";
