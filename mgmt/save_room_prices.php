@@ -36,7 +36,7 @@ $startDate = $_REQUEST['start_date'];
 $endDate = $_REQUEST['end_date'];
 
 if(isset($_REQUEST['sync'])) {
-	header('Location: ' . RECEPCIO_BASE_URL . "synchro/main.php?start_date=$startDate&end_date=$endDate&sites[]=myallocator");
+	header('Location: ' . RECEPCIO_BASE_URL . "synchro/main.php?start_date=$startDate&end_date=$endDate&sites[]=myallocator&login_hotel=" . $_SESSION['login_hotel']);
 } else {
 	header("Location: " . $_SERVER['HTTP_REFERER']);
 }

@@ -163,7 +163,7 @@ while($row = mysql_fetch_assoc($result)) {
   $NATIONALITIES[] = $row['nationality'];
 }
 $NATIONALITIES[] = '----------';
-$countries = file_get_contents(RECEPCIO_BASE_DIR . 'includes/countries.txt');
+$countries = file_get_contents(COUNTRIES_FILE);
 foreach(explode("\n", $countries) as $cntry) {
   $cntry = trim($cntry);
   if(strlen($cntry) < 1)

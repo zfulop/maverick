@@ -29,10 +29,10 @@ function getExchangeRate($sourceCurrency, $destCurrency, $dateOfConversion) {
 	$prevDate = null;
 	$prevRate = null;
 	$rateOfConversion = null;
-	$arr = null;
+	$arr = array();
 	if(isset($EXCHANGE_TABLE[$sourceCurrency][$destCurrency])) {
 		$arr = $EXCHANGE_TABLE[$sourceCurrency][$destCurrency];
-	} else {
+	} elseif(isset($EXCHANGE_TABLE[$destCurrency][$sourceCurrency])) {
 		$arr = $EXCHANGE_TABLE[$destCurrency][$sourceCurrency];
 	}
 	foreach($arr as $date => $rate) {
@@ -66,8 +66,12 @@ function getExchangeRate($sourceCurrency, $destCurrency, $dateOfConversion) {
 		$rateOfConversion = $prevRate;
 	}
 
-	if(!isset($EXCHANGE_TABLE[$sourceCurrency][$destCurrency])) {
+	if(!isset($EXCHANGE_TABLE[$sourceCurrency][$destCurrency]) and !is_null($rateOfConversion)) {
 		$rateOfConversion = 1 / $rateOfConversion;
+	}
+
+	if(is_null($rateOfConversion)) {
+		set_error("Cannot convert from $sourceCurrency to $destCurrency on $dateOfConversion");
 	}
 
 	return $rateOfConversion;

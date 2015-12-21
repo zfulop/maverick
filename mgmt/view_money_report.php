@@ -413,7 +413,7 @@ while(count($scharges) > $scIdx or count($cashOuts) > $coIdx or count($payments)
 	}
 
 	if(!is_null($bookingDescriptionId)) {
-		$editBookingUrl = RECEPCIO_BASE_URL . "edit_booking.php?description_id=$bookingDescriptionId";
+		$editBookingUrl = RECEPCIO_BASE_URL . "edit_booking.php?description_id=$bookingDescriptionId&login_hotel=" . $_SESSION['login_hotel'];
 		$eurCell = "<a href=\"$editBookingUrl\">$eurCell</a>";
 		$hufCell = "<a href=\"$editBookingUrl\">$hufCell</a>";
 	}

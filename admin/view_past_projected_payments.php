@@ -146,7 +146,6 @@ if($_SESSION['cashflow_past_date_by'] == 'arrive') {
 }
 
 $sql = "SELECT p.currency, p.pay_mode, sum(p.amount) as amount, $pastDateVal AS date_val FROM booking_descriptions bd RIGHT OUTER JOIN payments p ON bd.id=p.booking_description_id WHERE $dateCol<='$pastEndDateComp' AND $dateCol>='$pastStartDateComp' AND bd.cancelled<>1 AND p.storno<>1 $whereClause GROUP BY p.currency, p.pay_mode, $pastDateVal";
-set_message($sql);
 
 
 $result = mysql_query($sql, $link);
@@ -173,11 +172,9 @@ if(!$result) {
 while($row = mysql_fetch_assoc($result)) {
   $futureTable[$row['date_val']] = $row['amount'];
 }
-set_message($sql);
 
 
 $sql = "SELECT sum(p.amount) as amount, p.currency, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN payments p ON bd.id=p.booking_description_id WHERE bd.first_night<='$futureEndDate' AND bd.first_night>='$futureStartDate' AND bd.cancelled<>1 $whereClause GROUP BY p.currency, $dateVal";
-set_message($sql);
 $result = mysql_query($sql, $link);
 $futureTablePayment = array();
 if(!$result) {

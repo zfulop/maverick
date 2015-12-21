@@ -22,6 +22,12 @@ function checkLogin($site) {
 		header('Location: /view_login.php');
 		return false;
 	}
+	if(isset($_REQUEST['login_hotel']) and $_REQUEST['login_hotel'] != $_SESSION['login_hotel']) {
+		logout();
+		$_SESSION['login_redirect'] = $redirect;
+		header('Location: /view_login.php');
+		return false;
+	}
 	if(!isset($ROLES[$site])) {
 		$_SESSION['login_redirect'] = $redirect;
 		header('Location: /view_login.php');

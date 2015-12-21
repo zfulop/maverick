@@ -64,6 +64,7 @@ if(!$result) {
 
 $confirmBookingUrl = CONFIRM_BOOKING_URL;
 $confirmBookingUrl = str_replace('LANG', $lang, $confirmBookingUrl);
+$confirmBookingUrl = str_replace('LOCATION', LOCATION, $confirmBookingUrl);
 $confirmBookingUrl = str_replace('CONFIRM_CODE', urlencode($confirmCode), $confirmBookingUrl);
 
 $total = 0;

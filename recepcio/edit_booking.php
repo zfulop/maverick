@@ -351,7 +351,7 @@ while($row = mysql_fetch_assoc($result)) {
 
 
 $nationalityOptions = '';
-$countries = file_get_contents('../includes/countries.txt');
+$countries = file_get_contents(COUNTRIES_FILE);
 foreach(explode("\n", $countries) as $cntry) {
 	$cntry = trim($cntry);
 	if(strlen($cntry) < 1)

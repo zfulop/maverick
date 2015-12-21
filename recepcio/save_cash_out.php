@@ -16,7 +16,7 @@ $receiver = $_REQUEST['receiver'];
 $timeOfPayment = date('Y-m-d H:i:s');
 $amount = str_replace(",", ".", $_REQUEST['amount']);
 $currency = $_REQUEST['currency'];
-$comment = mysql_escape_string($_REQUEST['comment'], $link);
+$comment = mysql_real_escape_string($_REQUEST['comment'], $link);
 $payMode = $_REQUEST['pay_mode'];
 
 
