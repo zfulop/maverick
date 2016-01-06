@@ -30,6 +30,7 @@ $depositCurrency = $_REQUEST['deposit_currency'];
 $comment = mysql_real_escape_string($_REQUEST['comment'], $link);
 $source = mysql_real_escape_string($_REQUEST['source'], $link);
 $arrivalTime = mysql_real_escape_string($_REQUEST['arrival_time'], $link);
+$maintenance = isset($_REQUEST['maintenance']) ? '1' : '0';
 
 $fnight = $_REQUEST['first_night'];
 $lnight = $_REQUEST['last_night'];
@@ -122,7 +123,7 @@ if(count($toBook) < 1) {
 
 verifyBlacklist($name, $email, CONTACT_EMAIL, $link);
 
-$sql = "INSERT INTO booking_descriptions (name, name_ext, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time) VALUES ('$name', '$nameExt', '$gender', '$addr', '$nat', '$email', '$tel', '$fnight', '$lnight', $numOfNights, 0, 0, 0, 0, '$comment', '$source', '$arrivalTime')";
+$sql = "INSERT INTO booking_descriptions (name, name_ext, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, maintenance) VALUES ('$name', '$nameExt', '$gender', '$addr', '$nat', '$email', '$tel', '$fnight', '$lnight', $numOfNights, 0, 0, 0, 0, '$comment', '$source', '$arrivalTime', $maintenance)";
 set_debug($sql);
 
 if(!mysql_query($sql, $link)) {

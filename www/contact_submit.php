@@ -115,7 +115,7 @@ $message = <<<EOT
           <tr>
             <td width="40" bgcolor="#1d0328"></td>
             <td width="520" height="120" bgcolor="#1d0328" valign="middle">
-              <img width="130" height="64" src="logo.jpg" style="display: block;">
+              <img width="130" height="64" src="cid:logo" style="display: block;">
             </td>
             <td width="40" bgcolor="#1d0328"></td>
           </tr>
@@ -193,8 +193,12 @@ EOT;
 
 $toEmail = constant('CONTACT_EMAIL_' . strtoupper($destination));
 $toName = 'Reservation - ' . getLocationName();
-sendMail($email, $firstname . ' ' . $lastname, $toEmail, $toName, 'Website contact request', $message, $inlineAttachments = array(), $attachments = array());
-sendMail($toEmail, $toName, $email, $firstname . ' ' . $lastname, 'Maverick - ' . CONTACT, $message, $inlineAttachments = array(), $attachments = array());
+$inlineAttachments = array(	
+	'logo' => EMAIL_IMG_DIR . 'logo-' . $location . '.jpg',
+);
+
+sendMail($email, $firstname . ' ' . $lastname, $toEmail, $toName, 'Website contact request', $message, $inlineAttachments);
+sendMail($toEmail, $toName, $email, $firstname . ' ' . $lastname, 'Maverick - ' . CONTACT, $message, $inlineAttachments);
 
 html_start(CONTACT);
 

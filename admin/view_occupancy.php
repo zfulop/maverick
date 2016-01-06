@@ -261,7 +261,7 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 		$endPeriod = date('Y-m-d', strtotime("$endPeriod -1 day"));
 		$relBookings = getBookings($roomTypeId, $rooms, $startPeriod, $endPeriod, $startDateBookingRec, $endDateBookingRec);
 		$absBookings = getBookings($roomTypeId, $rooms, $startPeriod, $endPeriod);
-		if(isApartment($roomType)) {
+		if(!isDorm($roomType)) {
 			//set_message("Room: " . $roomType['name'] . " is apartment with num of beds: " . $roomType['num_of_beds']);
 			//set_message("abs selected bookings: " . print_r($absBookings, true));
 			$relAvgNumOfBeds = getAvgNumOfBedsOccupied($relBookings, $startPeriod, $endPeriod, $roomType['num_of_beds']);

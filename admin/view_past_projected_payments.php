@@ -46,6 +46,9 @@ if(isset($_REQUEST['future_end_date'])) {
 if(isset($_REQUEST['source'])) {
   $_SESSION['cashflow_source'] = $_REQUEST['source'];
 }
+if(isset($_REQUEST['type'])) {
+  $_SESSION['cashflow_type'] = $_REQUEST['type'];
+}
 if(isset($_REQUEST['time_group'])) {
   $_SESSION['cashflow_time_group'] = $_REQUEST['time_group'];
 }
@@ -71,6 +74,9 @@ if(!isset($_SESSION['cashflow_time_group'])) {
 if(!isset($_SESSION['cashflow_source'])) {
   $_SESSION['cashflow_source'] = array();
 }
+if(!isset($_SESSION['cashflow_type'])) {
+  $_SESSION['cashflow_type'] = array();
+}
 
 $pastStartDate = $_SESSION['cashflow_past_start_date'];
 $pastEndDate = $_SESSION['cashflow_past_end_date'];
@@ -78,6 +84,7 @@ $futureStartDate = $_SESSION['cashflow_future_start_date'];
 $futureEndDate = $_SESSION['cashflow_future_end_date'];
 $timeGroup = $_SESSION['cashflow_time_group'];
 $source = $_SESSION['cashflow_source'];
+$type = $_SESSION['cashflow_type'];
 
 $pastStartDateDash = str_replace('/','-',$pastStartDate);
 $pastEndDateDash = str_replace('/','-',$pastEndDate);
@@ -95,6 +102,18 @@ if(!$result) {
   }
 }
 
+$TYPES = array();
+$sql = "SELECT DISTINCT type FROM payments ORDER BY type";
+$result = mysql_query($sql, $link);
+if(!$result) {
+  trigger_error("Cannot get types from payments in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+} else {
+  while($row = mysql_fetch_assoc($result)) {
+    $TYPES[] = $row['type'];
+  }
+}
+
+
 
 $pastNumOfDays = round((strtotime($pastEndDateDash) - strtotime($pastStartDateDash)) / (60*60*24)) + 1;
 $futureNumOfDays = round((strtotime($futureEndDateDash) - strtotime($futureStartDateDash)) / (60*60*24)) + 1;
@@ -110,6 +129,12 @@ foreach($SOURCES as $item) {
   $sourceOptions .= "      <option value=\"$item\"" . (in_array($item, $source) ? ' selected' : '') . ">$item</option>\n";
 }
 
+$typeOptions = "    <option value=\"\">[ALL]</option>\n";
+foreach($TYPES as $item) {
+  $typeOptions .= "      <option value=\"$item\"" . (in_array($item, $type) ? ' selected' : '') . ">$item</option>\n";
+}
+
+
 
 $dateVal = '';
 if($timeGroup == 'month') {
@@ -120,9 +145,14 @@ if($timeGroup == 'month') {
   $dateVal = 'first_night';
 }
 
-$whereClause = '';
+$pastWhereClause = '';
+$futureWhereClause = '';
 if(!is_null($source) > 0 and count($source) > 0 and !in_array('', $source)) {
-  $whereClause .= " AND source IN ('" . implode("','", $source) . "')";
+  $pastWhereClause .= " AND source IN ('" . implode("','", $source) . "')";
+  $futureWhereClause .= " AND source IN ('" . implode("','", $source) . "')";
+}
+if(!is_null($type) > 0 and count($type) > 0 and !in_array('', $type)) {
+  $pastWhereClause .= " AND p.type IN ('" . implode("','", $type) . "')";
 }
 
 $sqlFindBy = "";
@@ -145,7 +175,7 @@ if($_SESSION['cashflow_past_date_by'] == 'arrive') {
 	}
 }
 
-$sql = "SELECT p.currency, p.pay_mode, sum(p.amount) as amount, $pastDateVal AS date_val FROM booking_descriptions bd RIGHT OUTER JOIN payments p ON bd.id=p.booking_description_id WHERE $dateCol<='$pastEndDateComp' AND $dateCol>='$pastStartDateComp' AND bd.cancelled<>1 AND p.storno<>1 $whereClause GROUP BY p.currency, p.pay_mode, $pastDateVal";
+$sql = "SELECT p.currency, p.pay_mode, sum(p.amount) as amount, $pastDateVal AS date_val FROM booking_descriptions bd RIGHT OUTER JOIN payments p ON bd.id=p.booking_description_id WHERE $dateCol<='$pastEndDateComp' AND $dateCol>='$pastStartDateComp' AND bd.cancelled<>1 AND p.storno<>1 $pastWhereClause GROUP BY p.currency, p.pay_mode, $pastDateVal";
 
 
 $result = mysql_query($sql, $link);
@@ -163,7 +193,7 @@ while($row = mysql_fetch_assoc($result)) {
   $pastTable[$row['pay_mode']][$row['date_val']][$row['currency']] = $row['amount'];
 }
 
-$sql = "SELECT sum(b.room_payment) as amount, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN bookings b ON bd.id=b.description_id WHERE bd.first_night<='$futureEndDate' AND bd.first_night>='$futureStartDate' AND bd.cancelled<>1 $whereClause GROUP BY $dateVal";
+$sql = "SELECT sum(b.room_payment) as amount, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN bookings b ON bd.id=b.description_id WHERE bd.first_night<='$futureEndDate' AND bd.first_night>='$futureStartDate' AND bd.cancelled<>1 AND bd.maintenance<>1 $futureWhereClause GROUP BY $dateVal";
 $result = mysql_query($sql, $link);
 $futureTable = array();
 if(!$result) {
@@ -174,7 +204,7 @@ while($row = mysql_fetch_assoc($result)) {
 }
 
 
-$sql = "SELECT sum(p.amount) as amount, p.currency, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN payments p ON bd.id=p.booking_description_id WHERE bd.first_night<='$futureEndDate' AND bd.first_night>='$futureStartDate' AND bd.cancelled<>1 $whereClause GROUP BY p.currency, $dateVal";
+$sql = "SELECT sum(p.amount) as amount, p.currency, $dateVal AS date_val FROM booking_descriptions bd INNER JOIN payments p ON bd.id=p.booking_description_id WHERE bd.first_night<='$futureEndDate' AND bd.first_night>='$futureStartDate' AND bd.cancelled<>1 AND bd.maintenance<>1 $futureWhereClause GROUP BY p.currency, $dateVal";
 $result = mysql_query($sql, $link);
 $futureTablePayment = array();
 if(!$result) {
@@ -230,6 +260,11 @@ $timeGroupOptions
   <tr><td>Source:</td><td>
   <select name="source[]" multiple="yes" size="6" style="height: 80px;">
 $sourceOptions
+    </select>
+  </td></tr>
+  <tr><td>Payment type:</td><td>
+  <select name="type[]" multiple="yes" size="6" style="height: 80px;">
+$typeOptions
     </select>
   </td></tr>
 </table>
@@ -314,13 +349,13 @@ foreach($dateCols as $dateCol) {
 }
 
 $pastTotal = array();
-$TYPES = array('CASH', 'CASH2', 'CASH3', 'CASH4', 'BANK_TRANSFER', 'CREDIT_CARD');
-foreach($TYPES as $type) {
-	if(!isset($pastTable[$type])) {
+$PAYMODES = array('CASH', 'CASH2', 'CASH3', 'CASH4', 'BANK_TRANSFER', 'CREDIT_CARD');
+foreach($PAYMODES as $paym) {
+	if(!isset($pastTable[$paym])) {
 		continue;
 	}
-	$values = $pastTable[$type];
-	echo "  <tr><td style=\"font-weight: bold;border-bottom: 1px solid black;\">$type</td>";
+	$values = $pastTable[$paym];
+	echo "  <tr><td style=\"font-weight: bold;border-bottom: 1px solid black;\">$paym</td>";
 	foreach($dateCols as $dateCol) {
 		echo "    <td style=\"border-bottom: 1px solid black;\">\n";
 		if(isset($values[$dateCol])) {

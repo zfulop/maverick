@@ -183,6 +183,7 @@ echo <<<EOT
 	<tr><td>Nationality: </td><td><select name="nationality">$nationalityOptions</select></td></tr>
 	<tr><td>Email: </td><td><input name="email" value="$email"></td></tr>
 	<tr><td>Tel: </td><td><input name="telephone" value="$tel"></td></tr>
+	<tr><td>Maintenance: </td><td><input type="checkbox" name="maintenance"></td></tr>
 	<tr><td colspan="2"><hr></td></tr>
 	<tr><td></td><td></td><td rowspan="16" valign="top"><b>Comment: </b><br><textarea cols="60" rows="25" name="comment">$comment</textarea></td></tr>
 	<tr>
