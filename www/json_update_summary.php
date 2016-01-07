@@ -35,6 +35,11 @@ foreach($bookings as $roomTypeId => $oneRoomBooked) {
 	$roomData = getRoomData($rooms, $roomTypeId);
 	$price = $oneRoomBooked['discountedPrice'];
 	$total += $price;
+	if(isClientFromHU() and $roomType['num_of_beds'] > 4) {
+		$nob = $roomType['num_of_beds'];
+		$roomType['num_of_beds'] = 4;
+		$name = str_replace('5', '4', $name);
+	}
 	$retVal['details']['rooms'][] = array('name' => $name, 'description' => $numNightsForNumPerson, 'price' => formatMoney(convertCurrency($price, 'EUR', $currency), $currency));
 }
 

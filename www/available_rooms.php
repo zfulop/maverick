@@ -229,6 +229,9 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 	if(showApartments() !== isApartment($roomType)) {
 		continue;
 	}
+	if(isClientFromHU() and $roomType['num_of_beds'] > 5) {
+		continue;
+	}
 
 	$html = getRoomHtml($roomType, $roomTypeId, $nights, $arriveDate, $specialOffers, $link);
 }
@@ -338,6 +341,14 @@ function getRoomHtml($roomType, $roomTypeId, $nights, $arriveDate, $specialOffer
 	}
 	if(!isset($roomType['num_of_rooms_avail'])) {
 		$roomType['num_of_rooms_avail'] = 0;
+	}
+	if(isClientFromHU() and $roomType['num_of_beds'] > 4) {
+		$nob = $roomType['num_of_beds'];
+		$roomType['num_of_beds'] = 4;
+		$name = str_replace('5', '4', $name);
+		$descr = str_replace('5', '4', $descr);
+		$shortDescr = str_replace('5', '4', $shortDescr );
+		$roomType['num_of_beds_avail'] = min(4, $roomType['num_of_beds_avail']);
 	}
 	if(isDorm($roomType)) {
 		for($i = 0; $i <= $roomType['num_of_beds_avail']; $i++) {

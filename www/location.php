@@ -371,6 +371,7 @@ $specialOfferSection
           
 EOT;
 
+
 $details = DETAILS;
 $close = CLOSE;
 $gallery = GALLERY;
@@ -378,6 +379,9 @@ $gallery = GALLERY;
 $locationName = getLocationName($location);
 foreach($roomTypesData as $roomTypeId => $roomType) {
 	if(showApartments() !== isApartment($roomType)) {
+		continue;
+	}
+	if(isClientFromHU() and $roomType['num_of_beds'] > 5) {
 		continue;
 	}
 	if(isDorm($roomType)) {
@@ -393,6 +397,13 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 	$name = $roomType['name'];
 	$descr = $roomType['description'];
 	$shortDescr = $roomType['short_description'];
+	if(isClientFromHU() and $roomType['num_of_beds'] > 4) {
+		$nob = $roomType['num_of_beds'];
+		$roomType['num_of_beds'] = 4;
+		$name = str_replace('5', '4', $name);
+		$descr = str_replace('5', '4', $descr);
+		$shortDescr = str_replace('5', '4', $shortDescr );
+	}
 	$sql = "SELECT * FROM room_images WHERE room_type_id=$roomTypeId";
 	$result = mysql_query($sql, $link);
 	$roomImg = '';

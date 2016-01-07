@@ -376,6 +376,9 @@ foreach($bookings as $oneRoomBooked) {
 	$roomType = $roomTypesData[$roomTypeId];
 	$type = $roomType['type'] == 'DORM' ? BED : ROOM;
 	$name = $roomType['name'];
+	if(isClientFromHU() and $roomType['num_of_beds'] > 4) {
+		$name = str_replace('5', '4', $name);
+	}
 	$numOfGuests = $oneRoomBooked['numOfGuests'];
 	$numNightsForNumPerson = sprintf(NUM_NIGHTS_FOR_NUM_PERSON, $nights, $numOfGuests);
 	$roomData = getRoomData($rooms, $roomTypeId);
