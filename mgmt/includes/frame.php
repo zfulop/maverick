@@ -105,7 +105,6 @@ EOT;
 			<ul>
 				<li><a href="$rooms" style="float: left; font-size: 14px; padding-right: 20px;">Rooms/Room Types</a></li>
 				<li><a href="$pricing" style="float: left; font-size: 14px; padding-right: 20px;">View pricing</a></li>
-				<li><a href="$photos" style="float: left; font-size: 14px; padding-right: 20px;">Room images</a></li>
 			</ul>
 		</div>
 		<a href="#" style="float: left; font-size: 14px; padding-right: 20px;" id="moneyMainMenu" onclick="showMenu('moneyMenu', this);return false;">Money</a>
@@ -118,8 +117,7 @@ EOT;
 		<a href="#" style="float: left; font-size: 14px; padding-right: 20px;" id="miscMainMenu" onclick="showMenu('miscMenu', this);return false;">Miscelanious</a>
 		<div id="miscMenu" class="submenu" onmouseleave="$(this).hide();">
 			<ul>
-				<li><a href="$lists" style="float: left; font-size: 14px; padding-right: 20px;">Lists</a></li>
-				<li><a href="$texts" style="float: left; font-size: 14px; padding-right: 20px;">Site texts</a></li>
+				<li><a href="$lists" style="float: left; font-size: 14px; padding-right: 20px;">Lists</a><br></li>
 				<li><a href="$audit" style="float: left; font-size: 14px; padding-right: 20px;">Audit</a></li>
 				<li><a href="$minMax" style="float: left; font-size: 14px; padding-right: 20px;">Min/Max Stay</a></li>
 			</ul>

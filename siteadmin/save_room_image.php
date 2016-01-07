@@ -2,10 +2,9 @@
 
 require("includes.php");
 
-if(!checkLogin(SITE_MGMT)) {
+if(!checkLogin(SITE_RECEPTION)) {
 	return;
 }
-
 
 $link = db_connect();
 

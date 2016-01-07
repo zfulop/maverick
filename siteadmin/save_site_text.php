@@ -3,7 +3,7 @@
 require("includes.php");
 require("site_text_common.php");
 
-if(!checkLogin(SITE_MGMT)) {
+if(!checkLogin(SITE_RECEPTION)) {
 	return;
 }
 

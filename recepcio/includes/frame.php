@@ -25,10 +25,6 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 	$cashRegister = ROOT_URL . 'view_cash_register.php';
 	$services = ROOT_URL . 'view_services.php';
 	$specialOffers = ROOT_URL . 'view_special_offers.php';
-	$awards = ROOT_URL . 'view_awards.php';
-	$haveFun = ROOT_URL . 'view_have_fun.php';
-	$bonApetit = ROOT_URL . 'view_bon_apetit.php';
-	$links = ROOT_URL . 'view_links.php';
 	$logout = ROOT_URL . 'logout.php';
 	$blacklist = ROOT_URL . 'view_blacklist.php';
 
@@ -128,10 +124,6 @@ EOT;
 			<ul style="list-style: none;">
 				<li><a href="$specialOffers" style="font-size: 14px; padding-right: 20px;">Special Offers</a></li>
 				<li><a href="$services" style="font-size: 14px; padding-right: 20px;">Services</a></li>
-				<li><a href="$awards" style="font-size: 14px; padding-right: 20px;">Awards</a></li>
-				<li><a href="$haveFun" style="font-size: 14px; padding-right: 20px;">Have Fun</a></li>
-				<li><a href="$bonApetit" style="font-size: 14px; padding-right: 20px;">Bon Apetit</a></li>
-				<li><a href="$links" style="font-size: 14px; padding-right: 20px;">Links</a></li>
 			</ul>
 		</div>
 		<div style="float: right;padding-right:50px;">

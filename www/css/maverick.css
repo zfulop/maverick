@@ -1271,3 +1271,52 @@ section#contact-form h2 {
 }
 
 
+.i404 {
+    
+    margin-top: 30px;
+    margin-bottom: 50px;
+    
+}
+
+
+.e404 {
+    
+    text-align: center;
+    margin-top: 15px;
+    
+    color: #1e022a;
+    font-family: 'Oswald' !important; 
+    font-weight: bold;
+    font-size: 28px;
+    text-transform: uppercase;
+    
+}
+
+.e404-2 {
+    
+    
+    text-align: center;
+    margin-bottom: 30px; 
+    color: #1e022a;
+    font-family: 'Oswald' !important; 
+    font-weight: 400;
+    font-size: 20px;
+    text-transform: uppercase;
+    
+}
+
+.e404-3 {
+    
+    
+    text-align: center;
+    margin-bottom: 30px; 
+    color: #1e022a;
+    font-family: 'Oswald' !important; 
+    font-weight: 400;
+    font-size: 26px;
+    text-transform: uppercase;
+    
+}
+
+
+

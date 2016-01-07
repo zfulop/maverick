@@ -9,7 +9,7 @@ define('PHP_MAILER_SENDTYPE', PHP_MAILER_SENDTYPE_MAIL);
 define('EMAIL_IMG_DIR', "/home/zolika/www/img/email/");
 
 define('IMG_ROOT_URL', 'http://www.mavericklodges.com/img/');
-define('IMG_ROOT_DIR', 'c:/Projects/maverick/Repository/www/img/');
+define('IMG_ROOT_DIR', '/home/zolika/www/img/');
 
 define('ROOMS_IMG_DIR', IMG_ROOT_DIR . "rooms/");
 define('ROOMS_IMG_URL', IMG_ROOT_URL . "rooms/");
