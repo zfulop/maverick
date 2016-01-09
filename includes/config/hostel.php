@@ -4,6 +4,7 @@ define('EXCHANGE_TABLE_FILE', '/home/zolika/includes/config/exchange_table_lodge
 define('COUNTRIES_FILE', '/home/zolika/includes/countries.txt');
 define('LOCATION', 'hostel');
 
+define('CONTACT_EMAIL', 'reservation@maverickhostel.com');
 
 define('MYALLOCATOR_CUSTOMER_ID','maverick');
 define('MYALLOCATOR_CUSTOMER_PASSWORD','Palesz22');

@@ -22,6 +22,7 @@ $SOURCES = array(
 	'hcu' => 'Hostel Culture',
 	'rep' => 'Travel Public',
 	'ta' => 'Trip Advisor',
+	'efh' => 'Famous Hostels',
 	'exp' => array('Hotel Collect Booking' => 'Expedia - Hotel Collect', 'Expedia Collect Booking' => 'Expedia - Expedia Collect')
 );
 

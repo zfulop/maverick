@@ -19,7 +19,6 @@ define('AWARDS_IMG_DIR', IMG_ROOT_DIR . "awards/");
 define('AWARDS_IMG_URL', IMG_ROOT_URL . "awards/");
 
 define('ROOT_URL', '/');
-define('CONTACT_EMAIL', 'reservation@mavericklodges.com');
 
 define('FPDF_FONTPATH','/home/zolika/includes/font');
 

@@ -84,3 +84,9 @@ RewriteRule lodge_book_now.php book_now.php?location=lodge&apartment=no [L,QSA]
 RewriteCond %{REQUEST_URI} apartments_book_now.php
 RewriteRule apartments_book_now.php book_now.php?location=apartments&apartment=yes [L,QSA]
 
+
+ErrorDocument 400 /404.php
+ErrorDocument 401 /404.php
+ErrorDocument 403 /404.php
+ErrorDocument 404 /404.php
+ErrorDocument 500 /404.php
