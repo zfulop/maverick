@@ -341,8 +341,8 @@ function createBooking($bookingData, $link) {
 
 	$currency = $bookingData['TotalCurrency'];
 	$customer = $bookingData['Customers'][0];
-	$firstname = mysql_real_escape_string($customer['CustomerFName'], $link);
-	$lastname = mysql_real_escape_string($customer['CustomerLName'], $link);
+	$firstname = mysql_real_escape_string(decode($customer['CustomerFName']), $link);
+	$lastname = mysql_real_escape_string(decode($customer['CustomerLName']), $link);
 	$email = $customer['CustomerEmail'];
 	$phone = '';
 	$nationality = isset($customer['CustomerCountry']) ? $customer['CustomerCountry'] : '';
@@ -411,19 +411,24 @@ function createBooking($bookingData, $link) {
 
 	// Save the parking as a service change
 	$serviceChargeAmt = 0;
+	$bdid = $bookingDescriptionIds[0];
+	$nowTime = date('Y-m-d H:i:s');
 	if(isset($bookingData['ExtraServices'])) {
 		foreach($bookingData['ExtraServices'] as $oneService) {
-			if(substr($oneService['Description'],0,6) == 'Parkol' and isset($oneService['Price'])) {
+			if((substr($oneService['Description'],0,6) == 'Parkol' or substr($oneService['Description'],0,7) == 'Reggeli') and isset($oneService['Price'])) {
 				$amount = doubleval($oneService['Price']);
 				if(isset($bookingData['TotalCurrency'])) {
 					$curr = $bookingData['TotalCurrency'];
 				} else {
 					$curr = 'EUR';
 				}
-				$bdid = $bookingDescriptionIds[0];
-				$nowTime = date('Y-m-d H:i:s');
+				$descr = mysql_real_escape_string(decode($oneService['Description']), $link);
+				$svcText = 'Parkolás';
+				if(substr($oneService['Description'],0,7) == 'Reggeli') {
+					$svcText = 'Reggeli - FatMama';
+				}
 				set_debug("Saving extra service as service_charge");
-				$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($bdid, $amount, '$curr', '$nowTime', '" . $oneService['Description'] . "', 'Parkolás')";
+				$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($bdid, $amount, '$curr', '$nowTime', '$descr', '$svcText')";
 				$result = mysql_query($sql, $link);
 				if(!$result) {
 					set_debug("Cannot save service charge: " . mysql_error($link) . " (SQL: $sql)");
@@ -433,6 +438,18 @@ function createBooking($bookingData, $link) {
 				}
 			}
 		}
+	}
+	
+	// Save IFA as a service charge
+	$roomCharge = $bookingData['TotalPrice'] - $serviceChargeAmt;
+	$ifa = $roomCharge * 0.034;
+	set_debug("Saving IFA as service_charge");
+	$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($bdid, $amount, 'EUR', '$nowTime', 'IFA', 'IFA')";
+	$result = mysql_query($sql, $link);
+	if(!$result) {
+		set_debug("Cannot save service charge: " . mysql_error($link) . " (SQL: $sql)");
+	} else {
+		set_debug("Save successful. SQL: $sql");
 	}
 
 	foreach($bookingData['Rooms'] as $roomData) {
@@ -512,12 +529,33 @@ function createBooking($bookingData, $link) {
 		// echo "toBook: <pre>" . print_r($toBook, true) . "</pre>\n";
 		// echo "roomChanges: <pre>" . print_r($roomChanges, true) . "</pre>\n";
 
+		$numOfBookings = 0;
+		foreach($priceForRoomType as $roomTypeId => $price) {
+			if(isPrivate($roomTypesData[$roomTypeId])) {
+				$numOfBookings += $numOfPersonForRoomType[$roomTypeId] / $roomTypesData[$roomTypeId]['num_of_beds'];
+			} elseif(isDorm($roomTypesData[$roomTypeId])) {
+				$numOfBookings += $roomTypesData[$roomTypeId]['num_of_beds'];
+			}
+		
+		}
+
+		$scPerBooking = $serviceChargeAmt / count($bookingData['Rooms']) / $numOfBookings;
+		foreach($priceForRoomType as $roomTypeId => $price) {
+			if(isPrivate($roomTypesData[$roomTypeId])) {
+				$priceForRoomType[$roomTypeId] = $price - $scPerBooking;
+			} else {
+				$priceForRoomType[$roomTypeId] = $price - $scPerBooking;
+			}
+		}
+
+
 		$bookingIds = saveBookings($toBook, $roomChanges, $arriveDate, $lastNight, $rooms, $roomTypesData, $specialOffers, $descriptionId, $link, $priceForRoomType);
 	
 		$_SERVER['PHP_AUTH_USER'] = 'myallocator';
 		audit(AUDIT_CREATE_BOOKING, array('source' => 'myallocator', 'booking_data' => $toBook, 'room_change_data' => $roomChanges), $bookingIds[0], $descriptionId, $link);
 
 	}
+
 
 	if(isset($bookingData['Deposit'])) {
 		$amount = doubleval($bookingData['Deposit']);
@@ -717,5 +755,265 @@ function logMessage($message) {
 	}
 }
 
+function decode($str) {
+$str = str_replace("u0100", 'Ā', $str);
+$str = str_replace("u0101", 'ā', $str);
+$str = str_replace("u0102", 'Ă', $str);
+$str = str_replace("u0103", 'ă', $str);
+$str = str_replace("u0104", 'Ą', $str);
+$str = str_replace("u0105", 'ą', $str);
+$str = str_replace("u0106", 'Ć', $str);
+$str = str_replace("u0107", 'ć', $str);
+$str = str_replace("u0108", 'Ĉ', $str);
+$str = str_replace("u0109", 'ĉ', $str);
+$str = str_replace("u010a", 'Ċ', $str);
+$str = str_replace("u010b", 'ċ', $str);
+$str = str_replace("u010c", 'Č', $str);
+$str = str_replace("u010d", 'č', $str);
+$str = str_replace("u010e", 'Ď', $str);
+$str = str_replace("u010f", 'ď', $str);
+$str = str_replace("u0110", 'Đ', $str);
+$str = str_replace("u0111", 'đ', $str);
+$str = str_replace("u0112", 'Ē', $str);
+$str = str_replace("u0113", 'ē', $str);
+$str = str_replace("u0114", 'Ĕ', $str);
+$str = str_replace("u0115", 'ĕ', $str);
+$str = str_replace("u0116", 'Ė', $str);
+$str = str_replace("u0117", 'ė', $str);
+$str = str_replace("u0118", 'Ę', $str);
+$str = str_replace("u0119", 'ę', $str);
+$str = str_replace("u011a", 'Ě', $str);
+$str = str_replace("u011b", 'ě', $str);
+$str = str_replace("u011c", 'Ĝ', $str);
+$str = str_replace("u011d", 'ĝ', $str);
+$str = str_replace("u011e", 'Ğ', $str);
+$str = str_replace("u011f", 'ğ', $str);
+$str = str_replace("u0120", 'Ġ', $str);
+$str = str_replace("u0121", 'ġ', $str);
+$str = str_replace("u0122", 'Ģ', $str);
+$str = str_replace("u0123", 'ģ', $str);
+$str = str_replace("u0124", 'Ĥ', $str);
+$str = str_replace("u0125", 'ĥ', $str);
+$str = str_replace("u0126", 'Ħ', $str);
+$str = str_replace("u0127", 'ħ', $str);
+$str = str_replace("u0128", 'Ĩ', $str);
+$str = str_replace("u0129", 'ĩ', $str);
+$str = str_replace("u012a", 'Ī', $str);
+$str = str_replace("u012b", 'ī', $str);
+$str = str_replace("u012c", 'Ĭ', $str);
+$str = str_replace("u012d", 'ĭ', $str);
+$str = str_replace("u012e", 'Į', $str);
+$str = str_replace("u012f", 'į', $str);
+$str = str_replace("u0130", 'İ', $str);
+$str = str_replace("u0131", 'ı', $str);
+$str = str_replace("u0132", 'Ĳ', $str);
+$str = str_replace("u0133", 'ĳ', $str);
+$str = str_replace("u0134", 'Ĵ', $str);
+$str = str_replace("u0135", 'ĵ', $str);
+$str = str_replace("u0136", 'Ķ', $str);
+$str = str_replace("u0137", 'ķ', $str);
+$str = str_replace("u0138", 'ĸ', $str);
+$str = str_replace("u0139", 'Ĺ', $str);
+$str = str_replace("u013a", 'ĺ', $str);
+$str = str_replace("u013b", 'Ļ', $str);
+$str = str_replace("u013c", 'ļ', $str);
+$str = str_replace("u013d", 'Ľ', $str);
+$str = str_replace("u013e", 'ľ', $str);
+$str = str_replace("u013f", 'Ŀ', $str);
+$str = str_replace("u0140", 'ŀ', $str);
+$str = str_replace("u0141", 'Ł', $str);
+$str = str_replace("u0142", 'ł', $str);
+$str = str_replace("u0143", 'Ń', $str);
+$str = str_replace("u0144", 'ń', $str);
+$str = str_replace("u0145", 'Ņ', $str);
+$str = str_replace("u0146", 'ņ', $str);
+$str = str_replace("u0147", 'Ň', $str);
+$str = str_replace("u0148", 'ň', $str);
+$str = str_replace("u0149", 'ŉ', $str);
+$str = str_replace("u014a", 'Ŋ', $str);
+$str = str_replace("u014b", 'ŋ', $str);
+$str = str_replace("u014c", 'Ō', $str);
+$str = str_replace("u014d", 'ō', $str);
+$str = str_replace("u014e", 'Ŏ', $str);
+$str = str_replace("u014f", 'ŏ', $str);
+$str = str_replace("u0150", 'Ő', $str);
+$str = str_replace("u0151", 'ő', $str);
+$str = str_replace("u0152", 'Œ', $str);
+$str = str_replace("u0153", 'œ', $str);
+$str = str_replace("u0154", 'Ŕ', $str);
+$str = str_replace("u0155", 'ŕ', $str);
+$str = str_replace("u0156", 'Ŗ', $str);
+$str = str_replace("u0157", 'ŗ', $str);
+$str = str_replace("u0158", 'Ř', $str);
+$str = str_replace("u0159", 'ř', $str);
+$str = str_replace("u015a", 'Ś', $str);
+$str = str_replace("u015b", 'ś', $str);
+$str = str_replace("u015c", 'Ŝ', $str);
+$str = str_replace("u015d", 'ŝ', $str);
+$str = str_replace("u015e", 'Ş', $str);
+$str = str_replace("u015f", 'ş', $str);
+$str = str_replace("u0160", 'Š', $str);
+$str = str_replace("u0161", 'š', $str);
+$str = str_replace("u0162", 'Ţ', $str);
+$str = str_replace("u0163", 'ţ', $str);
+$str = str_replace("u0164", 'Ť', $str);
+$str = str_replace("u0165", 'ť', $str);
+$str = str_replace("u0166", 'Ŧ', $str);
+$str = str_replace("u0167", 'ŧ', $str);
+$str = str_replace("u0168", 'Ũ', $str);
+$str = str_replace("u0169", 'ũ', $str);
+$str = str_replace("u016a", 'Ū', $str);
+$str = str_replace("u016b", 'ū', $str);
+$str = str_replace("u016c", 'Ŭ', $str);
+$str = str_replace("u016d", 'ŭ', $str);
+$str = str_replace("u016e", 'Ů', $str);
+$str = str_replace("u016f", 'ů', $str);
+$str = str_replace("u0170", 'Ű', $str);
+$str = str_replace("u0171", 'ű', $str);
+$str = str_replace("u0172", 'Ų', $str);
+$str = str_replace("u0173", 'ų', $str);
+$str = str_replace("u0174", 'Ŵ', $str);
+$str = str_replace("u0175", 'ŵ', $str);
+$str = str_replace("u0176", 'Ŷ', $str);
+$str = str_replace("u0177", 'ŷ', $str);
+$str = str_replace("u0178", 'Ÿ', $str);
+$str = str_replace("u0179", 'Ź', $str);
+$str = str_replace("u017a", 'ź', $str);
+$str = str_replace("u017b", 'Ż', $str);
+$str = str_replace("u017c", 'ż', $str);
+$str = str_replace("u017d", 'Ž', $str);
+$str = str_replace("u017e", 'ž', $str);
+$str = str_replace("u017f", 'ſ', $str);
+$str = str_replace("u0180", 'ƀ', $str);
+$str = str_replace("u0181", 'Ɓ', $str);
+$str = str_replace("u0182", 'Ƃ', $str);
+$str = str_replace("u0183", 'ƃ', $str);
+$str = str_replace("u0184", 'Ƅ', $str);
+$str = str_replace("u0185", 'ƅ', $str);
+$str = str_replace("u0186", 'Ɔ', $str);
+$str = str_replace("u0187", 'Ƈ', $str);
+$str = str_replace("u0188", 'ƈ', $str);
+$str = str_replace("u0189", 'Ɖ', $str);
+$str = str_replace("u018a", 'Ɗ', $str);
+$str = str_replace("u018b", 'Ƌ', $str);
+$str = str_replace("u018c", 'ƌ', $str);
+$str = str_replace("u018d", 'ƍ', $str);
+$str = str_replace("u018e", 'Ǝ', $str);
+$str = str_replace("u018f", 'Ə', $str);
+$str = str_replace("u0190", 'Ɛ', $str);
+$str = str_replace("u0191", 'Ƒ', $str);
+$str = str_replace("u0192", 'ƒ', $str);
+$str = str_replace("u0193", 'Ɠ', $str);
+$str = str_replace("u0194", 'Ɣ', $str);
+$str = str_replace("u0195", 'ƕ', $str);
+$str = str_replace("u0196", 'Ɩ', $str);
+$str = str_replace("u0197", 'Ɨ', $str);
+$str = str_replace("u0198", 'Ƙ', $str);
+$str = str_replace("u0199", 'ƙ', $str);
+$str = str_replace("u019a", 'ƚ', $str);
+$str = str_replace("u019b", 'ƛ', $str);
+$str = str_replace("u019c", 'Ɯ', $str);
+$str = str_replace("u019d", 'Ɲ', $str);
+$str = str_replace("u019e", 'ƞ', $str);
+$str = str_replace("u019f", 'Ɵ', $str);
+$str = str_replace("u01a0", 'Ơ', $str);
+$str = str_replace("u01a1", 'ơ', $str);
+$str = str_replace("u01a2", 'Ƣ', $str);
+$str = str_replace("u01a3", 'ƣ', $str);
+$str = str_replace("u01a4", 'Ƥ', $str);
+$str = str_replace("u01a5", 'ƥ', $str);
+$str = str_replace("u01a6", 'Ʀ', $str);
+$str = str_replace("u01a7", 'Ƨ', $str);
+$str = str_replace("u01a8", 'ƨ', $str);
+$str = str_replace("u01a9", 'Ʃ', $str);
+$str = str_replace("u01aa", 'ƪ', $str);
+$str = str_replace("u01ab", 'ƫ', $str);
+$str = str_replace("u01ac", 'Ƭ', $str);
+$str = str_replace("u01ad", 'ƭ', $str);
+$str = str_replace("u01ae", 'Ʈ', $str);
+$str = str_replace("u01af", 'Ư', $str);
+$str = str_replace("u01b0", 'ư', $str);
+$str = str_replace("u01b1", 'Ʊ', $str);
+$str = str_replace("u01b2", 'Ʋ', $str);
+$str = str_replace("u01b3", 'Ƴ', $str);
+$str = str_replace("u01b4", 'ƴ', $str);
+$str = str_replace("u01b5", 'Ƶ', $str);
+$str = str_replace("u01b6", 'ƶ', $str);
+$str = str_replace("u01b7", 'Ʒ', $str);
+$str = str_replace("u01b8", 'Ƹ', $str);
+$str = str_replace("u01b9", 'ƹ', $str);
+$str = str_replace("u01ba", 'ƺ', $str);
+$str = str_replace("u01bb", 'ƻ', $str);
+$str = str_replace("u01bc", 'Ƽ', $str);
+$str = str_replace("u01bd", 'ƽ', $str);
+$str = str_replace("u01be", 'ƾ', $str);
+$str = str_replace("u01bf", 'ƿ', $str);
+$str = str_replace("u01c0", 'ǀ', $str);
+$str = str_replace("u01c1", 'ǁ', $str);
+$str = str_replace("u01c2", 'ǂ', $str);
+$str = str_replace("u01c3", 'ǃ', $str);
+$str = str_replace("u01c4", 'Ǆ', $str);
+$str = str_replace("u01c5", 'ǅ', $str);
+$str = str_replace("u01c6", 'ǆ', $str);
+$str = str_replace("u01c7", 'Ǉ', $str);
+$str = str_replace("u01c8", 'ǈ', $str);
+$str = str_replace("u01c9", 'ǉ', $str);
+$str = str_replace("u01ca", 'Ǌ', $str);
+$str = str_replace("u01cb", 'ǋ', $str);
+$str = str_replace("u01cc", 'ǌ', $str);
+$str = str_replace("u01cd", 'Ǎ', $str);
+$str = str_replace("u01ce", 'ǎ', $str);
+$str = str_replace("u01cf", 'Ǐ', $str);
+$str = str_replace("u01d0", 'ǐ', $str);
+$str = str_replace("u01d1", 'Ǒ', $str);
+$str = str_replace("u01d2", 'ǒ', $str);
+$str = str_replace("u01d3", 'Ǔ', $str);
+$str = str_replace("u01d4", 'ǔ', $str);
+$str = str_replace("u01d5", 'Ǖ', $str);
+$str = str_replace("u01d6", 'ǖ', $str);
+$str = str_replace("u01d7", 'Ǘ', $str);
+$str = str_replace("u01d8", 'ǘ', $str);
+$str = str_replace("u01d9", 'Ǚ', $str);
+$str = str_replace("u01da", 'ǚ', $str);
+$str = str_replace("u01db", 'Ǜ', $str);
+$str = str_replace("u01dc", 'ǜ', $str);
+$str = str_replace("u01dd", 'ǝ', $str);
+$str = str_replace("u01de", 'Ǟ', $str);
+$str = str_replace("u01df", 'ǟ', $str);
+$str = str_replace("u01e0", 'Ǡ', $str);
+$str = str_replace("u01e1", 'ǡ', $str);
+$str = str_replace("u01e2", 'Ǣ', $str);
+$str = str_replace("u01e3", 'ǣ', $str);
+$str = str_replace("u01e4", 'Ǥ', $str);
+$str = str_replace("u01e5", 'ǥ', $str);
+$str = str_replace("u01e6", 'Ǧ', $str);
+$str = str_replace("u01e7", 'ǧ', $str);
+$str = str_replace("u01e8", 'Ǩ', $str);
+$str = str_replace("u01e9", 'ǩ', $str);
+$str = str_replace("u01ea", 'Ǫ', $str);
+$str = str_replace("u01eb", 'ǫ', $str);
+$str = str_replace("u01ec", 'Ǭ', $str);
+$str = str_replace("u01ed", 'ǭ', $str);
+$str = str_replace("u01ee", 'Ǯ', $str);
+$str = str_replace("u01ef", 'ǯ', $str);
+$str = str_replace("u01f0", 'ǰ', $str);
+$str = str_replace("u01f1", 'Ǳ', $str);
+$str = str_replace("u01f2", 'ǲ', $str);
+$str = str_replace("u01f3", 'ǳ', $str);
+$str = str_replace("u01f4", 'Ǵ', $str);
+$str = str_replace("u01f5", 'ǵ', $str);
+$str = str_replace("u01f6", 'Ƕ', $str);
+$str = str_replace("u01f7", 'Ƿ', $str);
+$str = str_replace("u01f8", 'Ǹ', $str);
+$str = str_replace("u01f9", 'ǹ', $str);
+$str = str_replace("u01fa", 'Ǻ', $str);
+$str = str_replace("u01fb", 'ǻ', $str);
+$str = str_replace("u01fc", 'Ǽ', $str);
+$str = str_replace("u01fd", 'ǽ', $str);
+$str = str_replace("u01fe", 'Ǿ', $str);
+$str = str_replace("u01ff", 'ǿ', $str);
+
+	return $str;
+}
 
 ?>
