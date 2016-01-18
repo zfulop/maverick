@@ -144,6 +144,10 @@ foreach($specialOffers as $spId => $so) {
 	}
 	$startDate = strftime($dateFormat, strtotime($so['start_date']));
 	$endDate = strftime($dateFormat, strtotime($so['end_date']));
+	if($today < $so['end_date']) {
+		$startDate = strftime($dateFormat, strtotime($so['start_date_2']));
+		$endDate = strftime($dateFormat, strtotime($so['end_date_2']));
+	}
 	$offerForRoomBetweenDates = sprintf(FOR_ROOM_BETWEEN_DATES, $roomName, $startDate, $endDate);
 	$specialOfferSection .= <<<EOT
             <div class='offer-box'>

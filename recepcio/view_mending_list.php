@@ -71,17 +71,17 @@ if(!$result) {
 echo <<<EOT
 
 
-<span style="padding:5px;margin-bottom:10px;background-color:rgb(0,255,0);">folyamatban van</span><br><br>
+<span style="padding:5px;margin-bottom:10px;background-color:rgb(0,255,0);">in progress</span><br><br>
 
-<span style="padding:5px;margin-bottom:10px;background-color:rgb(255,0,0);">1-3 napon belül</span><br><br>
+<span style="padding:5px;margin-bottom:10px;background-color:rgb(255,0,0);">Within 1-3 days</span><br><br>
 
-<span style="padding:5px;margin-bottom:10px;background-color:rgb(255,125,0);">1-2 héten belül</span><br><br>
+<span style="padding:5px;margin-bottom:10px;background-color:rgb(255,125,0);">Within 1-2 weeks</span><br><br>
 
-<span style="padding:5px;margin-bottom:10px;background-color:rgb(255,255,0);">2-3 héten belül</span><br><br>
+<span style="padding:5px;margin-bottom:10px;background-color:rgb(255,255,0);">within 2-3 weeks</span><br><br>
 
-<span style="padding:5px;margin-bottom:10px;background-color:rgb(0,0,255);">1 hónapon belül</span><br><br>
+<span style="padding:5px;margin-bottom:10px;background-color:rgb(0,0,255);">Within 1 month</span><br><br>
 
-<span style="padding:5px;margin-bottom:10px;background-color:rgb(0,0,0);color:white;">3. személy átbeszélésre/válaszra/döntésre vár</span><br><br>
+<span style="padding:5px;margin-bottom:10px;background-color:rgb(0,0,0);color:white;">Awaiting approval</span><br><br>
 
 
 <form action="add_mending_item.php" method="post" accept-charset="utf-8">

@@ -20,7 +20,8 @@ function getCountryNameForIp($idAddress) {
 function isClientFromHU() {
 	$ip = $_SERVER["REMOTE_ADDR"];
 	$co = getCountryCodeForIp($ip);
-	return ($co == 'HU');
+	$lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
+	return (($co == 'HU') and ($lang == 'hu'));
 }
 
 function getClientCountryName() {

@@ -46,7 +46,7 @@ function loadSpecialOffers($startDate, $endDate, $link, $lang = 'eng') {
 	} else {
 		$whereClause = "so.end_date>'$endDate' OR sod.end_date>'$endDate'";
 	}
-	$sql = "SELECT so.*, n.value AS title, d.value AS text, r.value AS room_name FROM special_offers so " .
+	$sql = "SELECT so.*, n.value AS title, d.value AS text, r.value AS room_name, sod.start_date AS start_date_2, sod.end_date AS end_date_2 FROM special_offers so " .
 		"INNER JOIN lang_text n ON (so.id=n.row_id AND n.table_name='special_offers' AND n.column_name='title' AND n.lang='$lang') " .
 		"INNER JOIN lang_text d ON (so.id=d.row_id AND d.table_name='special_offers' AND d.column_name='text' AND d.lang='$lang') " .
 		"LEFT OUTER JOIN lang_text r ON (so.id=r.row_id AND r.table_name='special_offers' AND r.column_name='room_name' AND r.lang='$lang') " .

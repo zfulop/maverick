@@ -22,7 +22,7 @@ $SOURCES = array(
 	'hcu' => 'Hostel Culture',
 	'rep' => 'Travel Public',
 	'ta' => 'Trip Advisor',
-	'efh' => 'Famous Hostels',
+	'fam' => 'Famous Hostels',
 	'exp' => array('Hotel Collect Booking' => 'Expedia - Hotel Collect', 'Expedia Collect Booking' => 'Expedia - Expedia Collect')
 );
 
@@ -464,6 +464,7 @@ function createBooking($bookingData, $link) {
 
 		$numOfPersonForRoomType = array();
 		$priceForRoomType = array();
+		$numOfBookings = 0;
 		foreach($roomData['RoomTypeIds'] as $myAllocRoomTypeId) {
 			$roomTypeId = findRoomTypeId($myAllocRoomTypeId, $propertyId);
 			if(is_null($roomTypeId)) {
@@ -472,6 +473,7 @@ function createBooking($bookingData, $link) {
 				return false;
 			}
 			$numOfPerson = $roomData['Units'];
+			$numOfBookings += $roomData['Units'];
 			if(isPrivate($roomTypesData[$roomTypeId])) {
 				$numOfPerson = $numOfPerson * $roomTypesData[$roomTypeId]['num_of_beds'];
 			}
@@ -529,7 +531,6 @@ function createBooking($bookingData, $link) {
 		// echo "toBook: <pre>" . print_r($toBook, true) . "</pre>\n";
 		// echo "roomChanges: <pre>" . print_r($roomChanges, true) . "</pre>\n";
 
-		$numOfBookings = 0;
 		foreach($priceForRoomType as $roomTypeId => $price) {
 			if(isPrivate($roomTypesData[$roomTypeId])) {
 				$numOfBookings += $numOfPersonForRoomType[$roomTypeId] / $roomTypesData[$roomTypeId]['num_of_beds'];
@@ -541,11 +542,7 @@ function createBooking($bookingData, $link) {
 
 		$scPerBooking = $serviceChargeAmt / count($bookingData['Rooms']) / $numOfBookings;
 		foreach($priceForRoomType as $roomTypeId => $price) {
-			if(isPrivate($roomTypesData[$roomTypeId])) {
-				$priceForRoomType[$roomTypeId] = $price - $scPerBooking;
-			} else {
-				$priceForRoomType[$roomTypeId] = $price - $scPerBooking;
-			}
+			$priceForRoomType[$roomTypeId] = $price - $scPerBooking;
 		}
 
 
@@ -580,8 +577,8 @@ function createBooking($bookingData, $link) {
 	respond(null, true);
 	$message = '';
 	foreach($bookingDescriptionIds as $descriptionId) {
-		$firstName = $bookingData['Customers'][0]['CustomerFName'];
-		$lastName = $bookingData['Customers'][0]['CustomerLName'];
+		$firstName = decode($bookingData['Customers'][0]['CustomerFName']);
+		$lastName = decode($bookingData['Customers'][0]['CustomerLName']);
 
 		//$message .= "<a href=\"http://" . $_SERVER['HTTP_HOST'] . "/edit_booking.php?description_id=$descriptionId\">View booking</a><br>\n";
 		$message .= "<a href=\"http://recepcio.roomcaptain.com/edit_booking.php?description_id=$descriptionId\">View booking</a><br>\n";
@@ -756,6 +753,70 @@ function logMessage($message) {
 }
 
 function decode($str) {
+$str = str_replace('u00c0', 'À', $str);
+$str = str_replace('u00c1', 'Á', $str);
+$str = str_replace('u00c2', 'Â', $str);
+$str = str_replace('u00c3', 'Ã', $str);
+$str = str_replace('u00c4', 'Ä', $str);
+$str = str_replace('u00c5', 'Å', $str);
+$str = str_replace('u00c6', 'Æ', $str);
+$str = str_replace('u00c7', 'Ç', $str);
+$str = str_replace('u00c8', 'È', $str);
+$str = str_replace('u00c9', 'É', $str);
+$str = str_replace('u00ca', 'Ê', $str);
+$str = str_replace('u00cb', 'Ë', $str);
+$str = str_replace('u00cc', 'Ì', $str);
+$str = str_replace('u00cd', 'Í', $str);
+$str = str_replace('u00ce', 'Î', $str);
+$str = str_replace('u00cf', 'Ï', $str);
+$str = str_replace('u00d0', 'Ð', $str);
+$str = str_replace('u00d1', 'Ñ', $str);
+$str = str_replace('u00d2', 'Ò', $str);
+$str = str_replace('u00d3', 'Ó', $str);
+$str = str_replace('u00d4', 'Ô', $str);
+$str = str_replace('u00d5', 'Õ', $str);
+$str = str_replace('u00d6', 'Ö', $str);
+$str = str_replace('u00d7', '×', $str);
+$str = str_replace('u00d8', 'Ø', $str);
+$str = str_replace('u00d9', 'Ù', $str);
+$str = str_replace('u00da', 'Ú', $str);
+$str = str_replace('u00db', 'Û', $str);
+$str = str_replace('u00dc', 'Ü', $str);
+$str = str_replace('u00dd', 'Ý', $str);
+$str = str_replace('u00de', 'Þ', $str);
+$str = str_replace('u00df', 'ß', $str);
+$str = str_replace('u00e0', 'à', $str);
+$str = str_replace('u00e1', 'á', $str);
+$str = str_replace('u00e2', 'â', $str);
+$str = str_replace('u00e3', 'ã', $str);
+$str = str_replace('u00e4', 'ä', $str);
+$str = str_replace('u00e5', 'å', $str);
+$str = str_replace('u00e6', 'æ', $str);
+$str = str_replace('u00e7', 'ç', $str);
+$str = str_replace('u00e8', 'è', $str);
+$str = str_replace('u00e9', 'é', $str);
+$str = str_replace('u00ea', 'ê', $str);
+$str = str_replace('u00eb', 'ë', $str);
+$str = str_replace('u00ec', 'ì', $str);
+$str = str_replace('u00ed', 'í', $str);
+$str = str_replace('u00ee', 'î', $str);
+$str = str_replace('u00ef', 'ï', $str);
+$str = str_replace('u00f0', 'ð', $str);
+$str = str_replace('u00f1', 'ñ', $str);
+$str = str_replace('u00f2', 'ò', $str);
+$str = str_replace('u00f3', 'ó', $str);
+$str = str_replace('u00f4', 'ô', $str);
+$str = str_replace('u00f5', 'õ', $str);
+$str = str_replace('u00f6', 'ö', $str);
+$str = str_replace('u00f7', '÷', $str);
+$str = str_replace('u00f8', 'ø', $str);
+$str = str_replace('u00f9', 'ù', $str);
+$str = str_replace('u00fa', 'ú', $str);
+$str = str_replace('u00fb', 'û', $str);
+$str = str_replace('u00fc', 'ü', $str);
+$str = str_replace('u00fd', 'ý', $str);
+$str = str_replace('u00fe', 'þ', $str);
+$str = str_replace('u00ff', 'ÿ', $str);
 $str = str_replace("u0100", 'Ā', $str);
 $str = str_replace("u0101", 'ā', $str);
 $str = str_replace("u0102", 'Ă', $str);
