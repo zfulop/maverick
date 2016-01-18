@@ -34,7 +34,7 @@ if($role == 'ADMIN' and $_SESSION['login_role'] != 'ADMIN') {
 
 if($id > 0) {
 	$sql = "SELECT * FROM users where id=$id";
-	$result = mysql__query($sql, $link);
+	$result = mysql_query($sql, $link);
 	$user = mysql_fetch_assoc($user);
 	if($user['role'] == 'ADMIN' and $id <> $_SESSION['login_user_id']) {
 		set_error('ADMIN user can only be modified by him or herself');
