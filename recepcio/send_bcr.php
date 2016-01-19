@@ -121,7 +121,7 @@ while($row = mysql_fetch_assoc($result)) {
 	$amount = intval(convertAmount($amount, 'EUR', $currency, substr($row['time_of_payment'], 0, 10)));
 	$title = $row['type'];
 	if($row['comment'] == '*booking deposit*') {
-		$title = DEPOSIT;
+		continue;
 	}
 	$payments .= '<tr><td>' . $title . '</td><td align="right">' . $amount . $currency . '</td></tr>';
 	$total -= $amount;

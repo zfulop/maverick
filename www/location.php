@@ -142,13 +142,15 @@ foreach($specialOffers as $spId => $so) {
 	if(is_null($roomName)) {
 		$roomName = EVERY_ROOM;
 	}
-	$startDate = strftime($dateFormat, strtotime($so['start_date']));
-	$endDate = strftime($dateFormat, strtotime($so['end_date']));
-	if($today < $so['end_date']) {
-		$startDate = strftime($dateFormat, strtotime($so['start_date_2']));
-		$endDate = strftime($dateFormat, strtotime($so['end_date_2']));
+	$dates = array();
+	foreach($so['dates'] as $soDate) {
+		if($soDate['end_date'] > $today) {
+			$startDate = strftime($dateFormat, strtotime($soDate['start_date']));
+			$endDate = strftime($dateFormat, strtotime($soDate['end_date']));
+			$dates[] = $startDate . ' - ' . $endDate;
+		}
 	}
-	$offerForRoomBetweenDates = sprintf(FOR_ROOM_BETWEEN_DATES, $roomName, $startDate, $endDate);
+	$offerForRoomBetweenDates = sprintf(FOR_ROOM_BETWEEN_DATES, $roomName, implode(' ; ',$dates));
 	$specialOfferSection .= <<<EOT
             <div class='offer-box'>
                 <div class='offer-box-cont'>
