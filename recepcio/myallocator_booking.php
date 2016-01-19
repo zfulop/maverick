@@ -441,10 +441,9 @@ function createBooking($bookingData, $link) {
 	}
 	
 	// Save IFA as a service charge
-	$roomCharge = $bookingData['TotalPrice'] - $serviceChargeAmt;
-	$ifa = $roomCharge * 0.034;
+	$ifa = ($bookingData['TotalPrice'] - $serviceChargeAmt) * 0.034;
 	set_debug("Saving IFA as service_charge");
-	$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($bdid, $amount, 'EUR', '$nowTime', 'IFA', 'IFA')";
+	$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($bdid, $ifa, 'EUR', '$nowTime', 'IFA', 'IFA / City Tax')";
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		set_debug("Cannot save service charge: " . mysql_error($link) . " (SQL: $sql)");
@@ -530,15 +529,6 @@ function createBooking($bookingData, $link) {
 
 		// echo "toBook: <pre>" . print_r($toBook, true) . "</pre>\n";
 		// echo "roomChanges: <pre>" . print_r($roomChanges, true) . "</pre>\n";
-
-		foreach($priceForRoomType as $roomTypeId => $price) {
-			if(isPrivate($roomTypesData[$roomTypeId])) {
-				$numOfBookings += $numOfPersonForRoomType[$roomTypeId] / $roomTypesData[$roomTypeId]['num_of_beds'];
-			} elseif(isDorm($roomTypesData[$roomTypeId])) {
-				$numOfBookings += $roomTypesData[$roomTypeId]['num_of_beds'];
-			}
-		
-		}
 
 		$scPerBooking = $serviceChargeAmt / count($bookingData['Rooms']) / $numOfBookings;
 		foreach($priceForRoomType as $roomTypeId => $price) {
