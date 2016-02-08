@@ -50,7 +50,12 @@ class MyAllocatorBooker extends Booker {
 
 				$numOfAvailBeds = 0;
 				$numOfAvailRooms = 0;
-				foreach($oneRoomMap['roomIds'] as $roomId) {
+				$roomData = null;
+				$roomIds = getRoomIds($rooms, $oneRoomMap['roomTypeId']);
+				foreach($roomIds as $roomId) {
+					if(is_null($roomData)) {
+						$roomData = $rooms[$roomId];
+					}
 					if(!isset($rooms[$roomId])) {
 						echo "<b>ERROR:</b> for room[" . $oneRoomMap['roomName'] . "] the room id: $roomId is not found in the loaded rooms!<br>\n";
 						continue;
@@ -62,9 +67,9 @@ class MyAllocatorBooker extends Booker {
 						$numOfAvailRooms += 1;
 					}
 				}
-				//echo "For the room type the number of available rooms: $numOfAvailRooms<br>\n";
-				$roomData = $rooms[$oneRoomMap['roomIds'][0]];
-				//echo "Type of room: " . $roomData['type'] . "<br>\n";
+				// echo "For the room type " . $oneRoomMap['roomTypeId'] . " and date $currDate the number of available rooms: $numOfAvailRooms<br>\n";
+				// echo "The list of room ids: " . print_r($roomIds, true) . "<br>\n";
+				// echo "Type of room: " . $roomData['type'] . "<br>\n";
 				$price = $roomData['type'] == 'DORM' ? getBedPrice($currYear, $currMonth, $currDay, $roomData) : getRoomPrice($currYear, $currMonth, $currDay, $roomData);
 				$units = $roomData['type'] == 'DORM' ? $numOfAvailBeds : $numOfAvailRooms;
 				$availabilities[$oneRoomMap['roomName']][$currYear . '-' . $currMonth . '-' . $currDay] = $units;
@@ -128,7 +133,6 @@ EOT;
 
 	}
 
-
 	function shutdown() {
 	}
 
@@ -168,9 +172,8 @@ EOT;
 
 	}
 
-	function getRoomTypes($location) {
-		$pid = constant('PROPERTY_ID_' . $location);
-		$auth = $this->getAuth($pid);
+	function getRoomTypes($propertyId) {
+		$auth = $this->getAuth($propertyId);
 		$request = <<<EOT
 <?xml version="1.0" encoding="UTF-8"?>
 <GetRoomTypes>
@@ -290,8 +293,6 @@ echo "Period ending: $endYear - $endMonth - $endDay<br>\n";
 $booker = new MyAllocatorBooker();
 $booker->init();
 
-//$booker->getProperties();
-//$booker->getRoomTypes(strtoupper(LOCATION));
 $booker->update($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $rooms);
 $booker->shutdown();
 

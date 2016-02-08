@@ -599,6 +599,26 @@ function getRoomData(&$rooms, $roomTypeId) {
 }
 
 
+/**
+ * Returns the roomIds where the room_type_id of the room is the same as the roomTypeId in the parameter
+ * The roomTypeId parameter may be an array of ids
+ */
+function getRoomIds(&$rooms, $roomTypeId) {
+	$rids = array();
+	foreach($rooms as $rid => $roomData) {
+		$match = false;
+		if(is_array($roomTypeId)) {
+			$match = in_array($roomData['room_type_id'], $roomTypeId);
+		} else {
+			$match = ($roomData['room_type_id'] == $roomTypeId);
+		}
+		if($match) {
+			$rids[] = $rid;
+		}
+	}
+	return $rids;
+}
+
 
 
 // creates two arrays: 
