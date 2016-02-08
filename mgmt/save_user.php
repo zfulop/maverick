@@ -31,11 +31,11 @@ if($role == 'ADMIN' and $_SESSION['login_role'] != 'ADMIN') {
 	return;
 }
 
-
+$msg = '';
 if($id > 0) {
 	$sql = "SELECT * FROM users where id=$id";
 	$result = mysql_query($sql, $link);
-	$user = mysql_fetch_assoc($user);
+	$user = mysql_fetch_assoc($result);
 	if($user['role'] == 'ADMIN' and $id <> $_SESSION['login_user_id']) {
 		set_error('ADMIN user can only be modified by him or herself');
 		mysql_close($link);
@@ -47,8 +47,10 @@ if($id > 0) {
 		return;
 	}
 	$sql = "UPDATE users SET name='$name', email='$email', telephone='$telephone', role='$role' WHERE id=$id";
+	$msg = 'User saved. ';
 } else {
 	$sql = "INSERT INTO users (username, name, email, telephone, role, password) VALUES ('$username', '$name', '$email', '$telephone', '$role', '$pwd')";
+	$msg = 'User created with empty password';
 }
 
 
@@ -60,7 +62,7 @@ if(!$result) {
 	return;
 }
 
-set_message('User saved with empty password');
+set_message($msg);
 mysql_close($link);
 
 ?>

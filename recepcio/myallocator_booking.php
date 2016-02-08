@@ -304,6 +304,7 @@ function createBooking($bookingData, $link) {
 
 
 	$myAllocatorId = $bookingData['MyallocatorId'];
+	$bookingRef = $bookingData['OrderId'];
 	$sql = "SELECT * FROM booking_descriptions WHERE my_allocator_id='$myAllocatorId'";
 	$result = mysql_query($sql, $link);
 	if(!$result) {
@@ -399,7 +400,7 @@ function createBooking($bookingData, $link) {
 
 		verifyBlacklist("$firstname $lastname", $email, CONTACT_EMAIL, $link);
 
-		$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency, my_allocator_id, create_time) VALUES ('$firstname $lastname', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', '$source', '', '$lang', '$currency', '$myAllocatorId', '$nowTime')";
+		$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency, my_allocator_id, create_time, booking_ref) VALUES ('$firstname $lastname', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', '$source', '', '$lang', '$currency', '$myAllocatorId', '$nowTime', '$bookingRef')";
 		set_debug($sql);
 		if(!mysql_query($sql, $link)) {
 			respond('51', false, 'Cannot create booking description: ' . mysql_error($link) . " (SQL: $sql)");
@@ -503,7 +504,7 @@ function createBooking($bookingData, $link) {
 		}
 
 		if(!$allSameDate) {
-			$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency, my_allocator_id, create_time) VALUES ('$firstname $lastname', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', '$source', '', '$lang', '$currency', '$myAllocatorId', '$nowTime')";
+			$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency, my_allocator_id, create_time, booking_ref) VALUES ('$firstname $lastname', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', '$source', '', '$lang', '$currency', '$myAllocatorId', '$nowTime', '$bookingRef')";
 			set_debug($sql);
 			if(!mysql_query($sql, $link)) {
 				respond('51', false, 'Cannot create booking description: ' . mysql_error($link) . " (SQL: $sql)");

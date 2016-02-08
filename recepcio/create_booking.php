@@ -123,7 +123,10 @@ if(count($toBook) < 1) {
 
 verifyBlacklist($name, $email, CONTACT_EMAIL, $link);
 
-$sql = "INSERT INTO booking_descriptions (name, name_ext, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, maintenance) VALUES ('$name', '$nameExt', '$gender', '$addr', '$nat', '$email', '$tel', '$fnight', '$lnight', $numOfNights, 0, 0, 0, 0, '$comment', '$source', '$arrivalTime', $maintenance)";
+$bookingRef = mysql_real_escape_string(gen_booking_ref(), $link);
+
+
+$sql = "INSERT INTO booking_descriptions (name, name_ext, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, maintenance, booking_ref) VALUES ('$name', '$nameExt', '$gender', '$addr', '$nat', '$email', '$tel', '$fnight', '$lnight', $numOfNights, 0, 0, 0, 0, '$comment', '$source', '$arrivalTime', $maintenance, '$bookingRef')";
 set_debug($sql);
 
 if(!mysql_query($sql, $link)) {

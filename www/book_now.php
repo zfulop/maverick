@@ -8,6 +8,11 @@ $location = getLocation();
 $lang = getCurrentLanguage();
 $currency = getCurrency();
 
+if(!isset($_REQUEST['data_firstname'])) {
+	header('Location: index.php');
+	return;
+}
+
 $firstname = $_REQUEST['data_firstname'];
 $lastname = $_REQUEST['data_last_name'];
 $email = $_REQUEST['data_email'];
@@ -109,10 +114,14 @@ $roomTypesData = loadRoomTypes($link, $lang);
 
 
 $numOfPersonForRoomType = array();
+$hasBookings = false;
 foreach($roomTypesData as $roomTypeId => $roomType) {
 	$key = 'room_type_' . $location . '_' . $roomTypeId;
 	if(isset($_SESSION[$key])) {
 		$numOfPersonForRoomType[$roomTypeId] = $_SESSION[$key];
+		if($_SESSION[$key] > 0) {
+			$hasBookings = true;
+		}
 	}
 	/*if(isApartment($roomType)) {
 		for($i = 2; $i <= $roomType['num_of_beds']; $i++) {
@@ -124,17 +133,24 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 	}*/
 }
 
+if(!$hasBookings) {
+	mysql_close($link);
+	header('Location: ' . $_SERVER['HTTP_REFERER']);
+	return;
+}
 
-$address = mysql_real_escape_string($street . ', ' . $city . ', ' . $zip . ', ' . $country);
-$name = mysql_real_escape_string("$firstname $lastname");
-$nationality = mysql_real_escape_string($nationality);
-$email = mysql_real_escape_string($email);
-$phone = mysql_real_escape_string($phone);
-$comment = mysql_real_escape_string($comment);
+
+$address = mysql_real_escape_string($street . ', ' . $city . ', ' . $zip . ', ' . $country, $link);
+$name = mysql_real_escape_string("$firstname $lastname", $link);
+$nationality = mysql_real_escape_string($nationality, $link);
+$email = mysql_real_escape_string($email, $link);
+$phone = mysql_real_escape_string($phone, $link);
+$comment = mysql_real_escape_string($comment, $link);
+$bookingRef = mysql_real_escape_string(gen_booking_ref(), $link);
 
 verifyBlacklist("$firstname $lastname", $email, constant('CONTACT_EMAIL_' . strtoupper($location)), $link);
 
-$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency) VALUES ('$name', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', 'saját', '', '$lang', '$currency')";
+$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency,booking_ref) VALUES ('$name', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', 'saját', '', '$lang', '$currency', '$bookingRef')";
 set_debug($sql);
 
 if(!mysql_query($sql, $link)) {
@@ -772,4 +788,3 @@ EOT;
 
 
 ?>
-

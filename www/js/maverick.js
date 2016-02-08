@@ -40,9 +40,12 @@ function moodVideo() {
 }
 
 function handleMoodVideo() {
-    
+
+    var vsrc = $('#moodVideo iframe').attr('src');
+    $('#moodVideo iframe').attr('src','');
+    $('#moodVideo iframe').attr('src',vsrc);
+
     if($('#moodVideo').css('display') == 'none') {
-        
         $('.vicon').removeClass('fa-youtube-play').addClass('fa-close');
         $('#moodVideo').slideDown(250);
         $('#moodVideo iframe').delay(250).fadeIn();
@@ -205,7 +208,7 @@ $(document).ready(function() {
 $(window).resize(function() { 
     
     carouselSize(); 
-    moodVideo();
+    //moodVideo();
     if($(window).width() > 1023) $('#checkin3').slideUp(0);
    
     if($(window).width() > 716){

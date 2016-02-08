@@ -89,6 +89,9 @@ function logout() {
 	unset($_SESSION['login_hotel_name']);
 }
 
+function getLoginHotel() {
+	return $_SESSION['login_hotel'];
+}
 
 if(!function_exists('hash_equals'))
 {

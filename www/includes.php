@@ -7,6 +7,7 @@ require('includes/error_handler.php');
 require('includes/language.php');
 require('includes/location.php');
 require('../includes/exchange.php');
+require('../includes/booking_ref_gen.php');
 require('includes/exchange.php');
 require('includes/db.php');
 require('includes/html_frame.php');

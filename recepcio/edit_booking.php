@@ -368,6 +368,12 @@ $maintenanceChecked = $bookingDescription['maintenance'] == 1 ? 'checked' : '';
 $fnightDash = str_replace('/','-',$fnight);
 $fnightMinus2Weeks = date('Y/m/d', strtotime("$fnightDash -14 day"));
 
+$bookingRef = $bookingDescription['booking_ref'];
+if(strlen($bookingDescription['my_allocator_id']) > 0) {
+	$bookingRef .= ' (myalloc: ' . $bookingDescription['my_allocator_id'] . ')';
+}
+
+
 $bcrHtml = "";
 if(is_null($bcr)) {
 	$bcrHtml = "BCR will be sent on $fnightMinus2Weeks";
@@ -439,6 +445,7 @@ echo <<<EOT
 		</td>
 	</tr>
 	<tr><td>Last night: </td><td>$lnight</td></tr>
+	<tr><td>Booking Ref: </td><td>$bookingRef</td></tr>
 	<tr><td>Number of nights: </td><td>$numOfNights</td></tr>
 	<tr><td colspan="3"><hr></td></tr>
 		

@@ -309,48 +309,48 @@ if(isset($_REQUEST['order'])) {
 $order = $_SESSION['view_booking_order'];
 
 
-$sql = "SELECT booking_descriptions.name, booking_descriptions.source, booking_descriptions.first_night, booking_descriptions.num_of_nights, booking_descriptions.last_night, booking_descriptions.confirmed, booking_descriptions.email, booking_descriptions.telephone, booking_descriptions.nationality, booking_descriptions.cancelled, booking_descriptions.cancel_type, booking_descriptions.checked_in, booking_descriptions.paid, bookings.*, rooms.name AS room_name FROM bookings INNER JOIN booking_descriptions ON bookings.description_id=booking_descriptions.id INNER JOIN rooms ON rooms.id=bookings.room_id WHERE 1=1";
+$sql = "SELECT bd.name, bd.source, bd.first_night, bd.num_of_nights, bd.last_night, bd.confirmed, bd.email, bd.telephone, bd.nationality, bd.cancelled, bd.cancel_type, bd.checked_in, bd.paid, bd.booking_ref, bd.my_allocator_id, b.*, r.name AS room_name FROM bookings b INNER JOIN booking_descriptions bd ON b.description_id=bd.id INNER JOIN rooms r ON r.id=b.room_id WHERE 1=1";
 $searchFor = '';
 if(strlen($fromDate) > 0) {
-	$sql .= " AND booking_descriptions.last_night>='" . str_replace('-', '/', $fromDate) . "'";
+	$sql .= " AND bd.last_night>='" . str_replace('-', '/', $fromDate) . "'";
 	$searchFor .= "<br>From date: $fromDate";
 }
 if(strlen($toDate) > 0) {
-	$sql .= " AND booking_descriptions.first_night<='" . str_replace('-', '/', $toDate) . "'";
+	$sql .= " AND bd.first_night<='" . str_replace('-', '/', $toDate) . "'";
 	$searchFor .= "<br>To date: $toDate";
 }
 if(strlen(trim($source)) > 0) {
-	$sql .= " AND booking_descriptions.source LIKE '%" . $source . "%'";
+	$sql .= " AND bd.source LIKE '%" . $source . "%'";
 	$searchFor .= "<br>Source contains: $source";
 }
 if(strlen(trim($name)) > 0) {
 	$name = str_replace(',', ' ', $name);
 	$name = str_replace('.', ' ', $name);
 	foreach(explode(' ', $name) as $namePart) {
-		$sql .= " AND booking_descriptions.name LIKE '%" . $namePart . "%'";
+		$sql .= " AND bd.name LIKE '%" . $namePart . "%'";
 	}
 	$searchFor .= "<br>Name contains: $name";
 }
 if(strlen(trim($bookingRef)) > 0) {
-	$sql .= " AND booking_descriptions.comment LIKE '%" . $bookingRef . "%'";
+	$sql .= " AND (bd.booking_ref='$bookingRef' OR bd.my_allocator_id='$bookingRef')";
 	$searchFor .= "<br>booking ref is: $bookingRef";
 }
 if($confirmedSelected) {
-	$sql .= " AND booking_descriptions.confirmed=" . ($confirmed ? 1 : 0);
+	$sql .= " AND bd.confirmed=" . ($confirmed ? 1 : 0);
 	$searchFor .= "<br>" . ($confirmed ? '' : 'not ') . "confirmed";
 }
 if($cancelSelected) {
 	$ors = array();
 	if($guestCancelledSelected) {
-		$ors[] = "(booking_descriptions.cancelled=" . ($guestCancelled ? 1 : 0) . " AND booking_descriptions.cancel_type='guest')";
+		$ors[] = "(bd.cancelled=" . ($guestCancelled ? 1 : 0) . " AND bd.cancel_type='guest')";
 		$searchFor .= "<br>" . ($guestCancelled ? '' : 'not ') . "guest cancelled";
 	}
 	if($recCancelledSelected) {
-		$ors[] = "(booking_descriptions.cancelled=" . ($recCancelled ? 1 : 0) . " AND booking_descriptions.cancel_type='reception')";
+		$ors[] = "(bd.cancelled=" . ($recCancelled ? 1 : 0) . " AND bd.cancel_type='reception')";
 		$searchFor .= "<br>" . ($recCancelled ? '' : 'not ') . "reception cancelled";
 	}
 	if($noShowCancelledSelected) {
-		$ors[] = "(booking_descriptions.cancelled=" . ($noShowCancelled ? 1 : 0) . " AND booking_descriptions.cancel_type='no_show')";
+		$ors[] = "(bd.cancelled=" . ($noShowCancelled ? 1 : 0) . " AND bd.cancel_type='no_show')";
 		$searchFor .= "<br>" . ($noShowCancelled ? '' : 'not ') . "no show";
 	}
 	if(count($ors) > 0) {
@@ -358,17 +358,17 @@ if($cancelSelected) {
 	}
 }
 if($checkedinSelected) {
-	$sql .= " AND booking_descriptions.checked_in=" . ($checkedin ? 1 : 0);
+	$sql .= " AND bd.checked_in=" . ($checkedin ? 1 : 0);
 	$searchFor .= "<br>" . ($checkedin ? '' : 'not ') . "checked in";
 }
 if($paidSelected) {
-	$sql .= " AND booking_descriptions.paid=" . ($paid ? 1 : 0);
+	$sql .= " AND bd.paid=" . ($paid ? 1 : 0);
 	$searchFor .= "<br>" . ($paid ? '' : 'not ') . "paid";
 }
 
 
 
-$sql .= " ORDER BY $order,booking_descriptions.id";
+$sql .= " ORDER BY $order,bd.id";
 $searchSql = $sql;
 
 $result = mysql_query($sql, $link);
@@ -461,7 +461,7 @@ if($order == 'telephone') {
 
 
 if($cnt > 0)
-	echo "	<tr><th>$sourceTitle</th><th>$dateTitle</th><th>$nightsTitle</th><th>$nameTitle</th><th>Guest data</th><th>$nationalityTitle</th><th>$emailTitle</th><th>$telTitle</th><th>Room Name</th><th># of guests</th><th>Room payment</th><th>Status</th><th>Actions</th><th></th></tr>\n";
+	echo "	<tr><th>$sourceTitle</th><th>$dateTitle</th><th>$nightsTitle</th><th>$nameTitle</th><th>Guest data</th><th>$nationalityTitle</th><th>$emailTitle</th><th>$telTitle</th><th>Room Name</th><th># of guests</th><th>Room payment</th><th>Status</th><th>Booking Ref</th><th>Actions</th><th></th></tr>\n";
 else
 	echo "	<tr><td><i>No record found.</i></td></tr>\n";
 
@@ -507,6 +507,7 @@ foreach($bookings as $toShow) {
 		if($toShow['paid'])
 			echo "			<li>paid</li>\n";
 		echo "		</ul></td>\n";
+		echo "		<td rowspan=\"$rows\" valign=\"middle\">" . $toShow['booking_ref'] . ' ' . $toShow['my_allocator_id'] . "</td>\n";
 		$descrId = $toShow['description_id'];
 		echo "		<td rowspan=\"$rows\" valign=\"middle\"><ul>\n";
 		echo "			<li><a href=\"edit_booking.php?description_id=$descrId\">Edit...</a></li>\n";
