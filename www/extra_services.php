@@ -44,11 +44,12 @@ $contactDetailsUrl = $location . '_contact_details.php';
 html_start(EXTRA_SERVICES . ' - ' . getLocationName($location));
 
 echo <<<EOT
-
       <h1 class="page-title page-title-extra-services">
         $extraServices
       </h1>
       
+      <div style="max-width: 1200px;">
+
       <div class="fluid-wrapper booking">
         <form class="update-summary" action="$contactDetailsUrl" data-refresh="json_update_summary.php" method="post">
           <fieldset>
@@ -121,6 +122,8 @@ echo getBookingSummaryHtml(CONTINUE_BOOKING);
 echo <<<EOT
           </fieldset>
         </form>
+      </div>
+
       </div>
 
 EOT;

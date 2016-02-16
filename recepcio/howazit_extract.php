@@ -1,12 +1,13 @@
 <?php
 
+$location = $argv[1];
+require('../includes/config/' . $location . '.php');
 require("includes.php");
 
-$location = LOCATION;
 
 $locationName = constant('LOCATION_NAME_' . strtoupper($location));
 
-$link = db_connect();
+$link = db_connect($location);
 $today = date('Y/m/d');
 $yesterday = date('Y/m/d', strtotime(date('Y-m-d') . ' -1 day'));
 $file = getcwd() . "/maverick_" . $location . "." . date('Ymd') . ".csv";

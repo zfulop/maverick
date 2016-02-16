@@ -53,7 +53,7 @@ while($row = mysql_fetch_assoc($result)) {
 }
 
 $bookingDescription = null;
-$sql = "SELECT * FROM booking_descriptions WHERE id=$descrId";
+$sql = "SELECT bd.*,bd2.first_night AS prev_first_night FROM booking_descriptions bd LEFT OUTER JOIN booking_descriptions bd2 ON (((bd.email<>'' AND bd.email=bd2.email) OR bd.name=bd2.name) AND bd.first_night>bd2.first_night AND bd2.cancelled<>1) WHERE bd.id=$descrId";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	set_error("Cannot get booking (with description_id: $descrId).");
@@ -216,6 +216,12 @@ $extraHeader =<<<EOT
 EOT;
 
 $name = $bookingDescription['name'];
+$prevFirstNight = $bookingDescription['prev_first_night'];
+if(!is_null($prevFirstNight)) {
+	$prevBookingRow = "<tr><td>Previous day's first night: </td><td>$prevFirstNight</td></tr>";
+} else {
+	$prevBookingRow = "";
+}
 $nameExt = $bookingDescription['name_ext'];
 $maleSelected = $bookingDescription['gender'] == 'MALE' ? ' selected' : '';
 $femaleSelected = $bookingDescription['gender'] == 'FEMALE' ? ' selected' : '';
@@ -447,6 +453,7 @@ echo <<<EOT
 	<tr><td>Last night: </td><td>$lnight</td></tr>
 	<tr><td>Booking Ref: </td><td>$bookingRef</td></tr>
 	<tr><td>Number of nights: </td><td>$numOfNights</td></tr>
+	$prevBookingRow
 	<tr><td colspan="3"><hr></td></tr>
 		
 	<tr>

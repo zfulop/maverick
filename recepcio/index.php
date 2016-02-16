@@ -17,7 +17,9 @@ if(isset($_REQUEST['day_to_show'])) {
 	$dayToShow = date('Y-m-d');
 }
 
+// Before 5am show as if it was yesterday
 if(date('G') < 5 and !isset($_REQUEST['day_to_show'])) {
+	$dayToShow = date('Y-m-d');
 	$today = date('Y/m/d', strtotime(date('Y-m-d') . ' -1 day'));
 	$yesterday = date('Y/m/d', strtotime(date('Y-m-d') . ' -2 day'));
 } else {
@@ -48,7 +50,7 @@ $leavingTodayBDIds = array();
 if($dayToShow == date('Y-m-d')) {
 	$sql = "SELECT * FROM booking_descriptions WHERE checked_in=1 AND cancelled=0";
 } else {
-	$sql = "SELECT * FROM booking_descriptions WHERE cancelled=0 and first_night<='$today' and last_night>='$today'";
+	$sql = "SELECT * FROM booking_descriptions WHERE cancelled=0 and first_night<='$today' and last_night>='$yesterday'";
 }
 $result = mysql_query($sql, $link);
 if(!$result) {

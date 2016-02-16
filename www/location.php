@@ -387,7 +387,7 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 	if(showApartments() !== isApartment($roomType)) {
 		continue;
 	}
-	if(isClientFromHU() and $roomType['num_of_beds'] > 5) {
+	if($location=='hostel' and isClientFromHU() and $roomType['num_of_beds'] > 5) {
 		continue;
 	}
 	if(isDorm($roomType)) {
@@ -403,7 +403,7 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 	$name = $roomType['name'];
 	$descr = $roomType['description'];
 	$shortDescr = $roomType['short_description'];
-	if(isClientFromHU() and $roomType['num_of_beds'] > 4) {
+	if($location=='hostel' and isClientFromHU() and $roomType['num_of_beds'] > 4) {
 		$nob = $roomType['num_of_beds'];
 		$roomType['num_of_beds'] = 4;
 		$name = str_replace('5', '4', $name);

@@ -229,7 +229,7 @@ foreach($roomTypesData as $roomTypeId => $roomType) {
 	if(showApartments() !== isApartment($roomType)) {
 		continue;
 	}
-	if(isClientFromHU() and $roomType['num_of_beds'] > 5) {
+	if($location == 'hostel' and isClientFromHU() and $roomType['num_of_beds'] > 5) {
 		continue;
 	}
 
@@ -304,10 +304,10 @@ function processRoomData($arriveTS, $nights, &$roomData, &$roomType) {
 
 
 function sortRoomsByAvailOrder($rt1, $rt2) {
-	if($rt1['num_of_beds_avail'] > $rt2['num_of_beds_avail']) {
+	if($rt1['num_of_beds_avail'] > 0 and $rt2['num_of_beds_avail'] < 1) {
 		return -1;
 	}
-	if($rt1['num_of_beds_avail'] < $rt2['num_of_beds_avail']) {
+	if($rt1['num_of_beds_avail'] < 1 and $rt2['num_of_beds_avail'] > 0) {
 		return 1;
 	}
 	if($rt1['_order'] < $rt2['_order']) {
@@ -342,7 +342,7 @@ function getRoomHtml($roomType, $roomTypeId, $nights, $arriveDate, $specialOffer
 	if(!isset($roomType['num_of_rooms_avail'])) {
 		$roomType['num_of_rooms_avail'] = 0;
 	}
-	if(isClientFromHU() and $roomType['num_of_beds'] > 4) {
+	if($location == 'hostel' and isClientFromHU() and $roomType['num_of_beds'] > 4) {
 		$nob = $roomType['num_of_beds'];
 		$roomType['num_of_beds'] = 4;
 		$name = str_replace('5', '4', $name);

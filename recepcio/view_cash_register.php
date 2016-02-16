@@ -419,7 +419,7 @@ while(count($payments) > $pymtIdx or count($cashOuts) > $coIdx or count($gtransf
 				$paymentHuf += $payment['amount'];
 			}
 		}
-		$type = "Payment";
+		$type = $payment['type'];
 		$time = $payment['time_of_payment'];
 		$name = "<a href=\"edit_booking.php?description_id=" . $payment['booking_description_id'] . "\">" . $payment['name'] . "</a>";
 		$comment = $payment['comment'];

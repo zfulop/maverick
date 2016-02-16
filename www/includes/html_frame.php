@@ -7,7 +7,7 @@ $MENUS = array(
 	'LOCATION_NAME_HOSTEL_MENU' => 'maverick_hostel_ensuites.php',
 	'LOCATION_NAME_APARTMENTS_MENU' => 'maverick_apartments.php',
 	'GROUPS' => 'groups.php',
-	'RESTAURANT' => '',
+	'RESTAURANT' => 'http://www.fatmama.hu/eng/',
 	'CONTACT' => 'contact.php');
 
 $TRIPADVISOR_EXCELLENCE = array(
