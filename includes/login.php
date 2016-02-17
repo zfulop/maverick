@@ -18,6 +18,8 @@ function checkLogin($site) {
 	global $ROLES;
 	$redirect = $_SERVER['REQUEST_URI'];
 	if(!isset($_SESSION['logged_in'])) {
+		clear_errors();
+		set_error("Not logged in");
 		$_SESSION['login_redirect'] = $redirect;
 		header('Location: /view_login.php');
 		return false;
@@ -34,6 +36,8 @@ function checkLogin($site) {
 		return false;
 	}
 	if(!in_array($_SESSION['login_role'], $ROLES[$site])) {
+		clear_errors();
+		set_error("Not authotrized to view the site");
 		$_SESSION['login_redirect'] = $redirect;
 		header('Location: /view_login.php');
 		logout();
