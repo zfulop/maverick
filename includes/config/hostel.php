@@ -11,6 +11,8 @@ define('MYALLOCATOR_CUSTOMER_PASSWORD','Palesz22');
 define('MYALLOCATOR_VENDOR_ID','maverickhostel');
 define('MYALLOCATOR_VENDOR_PASSWORD','kPnFxw85RS');
 
+define('HOWAZIT_EMAIL', 'upload-budapestmavrick-checkout-45645291-475792b4-d675-4a1a-915a-c5be8a5aeef5@howazit.com');
+
 $myallocatorRoomMap = array(
 	'1650' => array(
 		array(

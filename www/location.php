@@ -204,7 +204,10 @@ while($row = mysql_fetch_assoc($result)) {
 	$awardsHtml .= '                        <a href="' . $row['url'] . '" target="_blank"><img class="footerAward" src="' . constant('AWARDS_IMG_URL_' . strtoupper($location)) . $row['img'] . '" alt="' . $row['name'] . '"></a>' . "\n";	
 }
 
-
+$videoUrl = 'https://www.youtube.com/embed/R-emTwEMGnA?showinfo=0';
+if($location == 'lodge') {
+	$videoUrl = 'https://www.youtube.com/embed/wJfQYUzmnqY?showinfo=0';
+}
 
 echo <<<EOT
 
@@ -305,15 +308,6 @@ echo <<<EOT
             </span>
           </p>
           
-        <section id="awards">
-
-              <h1>$awards</h1><br>
-$awardsHtml
-              <div class='clearfix'></div>
-
-        </section>
-        
-
 
 
           <div id='moodVideoControl'>
@@ -321,11 +315,19 @@ $awardsHtml
             <div onClick='handleMoodVideo()' style='cursor: pointer'><i class='fa fa-fw fa-youtube-play vicon' style='margin-right: 10px;  font-size: 30px;'></i><span class='vtext1'>$watchTheIntroVideo</span><span class='vtext2'>close the intro video </span></div>
           </div>
           <div id='moodVideo' class='video-container'>
-            <iframe src="https://www.youtube.com/embed/wJfQYUzmnqY?showinfo=0" style="display: inline;" allowfullscreen></iframe>
+            <iframe src="$videoUrl" style="display: inline;" allowfullscreen></iframe>
           </div>
 
         </section>
         
+
+        <section id="awards">
+              <h1>$awards</h1><br>
+$awardsHtml
+              <div class='clearfix'></div>
+        </section>
+ 
+
         <section id="location" class="clearfix">
           <!-- h1><a href="#rooms">$rooms</a></h1 -->
           

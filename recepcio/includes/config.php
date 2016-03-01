@@ -24,6 +24,5 @@ define('FPDF_FONTPATH','/home/zolika/includes/font');
 
 define('CONFIRM_BOOKING_URL', 'http://www.mavericklodges.com/LANG/confirm_booking.php?location=LOCATION&confirmCode=CONFIRM_CODE');
 define('LANG_DIR', '/home/zolika/www/includes/language/');
-define('HOWAZIT_EMAIL', 'zfulop@zolilla.com');
 
 ?>

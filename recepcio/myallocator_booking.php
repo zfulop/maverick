@@ -77,6 +77,7 @@ set_debug(print_r($bookingData,true));
 
 $locationName = constant('DB_' . strtoupper($location) . '_NAME');
 
+logMessage("Using location: $location");
 
 $link = db_connect($location);
 
@@ -88,7 +89,7 @@ if((strpos($bookingJson, "\"IsCancellation\":true") > 0) or (isset($bookingData[
 	preg_match('/"MyallocatorId":"([^"]*)"/', $bookingJson, $matches);
 	$myallocId = $matches[1];
 	// sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Booking cancellation [$myallocId] for " . LOCATION, stripslashes($_REQUEST['booking']));
-	$result = cancelBooking($myallocId, $link);
+	$result = cancelBooking($bookingData['MyallocatorId'], $link);
 } else {
 	// sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Booking creation " . LOCATION, 'booking data: ' . print_r($bookingData,true) . "\n\nRaw data: \n" . stripslashes($_REQUEST['booking']));
 	$result = createBooking($bookingData, $link);
@@ -107,7 +108,7 @@ mysql_close($link);
 
 function cancelBooking($myAllocatorId, $link) {
 	global $lang, $locationName;
-	logMessage("Cancelling booking.");
+	logMessage("Cancelling booking with myalloc id: $myAllocatorId");
 	$sql = "SELECT * FROM booking_descriptions WHERE my_allocator_id='$myAllocatorId'";
 	$result = mysql_query($sql, $link);
 	if(!$result) {
@@ -116,6 +117,7 @@ function cancelBooking($myAllocatorId, $link) {
 	}
 	$row = mysql_fetch_assoc($result);
 	$descrId = $row['id'];
+	logMessage("Id of the booking to cancel: $descrId");
 
 	if(intval($descrId) > 0) {
 		$sql = "UPDATE booking_descriptions SET cancelled=1,cancel_type='guest' WHERE id=$descrId";
@@ -123,6 +125,8 @@ function cancelBooking($myAllocatorId, $link) {
 		if(!$result) {
 			respond('51', false, "Cannot cancel booking in admin interface: " . mysql_error($link) . " (SQL: $sql)");
 			return false;
+		} else {
+			logMessage("Booking cancelled.");
 		}
 	}
 
@@ -239,7 +243,7 @@ function createBooking($bookingData, $link) {
 	$bookingDescriptionIds = array();
 
 	$allSameDate = isAllSameDate($bookingData['Rooms']);
-	set_debug("allSaveDate=" . $allSameDate);
+	logMessage("allSaveDate=" . $allSameDate);
 	if($allSameDate) {
 		logMessage("all same date");
 		$arriveDate = $bookingData['Rooms'][0]['StartDate'];
@@ -352,7 +356,15 @@ function createBooking($bookingData, $link) {
 					$roomTypeId = $goodId;
 				}
 			}
-			$numOfPersonForRoomType[$roomTypeId] = $numOfPerson;
+			if(isset($numOfPersonForRoomType[$roomTypeId])) {
+				if(is_numeric($numOfPersonForRoomType[$roomTypeId])) {
+					$numOfPersonForRoomType[$roomTypeId] = array($numOfPersonForRoomType[$roomTypeId], $numOfPerson);
+				} elseif(is_array($numOfPersonForRoomType[$roomTypeId])) {
+					$numOfPersonForRoomType[$roomTypeId][] = $numOfPerson;
+				}
+			} else {
+				$numOfPersonForRoomType[$roomTypeId] = $numOfPerson;
+			}
 			$price = $roomData['Price'];
 //			if(isset($bookingData['TotalTaxes'])) {
 //				$price = $price + $bookingData['TotalTaxes'] / count($bookingData['Rooms']);
@@ -662,7 +674,7 @@ function getBookingId(&$roomTypesBooked, $roomTypeId, $numOfPerson) {
 function logMessage($message) {
 	$fh = fopen("myallocator." . date('Ymd') . ".log", "a");
 	if($fh) {
-		fwrite($fh, date('Y-m-d H:i:s') . "\n");
+		fwrite($fh, date('Y-m-d H:i:s') . " ");
 		fwrite($fh, $message . "\n");
 		fclose($fh);
 	}

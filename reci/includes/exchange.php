@@ -1,7 +1,6 @@
 <?php
 
-require '/var/userdata/web/mavericklodges.com/website/recepcio/includes/exchange_table.php';
-//require '../../recepcio/includes/exchange_table.php';
+require '../includes/config/exchange_table_lodge.php';
 
 // the exchange rate table is in the exchange_table.php file. That file
 // can be edited manualy, or on the site a new exchange rate can be 

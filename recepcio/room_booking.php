@@ -638,124 +638,125 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 	$toBook = array();
 	$roomChanges = array(); // contains the rooms where some days has to be spent in another room
 	foreach($numOfPersonForRoomType as $roomTypeId => $numOfPerson) {
-		/*$numOfPersonPerApt = 0;
-		if(strpos($roomTypeId, '_') > 0) {
-			list($roomTypeId, $numOfPersonPerApt) = explode('_', $roomTypeId);
-		}*/
 		$roomType = $roomTypes[$roomTypeId];
 		set_debug("getBookingData() - Checking room type: " . $roomType['name'] . " (id: $roomTypeId). There are $numOfPerson  person for that room(s)");
 		if(isApartment($roomType)) {
-			set_debug("getBookingData() - in this apartment there are " . $roomType['num_of_beds'] . " beds and the apartment is booked for " . $numOfPerson/*PerApt*/ . " person per apartment");
+			set_debug("getBookingData() - in this apartment there are " . $roomType['num_of_beds'] . " beds and the apartment is booked for " . print_r($numOfPerson, true) . " units");
 		}
-		if($numOfPerson < 1) {
-			continue;
+		$numOfPersonArray = $numOfPerson;
+		if(!is_array($numOfPerson)) {
+			$numOfPersonArray = array();
+			$numOfPersonArray[] = $numOfPerson;
 		}
+		foreach($numOfPersonArray as $numOfPerson) {
+			if($numOfPerson < 1) {
+				continue;
+			}
+			$roomsNotToBook = array();
+			for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', strtotime("$currDate +1 day"))) {
+				foreach($rooms as $roomId => $roomData) { 
+					if($roomData['room_type_id'] != $roomTypeId) {
+						continue;
+					}
+					$availableBeds = getNumOfAvailBeds($roomData, $currDate);
+					if((isPrivate($roomType) or isApartment($roomType)) and $availableBeds != $roomType['num_of_beds']) {
+						$roomsNotToBook[$roomId][] = $currDate;
+					}
+				}
+			}
 
-		$roomsNotToBook = array();
-		for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', strtotime("$currDate +1 day"))) {
+			$numOfBedsBooked = 0;
 			foreach($rooms as $roomId => $roomData) { 
 				if($roomData['room_type_id'] != $roomTypeId) {
 					continue;
 				}
-				$availableBeds = getNumOfAvailBeds($roomData, $currDate);
-				if((isPrivate($roomType) or isApartment($roomType)) and $availableBeds != $roomType['num_of_beds']) {
-					$roomsNotToBook[$roomId][] = $currDate;
-				}
-			}
-		}
-
-		$numOfBedsBooked = 0;
-		foreach($rooms as $roomId => $roomData) { 
-			if($roomData['room_type_id'] != $roomTypeId) {
-				continue;
-			}
-			if($numOfPerson <= $numOfBedsBooked) {
-				break;
-			}
-			if(!isset($roomsNotToBook[$roomId])) {
-				if(isPrivate($roomType)) {
-					$toBook[$roomId] = array('num_of_person' => $roomData['num_of_beds'], 'type' => 'ROOM');
-					$numOfBedsBooked += $roomData['num_of_beds'];
-				} elseif(isApartment($roomType)) {
-					$toBook[$roomId] = array('num_of_person' => $numOfPerson/*PerApt*/, 'type' => 'ROOM');
-					$numOfBedsBooked += $numOfPerson/*PerApt*/;
-				} elseif(isDorm($roomType)) {
-					$numOfPersonInDorm = $numOfPerson-$numOfBedsBooked;
-					$toBook[$roomId] = array('num_of_person' => $numOfPersonInDorm, 'type' => 'BED');
-					$numOfBedsBooked += $numOfPersonInDorm;
-				}
-			}
-		}
-
-		// If there is no room that would be free for all the days, find the room that is the least booked, 
-		// and add 'roomChanges' for the days that is booked, that is: it will find another room for the days where 
-		// the mostly free room is booked.
-		if((isPrivate($roomType) or isApartment($roomType)) and $numOfBedsBooked < $numOfPerson) {
-			$roomsNotToBookInReverse = $roomsNotToBook;
-			// sort the $roomsNotToBook in the order of the number of dates unavailable (ascending)
-			uasort($roomsNotToBook, "sortByArraySize");
-			// sort the $roomsNotToBookInReverse in the order of the number of dates unavailable (descending)
-			uasort($roomsNotToBookInReverse, "sortByArraySizeDesc");
-
-			set_debug('getBookingData(PRIVATE) - $roomsNotToBook = ' . print_r($roomsNotToBook, true));
-			set_debug('getBookingData(PRIVATE) - $roomsNotToBookInReverse = ' . print_r($roomsNotToBookInReverse, true));
-			foreach($roomsNotToBook as $roomId => $datesUnavailable) {
-				if($numOfBedsBooked >= $numOfPerson) {
+				if($numOfPerson <= $numOfBedsBooked) {
 					break;
 				}
-				$personToBook = (isPrivate($roomType) ? $roomType['num_of_beds'] : $numOfPerson/*PerApt*/);
-				$toBook[$roomId] = array('num_of_person' => $personToBook, 'type' => 'ROOM');
-
-				$numOfBedsBooked += $personToBook;
-				// add roomChanges for the dates unavailable
-				foreach($datesUnavailable as $oneDate) {
-					$changeRoomId = findRoomForDate($roomsNotToBookInReverse, $oneDate);
-					if(is_null($changeRoomId)) {
-						continue;
+				if(!isset($roomsNotToBook[$roomId])) {
+					if(isPrivate($roomType)) {
+						$toBook[$roomId] = array('num_of_person' => $roomData['num_of_beds'], 'type' => 'ROOM');
+						$numOfBedsBooked += $roomData['num_of_beds'];
+					} elseif(isApartment($roomType)) {
+						$toBook[$roomId] = array('num_of_person' => $numOfPerson/*PerApt*/, 'type' => 'ROOM');
+						$numOfBedsBooked += $numOfPerson/*PerApt*/;
+					} elseif(isDorm($roomType)) {
+						$numOfPersonInDorm = $numOfPerson-$numOfBedsBooked;
+						$toBook[$roomId] = array('num_of_person' => $numOfPersonInDorm, 'type' => 'BED');
+						$numOfBedsBooked += $numOfPersonInDorm;
 					}
-					$roomChanges[$roomId][] = array('room_id' => $changeRoomId, 'date' => $oneDate);
-					$roomsNotToBookInReverse[$changeRoomId][] = $oneDate;
-					$roomsNotToBook[$changeRoomId][] = $oneDate;
-					uasort($roomsNotToBook, "sortByArraySize");
-					uasort($roomsNotToBookInReverse, "sortByArraySizeDesc");
 				}
 			}
-		} elseif(isDorm($roomType)) {
-			// Handle the overbookings for dorm: 
-			// for each booking iterate through the dates:
-			//   get the overbooking for that dorm room for that date
-			//   iterate through again the rooms
-			//     for the room with same roomtypeid, book the available beds until the overbooking is down to 0
-			foreach($toBook as $bookedRoomId => $bookData) {
-				if($rooms[$bookedRoomId]['room_type_id'] != $roomTypeId) {
-					continue;
+	
+			// If there is no room that would be free for all the days, find the room that is the least booked, 
+			// and add 'roomChanges' for the days that is booked, that is: it will find another room for the days where 
+			// the mostly free room is booked.
+			if((isPrivate($roomType) or isApartment($roomType)) and $numOfBedsBooked < $numOfPerson) {
+				$roomsNotToBookInReverse = $roomsNotToBook;
+				// sort the $roomsNotToBook in the order of the number of dates unavailable (ascending)
+				uasort($roomsNotToBook, "sortByArraySize");
+				// sort the $roomsNotToBookInReverse in the order of the number of dates unavailable (descending)
+				uasort($roomsNotToBookInReverse, "sortByArraySizeDesc");
+	
+				set_debug('getBookingData(PRIVATE) - $roomsNotToBook = ' . print_r($roomsNotToBook, true));
+				set_debug('getBookingData(PRIVATE) - $roomsNotToBookInReverse = ' . print_r($roomsNotToBookInReverse, true));
+				foreach($roomsNotToBook as $roomId => $datesUnavailable) {
+					if($numOfBedsBooked >= $numOfPerson) {
+						break;
+					}
+					$personToBook = (isPrivate($roomType) ? $roomType['num_of_beds'] : $numOfPerson/*PerApt*/);
+					$toBook[$roomId] = array('num_of_person' => $personToBook, 'type' => 'ROOM');
+	
+					$numOfBedsBooked += $personToBook;
+					// add roomChanges for the dates unavailable
+					foreach($datesUnavailable as $oneDate) {
+						$changeRoomId = findRoomForDate($roomsNotToBookInReverse, $oneDate);
+						if(is_null($changeRoomId)) {
+							continue;
+						}
+						$roomChanges[$roomId][] = array('room_id' => $changeRoomId, 'date' => $oneDate);
+						$roomsNotToBookInReverse[$changeRoomId][] = $oneDate;
+						$roomsNotToBook[$changeRoomId][] = $oneDate;
+						uasort($roomsNotToBook, "sortByArraySize");
+						uasort($roomsNotToBookInReverse, "sortByArraySizeDesc");
+					}
 				}
-				for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', strtotime("$currDate +1 day"))) {
-					$availableBeds = getNumOfAvailBeds($rooms[$bookedRoomId], $currDate);
-					$overbooking = $bookData['num_of_person'] - $availableBeds;
-					if($overbooking > 0) {
-						set_debug("getBookingData(DORM) - for room: $bookedRoomId, date: $currDate, there are $overbooking overbookings.");
-						foreach($rooms as $roomId => $roomData) { 
-							if(($roomData['room_type_id'] != $roomTypeId) or ($roomId == $bookedRoomId)) {
-								continue;
-							}
-							$availableBeds = getNumOfAvailBeds($rooms[$roomId], $currDate);
-							if($availableBeds > 0) {
-								$numPersonInThisRoom = min($availableBeds, $overbooking);
-								set_debug("getBookingData(DORM) - saving room change into room: $roomId, numOfPerson: $numPersonInThisRoom");
-								$roomChanges[$bookedRoomId][] = array('room_id' => $roomId, 'date' => $currDate, 'num_of_person' => $numPersonInThisRoom);
-								$overbooking = $overbooking - $numPersonInThisRoom;
-							}
-							if($overbooking < 1) {
-								break;
+			} elseif(isDorm($roomType)) {
+				// Handle the overbookings for dorm: 
+				// for each booking iterate through the dates:
+				//   get the overbooking for that dorm room for that date
+				//   iterate through again the rooms
+				//     for the room with same roomtypeid, book the available beds until the overbooking is down to 0
+				foreach($toBook as $bookedRoomId => $bookData) {
+					if($rooms[$bookedRoomId]['room_type_id'] != $roomTypeId) {
+						continue;
+					}
+					for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', strtotime("$currDate +1 day"))) {
+						$availableBeds = getNumOfAvailBeds($rooms[$bookedRoomId], $currDate);
+						$overbooking = $bookData['num_of_person'] - $availableBeds;
+						if($overbooking > 0) {
+							set_debug("getBookingData(DORM) - for room: $bookedRoomId, date: $currDate, there are $overbooking overbookings.");
+							foreach($rooms as $roomId => $roomData) { 
+								if(($roomData['room_type_id'] != $roomTypeId) or ($roomId == $bookedRoomId)) {
+									continue;
+								}
+								$availableBeds = getNumOfAvailBeds($rooms[$roomId], $currDate);
+								if($availableBeds > 0) {
+									$numPersonInThisRoom = min($availableBeds, $overbooking);
+									set_debug("getBookingData(DORM) - saving room change into room: $roomId, numOfPerson: $numPersonInThisRoom");	
+									$roomChanges[$bookedRoomId][] = array('room_id' => $roomId, 'date' => $currDate, 'num_of_person' => $numPersonInThisRoom);
+									$overbooking = $overbooking - $numPersonInThisRoom;
+								}
+								if($overbooking < 1) {
+									break;
+								}
 							}
 						}
 					}
 				}
-			}
-
-		}
-	}
+			} // end of if(private) elseif(dorm)
+		} // end of foreach(numOf_PersonArray)
+	} // end of numOfPersonPerRoomType
 	set_debug("getBookingData() - The toBook array's content: " . print_r($toBook, true));
 	set_debug("getBookingData() - The roomChanges array's content: " . print_r($roomChanges, true));
 

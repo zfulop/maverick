@@ -2,8 +2,12 @@
 
 $incldeWzTooltip = true;
 
-function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadScript = '') {
+function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadScript = '', $useBootstrap = false) {
 	global $incldeWzTooltip;
+	if($useBootstrap) {
+		html_start_bootstrap($title, $extraHeader, $showMenu, $onloadScript);
+		return;
+	}
 
 	$title = $_SESSION['login_hotel_name'] . ' - Recepcio - ' . $title;
 	$loginName = $_SESSION['login_user'];
@@ -19,6 +23,7 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 	$schedule = ROOT_URL . 'view_schedule.php';
 	$mendingList = ROOT_URL . 'view_mending_list.php';
 	$shoppingList = ROOT_URL . 'view_shopping_list.php';
+	$roomsToClean = ROOT_URL . 'view_rooms_to_clean.php';
 	$vacations = ROOT_URL . 'view_vacations.php';
 	$exchangeRates = ROOT_URL . 'view_exchange_rates.php';
 	$serviceCharges = ROOT_URL . 'view_service_charges.php';
@@ -109,6 +114,7 @@ EOT;
 				<li><a href="$mendingList" style="font-size: 14px; padding-right: 20px;">Mending List</a></li>
 				<li><a href="$shoppingList" style="font-size: 14px; padding-right: 20px;">Shopping List</a></li>
 				<li><a href="$blacklist" style="font-size: 14px; padding-right: 20px;">Blacklisted guests</a></li>
+				<li><a href="$roomsToClean" style="font-size: 14px; padding-right: 20px;">Rooms to clean</a></li>
 			</ul>
 		</div>
 		<a href="#" style="float: left; font-size: 14px; padding-right: 20px;" id="moneyMainMenu" onclick="showMenu('moneyMenu', this);return false;">Money</a>
@@ -173,12 +179,183 @@ EOT;
 
 }
 
-function html_end() {
+function html_start_bootstrap($title = null, $extraHeader = '', $showMenu = true, $onloadScript = '') {
+	$title = $_SESSION['login_hotel_name'] . ' - Recepcio - ' . $title;
+	$loginName = $_SESSION['login_user'];
+
+	$logout = ROOT_URL . 'logout.php';
+	$changePassword = ROOT_URL . 'change_password.php';
+
+	$actualities = ROOT_URL . 'index.php';
+	$availability = ROOT_URL . 'view_availability.php';
+	$dblRoomChange = ROOT_URL . 'view_dbl_room_changes.php';
+	$booking = ROOT_URL . 'view_booking.php';
+	$gtransfer = ROOT_URL . 'view_guest_transfer.php';
+	$schedule = ROOT_URL . 'view_schedule.php';
+	$mendingList = ROOT_URL . 'view_mending_list.php';
+	$shoppingList = ROOT_URL . 'view_shopping_list.php';
+	$roomsToClean = ROOT_URL . 'view_rooms_to_clean.php';
+	$vacations = ROOT_URL . 'view_vacations.php';
+	$exchangeRates = ROOT_URL . 'view_exchange_rates.php';
+	$serviceCharges = ROOT_URL . 'view_service_charges.php';
+	$cashRegister = ROOT_URL . 'view_cash_register.php';
+	$services = ROOT_URL . 'view_services.php';
+	$specialOffers = ROOT_URL . 'view_special_offers.php';
+	$logout = ROOT_URL . 'logout.php';
+	$blacklist = ROOT_URL . 'view_blacklist.php';
+
+	$prototypeJs = ROOT_URL . 'js/prototype.js';
+	$css = ROOT_URL . 'maverick-recepcio.css';
+
+	echo <<<EOT
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>$title</title>
+	<link href="css/bootstrap.min.css" rel="stylesheet">	
+	<link href="css/bootstrap-theme.min.css" rel="stylesheet">	
+    <script type="text/javascript" src="$prototypeJs"></script>
+	<script type="text/javascript">
+		function sendHeartbeat() {
+			new Ajax.Request('/heartbeat.php', {
+			});
+			setTimeout(sendHeartbeat, 60000);
+		}
+	</script>
+
+	$extraHeader
+</head>
+
+<body style="padding-top: 70px;" onload="sendHeartbeat();$onloadScript">
+
+EOT;
+
+	if($showMenu) {
+		$ex = getExchangeRate('EUR', 'HUF', date('Y-m-d'));
+		echo <<<EOT
+
+<nav class="navbar navbar-default navbar-fixed-top">
+	<div class="container-fluid">
+		<!-- Brand and toggle get grouped for better mobile display -->
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="#">RC</a>
+		</div>
+
+		<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+			<ul class="nav navbar-nav">
+				<li><a href="$actualities">HOME</a></li>			
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Availability</a>
+					<ul class="dropdown-menu">
+						<li><a href="$availability">Availability</a></li>
+						<li><a href="$gtransfer">Guest transfer</a></li>
+						<li><a href="$dblRoomChange">Multiple room changes for a day</a></li>
+					</ul>
+				</li>
+				<li><a href="$booking">Booking</a></li>			
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Maintenance</a>
+					<ul class="dropdown-menu">
+						<li><a href="$schedule">Reception/Cleaning schedule</a></li>
+						<li><a href="$vacations">Vacations</a></li>
+						<li><a href="$mendingList">Mending List</a></li>
+						<li><a href="$shoppingList">Shopping List</a></li>
+						<li><a href="$blacklist">Blacklisted guests</a></li>
+						<li><a href="$roomsToClean">Rooms to clean</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Money</a>
+					<ul class="dropdown-menu">
+						<li><a href="$exchangeRates">Exchange Rates</a></li>
+						<li><a href="$serviceCharges">Service Charges</a></li>
+						<li><a href="$cashRegister">Cash Register</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Website</a>
+					<ul class="dropdown-menu">
+						<li><a href="$specialOffers">Special Offers</a></li>
+						<li><a href="$services">Services</a></li>
+					</ul>
+				</li>
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+				<li>1 EUR = $ex Ft</li>
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">$loginName</a>
+					<ul class="dropdown-menu">
+						<li><a href="$logout">Logout</a></li>
+						<li><a href="$changePassword">Change Password</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div><!-- /.navbar-collapse -->		
+	</div> <!-- .container-fluid -->
+</nav>
+
+
+EOT;
+	}
+
+	echo <<<EOT
+<h1>$title</h1>
+
+EOT;
+	$errors = get_errors();
+	foreach($errors as $error) {
+		echo "	<div class=\"alert alert-danger\" role=\"alert\">ERROR: $error</div>\n";
+	}
+	clear_errors();
+	$warnings = get_warnings();
+	foreach($warnings as $warning) {
+		echo "	<div class=\"alert alert-warning\" role=\"alert\">WARNING: $warning</div>\n";
+	}
+	clear_warnings();
+	$messages = get_messages();
+	foreach($messages as $msg) {
+		echo "	<div class=\"alert alert-info\" role=\"alert\">$msg</div>\n";
+	}
+	clear_messages();
+	$debug = get_debug();
+	foreach($debug as $msg) {
+		echo "	<div class=\"alert alert-info\" role=\"alert\">DEBUG: $msg</div>\n";
+	}
+	clear_debug();
+
+
+}
+
+function html_end($useBootstrap = false) {
+	if($useBootstrap) {
+		html_end_bootstrap();
+		return;
+	}
 	echo <<<EOT
 
 </body>
 </html>
 
+EOT;
+}
+
+function html_end_bootstrap() {
+	echo <<<EOT
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>
 EOT;
 }
 
