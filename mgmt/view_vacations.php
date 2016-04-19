@@ -39,7 +39,7 @@ if($result) {
 }
 
 
-$sql = "SELECT * FROM receptionists ORDER BY name";
+$sql = "SELECT * FROM users WHERE role='RECEPTION' ORDER BY name";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	trigger_error("Cannot get receptionists in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -49,7 +49,7 @@ $recOptions = '';
 if($result) {
 	while($row = mysql_fetch_assoc($result)) {
 		$receptionists[] = $row;
-		$recOptions .= '<option value="' . $row['login'] . '">' . $row['name'] . '</option>';
+		$recOptions .= '<option value="' . $row['username'] . '">' . $row['name'] . '</option>';
 	}
 }
 
@@ -96,7 +96,7 @@ for($i = 1; $i <= $currentMonthNumDays; $i++) {
 echo "</tr>\n";
 
 foreach($receptionists as $row) {
-	$login = $row['login'];
+	$login = $row['username'];
 	$name = $row['name'];
 	echo "<tr><th>$name</th>";
 	for($i = 1; $i <= $currentMonthNumDays; $i++) {

@@ -19,6 +19,8 @@ foreach($_SESSION as $code => $val) {
 
 $fromDate = date('Y-m-d');
 $toDate = date('Y-m-d');
+$bookedAfterDate = null;
+$bookedBeforeDate = null;
 $name = '';
 $source = '';
 $bookingRef = '';
@@ -39,6 +41,8 @@ $paid = false;
 if(isset($_REQUEST['new_search'])) {
 	$fromDate = $_REQUEST['from_date'];
 	$toDate = $_REQUEST['to_date'];
+	$bookedAfterDate = $_REQUEST['booked_after_date'];
+	$bookedBeforeDate = $_REQUEST['booked_before_date'];
 	$name = $_REQUEST['booker_name'];
 	$source = $_REQUEST['source'];
 	$bookingRef = $_REQUEST['booking_ref'];
@@ -57,6 +61,8 @@ if(isset($_REQUEST['new_search'])) {
 	$_SESSION['view_booking_param_set'] = true;
 	$_SESSION['view_booking_from_date'] = $fromDate;
 	$_SESSION['view_booking_to_date'] = $toDate;
+	$_SESSION['view_booking_booked_after_date'] = $bookedAfterDate;
+	$_SESSION['view_booking_booked_before_date'] = $bookedBeforeDate;
 	$_SESSION['view_booking_booker_name'] = $name;
 	$_SESSION['view_booking_booker_source'] = $source;
 	$_SESSION['view_booking_booking_ref'] = $bookingRef;
@@ -75,6 +81,8 @@ if(isset($_REQUEST['new_search'])) {
 } elseif(isset($_SESSION['view_booking_param_set'])) {
 	$fromDate = $_SESSION['view_booking_from_date'];
 	$toDate = $_SESSION['view_booking_to_date'];
+	$bookedAfterDate = $_SESSION['view_booking_booked_after_date'];
+	$bookedBeforeDate = $_SESSION['view_booking_booked_before_date'];
 	$name = $_SESSION['view_booking_booker_name'];
 	$source = $_SESSION['view_booking_booker_source'];
 	$bookingRef = $_SESSION['view_booking_booking_ref'];
@@ -199,17 +207,31 @@ echo <<<EOT
 <table style="border: 1px solid black; padding: 5px; margin: 10px;">
 	<tr><th colspan="3">Search bookings</th></tr>
 	<tr>
-		<td>&nbsp;</td><td>From:</td>
+		<td>&nbsp;</td><td>Guest stays from:</td>
 		<td>
 			<input id="sb_from_date" name="from_date" value="$fromDate" size="10" maxlength="10" type="text" value=""><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'sb_from_date', 'chooserSpanSBF', 2008, 2025, 'Y-m-d', false);"> 
 			<div id="chooserSpanSBF" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div>
 		</td>
 	</tr>
 	<tr>
-		<td>&nbsp;</td><td>To:</td>
+		<td>&nbsp;</td><td>Guest stays to:</td>
 		<td>
 			<input id="sb_to_date" name="to_date" value="$toDate" size="10" maxlength="10" type="text" value=""><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'sb_to_date', 'chooserSpanSBT', 2008, 2025, 'Y-m-d', false);"> 
 			<div id="chooserSpanSBT" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td><td>Reservation booked after:</td>
+		<td>
+			<input id="sb_booked_after_date" name="booked_after_date" value="$bookedAfterDate" size="10" maxlength="10" type="text" value=""><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'sb_booked_after_date', 'chooserSpanSBBA', 2008, 2025, 'Y-m-d', false);"> 
+			<div id="chooserSpanSBBA" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td><td>Reservation booked before:</td>
+		<td>
+			<input id="sb_booked_before_date" name="booked_before_date" value="$bookedBeforeDate" size="10" maxlength="10" type="text" value=""><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'sb_booked_before_date', 'chooserSpanSBBB', 2008, 2025, 'Y-m-d', false);"> 
+			<div id="chooserSpanSBBB" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div>
 		</td>
 	</tr>
 	<tr><td>&nbsp;</td><td>Name of booker:</td><td><input name="booker_name" value="$name"></td></tr>
@@ -318,6 +340,14 @@ if(strlen($fromDate) > 0) {
 if(strlen($toDate) > 0) {
 	$sql .= " AND bd.first_night<='" . str_replace('-', '/', $toDate) . "'";
 	$searchFor .= "<br>To date: $toDate";
+}
+if(strlen($bookedAfterDate) > 0) {
+	$sql .= " AND bd.create_time>'$bookedAfterDate'";
+	$searchFor .= "<br>Booked on or after date: $bookedAfterDate";
+}
+if(strlen($bookedBeforeDate) > 0) {
+	$sql .= " AND bd.create_time<'$bookedBeforeDate'";
+	$searchFor .= "<br>Booked before date: $bookedBeforeDate";
 }
 if(strlen(trim($source)) > 0) {
 	$sql .= " AND bd.source LIKE '%" . $source . "%'";

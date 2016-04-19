@@ -131,7 +131,7 @@ if(count($bdids) > 0) {
 }
 
 $roomChanges = array();
-$sql = "SELECT booking_room_changes.booking_id, booking_room_changes.new_room_id, booking_room_changes.date_of_room_change, bookings.room_id, booking_descriptions.name as bd_name, booking_descriptions.name_ext as bd_name_ext, booking_descriptions.first_night as bd_first_night, booking_descriptions.last_night as bd_last_night, booking_guest_data.name as bgd_name FROM booking_room_changes INNER JOIN bookings ON booking_room_changes.booking_id=bookings.id INNER JOIN booking_descriptions ON (bookings.description_id=booking_descriptions.id AND booking_descriptions.cancelled=0) LEFT OUTER JOIN booking_guest_data ON (bookings.room_id=booking_guest_data.room_id AND booking_guest_data.booking_description_id=booking_descriptions.id) WHERE booking_room_changes.date_of_room_change IN ('$today', '$yesterday')";
+$sql = "SELECT brc.id, brc.booking_id, brc.new_room_id, brc.date_of_room_change, brc.enter_new_room_time, brc.leave_new_room_time, b.room_id, bd.name as bd_name, bd.name_ext as bd_name_ext, bd.first_night as bd_first_night, bd.last_night as bd_last_night, bgd.name as bgd_name FROM booking_room_changes brc INNER JOIN bookings b ON brc.booking_id=b.id INNER JOIN booking_descriptions bd ON (b.description_id=bd.id AND bd.cancelled=0) LEFT OUTER JOIN booking_guest_data bgd ON (b.room_id=bgd.room_id AND bgd.booking_description_id=bd.id) WHERE brc.date_of_room_change IN ('$today', '$yesterday')";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	trigger_error("Cannot room changes for today: " . mysql_error($link) . " (SQL: $sql)");
@@ -405,7 +405,7 @@ if(count($roomChanges) > 0) {
 
 <h2>Room changes today</h2>
 <table>
-	<tr><th>From room</th><th>To room</th><th>Guest</th></tr>
+	<tr><th>From room</th><th>To room</th><th>Guest</th><th>Action</th></tr>
 
 EOT;
 
@@ -422,13 +422,19 @@ EOT;
 		$fromRoom = null;
 		$toRoom = null;
 		$guest = null;
+		$action = '';
+		$roomChangeHappened = true;
 		if(!is_null($changeToday)) {
 			if(!is_null($changeYesterday) && isDiffRoomChange($changeYesterday, $changeToday)) {
 				$toRoom = $roomNames[$changeToday['new_room_id']];
 				$fromRoom = $roomNames[$changeYesterday['new_room_id']];
+				$action = 'save_booking_room_change.php?today=' . urlencode($today) . '&brc_id[]=' . $changeToday['id'] . '&brc_id[]=' . $changeYesterday['id'];
+				$roomChangeHappened = !is_null($changeToday['enter_new_room_time']) and !is_null($changeYesterday['leave_new_room_time']);
 			} else if(is_null($changeYesterday)) {
 				$toRoom = $roomNames[$changeToday['new_room_id']];
 				$fromRoom = $roomNames[$changeToday['room_id']];
+				$action = 'save_booking_room_change.php?today=' . urlencode($today) . '&brc_id[]=' . $changeToday['id'];
+				$roomChangeHappened = !is_null($changeToday['enter_new_room_time']);
 			}
 			$guest = $changeToday['bgd_name'];
 			if(is_null($guest)) {
@@ -437,14 +443,21 @@ EOT;
 		} else if(!is_null($changeYesterday)) {
 			$toRoom = $roomNames[$changeYesterday['room_id']];
 			$fromRoom = $roomNames[$changeYesterday['new_room_id']];
+			$action = 'save_booking_room_change.php?today=' . urlencode($today) . '&brc_id[]=' . $changeYesterday['id'];
+			$roomChangeHappened = !is_null($changeYesterday['leave_new_room_time']);
 			$guest = $changeYesterday['bgd_name'];
 			if(is_null($guest)) {
 				$guest = $changeYesterday['bd_name'];
 			}
 		}
+		if(strlen($action) > 0 and !$roomChangeHappened) {
+			$action = "<a href=\"$action\">Change room</a>";
+		} else {
+			$action = "Room changed";
+		}
 
 		if(!is_null($fromRoom)) {
-			echo "	<tr><td>$fromRoom</td><td>$toRoom</td><td>$guest</td></tr>\n";
+			echo "	<tr><td>$fromRoom</td><td>$toRoom</td><td>$guest</td><td>$action</td></tr>\n";
 		}
 	}
 

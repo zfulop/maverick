@@ -10,7 +10,7 @@ $locationName = constant('LOCATION_NAME_' . strtoupper($location));
 $link = db_connect($location);
 $today = date('Y/m/d');
 $yesterday = date('Y/m/d', strtotime(date('Y-m-d') . ' -1 day'));
-$file = getcwd() . "/maverick_" . $location . "." . date('Ymd') . ".csv";
+$file = getcwd() . "/howazit/maverick_" . $location . "." . date('Ymd') . ".csv";
 $sql = "SELECT name,telephone,email,nationality,source,first_night as arrival_date, '$today' as departure_date FROM booking_descriptions WHERE last_night='$yesterday' and cancelled<>1";
 
 echo "Getting guests who are leaving $today, last night is $yesterday\n";

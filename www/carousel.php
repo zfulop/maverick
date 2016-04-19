@@ -60,8 +60,8 @@ while(defined("CAROUSEL_" . strtoupper($location) . '_' . $carouselIdx . "_TITLE
 	if($carouselIdx > 1) {
 		echo ",\n";
 	}
-	$carouselTitle = constant("CAROUSEL_" . strtoupper($location) . '_' . $carouselIdx . "_TITLE");
-	$carouselTitleBig = constant("CAROUSEL_" . strtoupper($location) . '_' . $carouselIdx . "_TITLE_BIG");
+	$carouselTitle = str_replace("'", "\\'", constant("CAROUSEL_" . strtoupper($location) . '_' . $carouselIdx . "_TITLE"));
+	$carouselTitleBig = str_replace("'", "\\'", constant("CAROUSEL_" . strtoupper($location) . '_' . $carouselIdx . "_TITLE_BIG"));
 	$bgImage = "img/carousel-$location-$carouselIdx.jpg";
 	if(file_exists(BASE_DIR . "img/carousel-$location-$carouselIdx-" . $lang . ".jpg")) {
 		$bgImage = "img/carousel-$location-$carouselIdx-" . $lang . ".jpg";

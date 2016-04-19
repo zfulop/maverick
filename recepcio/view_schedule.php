@@ -92,28 +92,23 @@ if(!$result) {
 
 
 $receptionistHtmlOptions = '';
-$sql = "SELECT * FROM receptionists ORDER BY name";
+$cleanerHtmlOptions = '';
+$sql = "SELECT * FROM users ORDER BY name";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	trigger_error("Cannot get receptionists Error: " . mysql_error($link) . " (SQL: $sql)");
 	set_error("Error loading receptionists");
 } else {
 	while($row = mysql_fetch_assoc($result)) {
-		$receptionistHtmlOptions .= "\t\t\t<option value=\"" . $row['login'] . "\">" . $row['name'] . "</option>\n";
+		if(($row['role'] == 'RECEPTION') or ($row['role'] == 'MANAGER') or ($row['role'] == 'ADMIN')) {
+			$receptionistHtmlOptions .= "\t\t\t<option value=\"" . $row['username'] . "\">" . $row['name'] . "</option>\n";
+		}
+		if($row['role'] == 'CLEANER') {
+			$cleanerHtmlOptions .= "\t\t\t<option value=\"" . $row['username'] . "\">" . $row['name'] . "</option>\n";
+		}
 	}
 }
 
-$cleanerHtmlOptions = '';
-$sql = "SELECT * FROM cleaners ORDER BY name";
-$result = mysql_query($sql, $link);
-if(!$result) {
-	trigger_error("Cannot get cleaningists Error: " . mysql_error($link) . " (SQL: $sql)");
-	set_error("Error loading cleaningists");
-} else {
-	while($row = mysql_fetch_assoc($result)) {
-		$cleanerHtmlOptions .= "\t\t\t<option value=\"" . $row['login'] . "\">" . $row['name'] . "</option>\n";
-	}
-}
 
 $shiftHtmlOptions = '';
 $shifts = array();

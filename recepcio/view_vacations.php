@@ -41,15 +41,15 @@ if($result) {
 }
 
 
-$sql = "SELECT * FROM receptionists ORDER BY name";
+$sql = "SELECT * FROM users ORDER BY name";
 $result = mysql_query($sql, $link);
 if(!$result) {
-	trigger_error("Cannot get receptionists in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	trigger_error("Cannot get users in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 }
 $receptionists = array();
 if($result) {
 	while($row = mysql_fetch_assoc($result)) {
-		if(in_array($row['login'], array('Peter','Suni','Kristof'))) {
+		if(in_array($row['username'], array('Peter','Suni','Kristof'))) {
 			continue;
 		}
 		$receptionists[] = $row;
@@ -73,16 +73,17 @@ echo <<<EOT
 
 EOT;
 
-echo "	<tr><th>Receptionist</th>";
+echo "	<tr><th>User</th><th>Role</th>";
 for($i = 1; $i <= $currentMonthNumDays; $i++) {
 	echo "<th>$i</th>";
 }
 echo "</tr>\n";
 
 foreach($receptionists as $row) {
-	$login = $row['login'];
+	$login = $row['username'];
 	$name = $row['name'];
-	echo "<tr><th>$name</th>";
+	$role = $row['role'];
+	echo "<tr><td><b>$name</b></td><td>$role</td>";
 	for($i = 1; $i <= $currentMonthNumDays; $i++) {
 		$currDate = $currentMonth . '-' . ($i < 10 ? '0' : '') . $i;
 		$cell = '&nbsp;';

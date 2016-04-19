@@ -379,7 +379,7 @@
           data: $form.serialize(),
           dataType: 'json',
           success: function(response) {
-            $('#booking-summary .details li').addClass('inactive').text(function() {
+            $('#booking-summary .details li').text(function() {
               $(this).data('label');
             });
             Object.keys(response.details).forEach(function(key) {

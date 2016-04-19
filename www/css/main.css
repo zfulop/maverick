@@ -360,12 +360,13 @@ form .rooms:first-child h1{display:none}
 #extras{margin-top:0;}
 @media only screen and (min-width: 1024px){#extras{margin-top:30px}
 }#extras h1{display:none}
-#extras li{margin-top:30px;}
+#extras li{margin-top:30px;padding-right:130px;}
 #extras li:first-child{margin-top:0}
-@media only screen and (min-width: 1024px){#extras li{padding-right:280px}
+@media only screen and (min-width: 1490px){#extras li{padding-right:280px}
 #extras li.no-image{padding-right:130px}
 }#extras img{-webkit-border-radius:50%;-moz-border-radius:50%;border-radius:50%;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;height:100%;padding:10px;width:100%;}
-@media only screen and (min-width: 1024px){#extras img{-webkit-border-radius:115px;-moz-border-radius:115px;border-radius:115px;-webkit-box-sizing:content-box;-moz-box-sizing:content-box;box-sizing:content-box;float:right;height:210px;margin-right:-280px;width:210px}
+@media only screen and (max-width: 1489px){#extras img{display:none;} #extras .description img {display:block;float:left;max-width:100px;margin-right:10px;} }
+@media only screen and (min-width: 1490px){#extras img{-webkit-border-radius:115px;-moz-border-radius:115px;border-radius:115px;-webkit-box-sizing:content-box;-moz-box-sizing:content-box;box-sizing:content-box;float:right;height:210px;margin-right:-280px;width:210px}#extras .description img {display:none;}
 }#extras h2{color:#1e0329;font:300 30px/50px 'Oswald',arial,sans-serif;margin-bottom:10px}
 #extras .description{margin-bottom:15px}
 #extras .price{float:left;}
@@ -391,7 +392,7 @@ form .rooms:first-child h1{display:none}
 }@media only screen and (min-width: 1024px){#contact-details .field .error{margin-left:30%}
 }@media only screen and (min-width: 1024px){#contact-details .hidden-label .error,#contact-details .group .error{margin-left:0}
 }#group-booking{margin-top:0;}
-@media only screen and (min-width: 1024px){#group-booking{margin-top:30px}
+@media only screen and (min-width: 1024px){#group-booking{margin-top:30px;margin-right:90px;}
 }#group-booking h1{color:#1e0329;font:300 17px/17px 'Oswald',arial,sans-serif;margin-bottom:16px;text-transform:none;}
 @media only screen and (min-width: 1024px){#group-booking h1{font-size:30px;line-height:50px;margin-bottom:15px}
 }#group-booking .info{margin-bottom:16px;}

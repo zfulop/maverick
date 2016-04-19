@@ -317,7 +317,7 @@ $countryOptions
 
 EOT;
 
-echo getBookingSummaryHtml(BOOK_NOW);
+echo getBookingSummaryHtml(BOOK_NOW, 3);
 
 echo <<<EOT
           </fieldset>

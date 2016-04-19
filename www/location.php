@@ -321,13 +321,6 @@ echo <<<EOT
         </section>
         
 
-        <section id="awards">
-              <h1>$awards</h1><br>
-$awardsHtml
-              <div class='clearfix'></div>
-        </section>
- 
-
         <section id="location" class="clearfix">
           <!-- h1><a href="#rooms">$rooms</a></h1 -->
           
@@ -371,6 +364,8 @@ $awardsHtml
 -->
 
         </section>
+
+
 
 $specialOfferSection
 
@@ -482,6 +477,16 @@ foreach($services as $sid => $service) {
 echo <<<EOT
 		  </ul>
 		</section>
+
+
+
+        <section id="awards">
+              <h1>$awards</h1><br>
+$awardsHtml
+              <div class='clearfix'></div>
+        </section>
+ 
+
 
         <section id="services" class="clearfix">
           <h1>$servicesTitle</h1>

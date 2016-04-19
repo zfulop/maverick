@@ -20,9 +20,9 @@ function sendMail($fromEmail, $fromName, $toEmail, $toName, $subject, $message, 
 		$mail->AddEmbeddedImage($path, $cid, basename($path));
 	}
 
-	$locale = LOCALE;
-	list($lang, $co) = explode('_', $locale);
-	$mail->SetLanguage($lang, PHP_MAILER_LANGUAGE_DIR);
+	//$locale = LOCALE;
+	//list($lang, $co) = explode('_', $locale);
+	$mail->SetLanguage('en', PHP_MAILER_LANGUAGE_DIR);
 
 
 	if(PHP_MAILER_SENDTYPE == PHP_MAILER_SENDTYPE_SMTP) {

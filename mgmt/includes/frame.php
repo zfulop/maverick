@@ -13,7 +13,6 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 	$users = MGMT_ROOT_URL . 'view_users.php';
 	$report = MGMT_ROOT_URL . 'view_money_report.php';
 	$cashBookings = MGMT_ROOT_URL . 'view_cash_bookings.php';
-	$cleaners = MGMT_ROOT_URL . 'view_cleaners.php';
 	$shifts = MGMT_ROOT_URL . 'view_shifts.php';
 	$vacations = MGMT_ROOT_URL . 'view_vacations.php';
 	$lists = MGMT_ROOT_URL . 'view_lists.php';
@@ -95,7 +94,6 @@ EOT;
 		<div id="employeeMenu" class="submenu" onmouseleave="$(this).hide();">
 			<ul>
 				<li><a href="$users" style="float: left; font-size: 14px; padding-right: 20px;">Users</a></li>
-				<li><a href="$cleaners" style="float: left; font-size: 14px; padding-right: 20px;">Cleaners</a></li>
 				<li><a href="$shifts" style="float: left; font-size: 14px; padding-right: 20px;">Work Shifts</a></li>
 				<li><a href="$vacations" style="float: left; font-size: 14px; padding-right: 20px;">Vacations</a></li>
 			</ul>

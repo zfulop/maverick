@@ -65,11 +65,7 @@ while($row = mysql_fetch_assoc($result)) {
 }
 $rooms .= '</table>';
 
-if($location == 'hostel') {
-	$editBookingUrl = "http://recepcio.maverickhostel.com/edit_booking.php?description_id=$descrId";
-} else {
-	$editBookingUrl = "http://recepcio.mavericklodges.com/edit_booking.php?description_id=$descrId";
-}
+$editBookingUrl = "http://recepcio.roomcaptain.com/edit_booking.php?location=$location&description_id=$descrId";
 
 $msg = <<<EOT
 

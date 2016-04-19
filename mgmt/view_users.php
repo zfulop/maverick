@@ -16,11 +16,15 @@ if(!$result) {
 }
 $users = array();
 $recOptions = '';
+$clOptions = '';
 if($result) {
 	while($row = mysql_fetch_assoc($result)) {
 		$users[] = $row;
 		if($row['role'] == 'RECEPTION') {
 			$recOptions .= '<option value="' . $row['username'] . '">' . $row['name'] . '</option>';
+		}
+		if($row['role'] == 'CLEANER') {
+			$clOptions .= '<option value="' . $row['username'] . '">' . $row['name'] . '</option>';
 		}
 	}
 }
@@ -54,6 +58,7 @@ echo <<<EOT
 	<option id="ADMIN" value="ADMIN">ADMIN</option>
 	<option id="MANAGER" value="MANAGER">MANAGER</option>
 	<option id="RECEPTION" value="RECEPTION">RECEPTION</option>
+	<option id="CLEANER" value="CLEANER">CLEANER</option>
 </select></div>
 </fieldset>
 <fieldset>
@@ -73,6 +78,17 @@ View hours worked by a receptionist
 </form>
 </div>
 
+
+<div>
+View hours worked by a cleaner
+<form action="view_cleaner_hours.php" method="GET">
+<fieldset>
+<label>Cleaner</label><select name="login">$clOptions</select><br>
+<label>Year-Month</label><input size="4" name="year"> - <select style="float:none; display: inline;" name="month">$monthOptions</select><br>
+<input type="submit" value="Get hours">
+</fieldset>
+</form>
+</div>
 
 <h2>Existing Users</h2>
 <table border="1">
@@ -104,6 +120,7 @@ foreach($users as $row) {
 	echo "		<td>" . $row['name'] . "</td><td>$login</td><td>" . $row['role'] . "</td><td>" . $row['email'] . "</td><td>" . $row['telephone'] . "</td>\n";
 	echo "		<td>\n";
 	echo "			<a href=\"delete_user.php?id=$id&login=$login\">Delete</a><br>\n";
+	echo "			<a href=\"reset_password.php?id=$id\">Reset password</a><br>\n";
 	echo "			<a href=\"#\" onclick=\"edit" . $id . "();return false;\">Edit</a><br>\n";
 	echo "		</td>\n";
 	echo "	</tr>\n";

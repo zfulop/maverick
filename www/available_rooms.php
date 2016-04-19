@@ -241,7 +241,7 @@ echo <<<EOT
 
 EOT;
 
-echo getBookingSummaryHtml(CONTINUE_BOOKING);
+echo getBookingSummaryHtml(CONTINUE_BOOKING, 1);
 
 echo <<<EOT
         </form>

@@ -13,7 +13,7 @@ if(file_exists($configFile)) {
 $link = db_connect($hostel);
 
 $yesterday = date('Y-m-d', strtotime(date('Y-m-d') . ' -1 day'));
-$sql = "SELECT count(*) AS cnt, source FROM booking_descriptions WHERE create_time>='$yesterday 00:00:00' and create_time<='$yesterday 23:59:59' GROUP BY source";
+$sql = "SELECT count(*) AS cnt, source FROM booking_descriptions WHERE create_time>='$yesterday 00:00:00' and create_time<='$yesterday 23:59:59' and maintenance<>1 GROUP BY source";
 
 echo "Getting bookings that were created on $yesterday\n";
 $content = "Getting bookings/cancellations for " . LOCATION . " and date: $yesterday<br><br>\n\n";
@@ -36,7 +36,7 @@ while($row = mysql_fetch_assoc($result)) {
 	$noshowCancel[$row['source']] = 0;
 }
 
-$sql = "SELECT a.*, bd.source FROM audit a INNER JOIN booking_descriptions bd ON a.booking_description_id=bd.id WHERE type='CANCEL_BOOKING' AND time_of_event>='$yesterday 00:00:00' and time_of_event<='$yesterday 23:59:59'";
+$sql = "SELECT a.*, bd.source FROM audit a INNER JOIN booking_descriptions bd ON a.booking_description_id=bd.id WHERE a.type='CANCEL_BOOKING' AND a.time_of_event>='$yesterday 00:00:00' and a.time_of_event<='$yesterday 23:59:59' and bd.maintenance<>1 ";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	echo "ERROR: " . mysql_error($link) . " (SQL: $sql)\n";
@@ -62,11 +62,24 @@ while($row = mysql_fetch_assoc($result)) {
 
 $content .= "<table>\n";
 $content .= "<tr><th></th><th>Bookings</th><th>Recepcio Cancel</th><th>Guest Cancel</th><th>No show</th></tr>\n";
+$bookingSum = 0;
+$recCancelSum = 0;
+$guestCancelSum = 0;
+$noshowCancelSum = 0;
 foreach(array_keys($numOfBookings) as $source) {
+	$bookingSum += $numOfBookings[$source];
+	$recCancelSum += $recCancel[$source];
+	$guestCancelSum += $guestCancel[$source];
+	$noshowCancelSum += $noshowCancel[$source];
 	$content .= "<tr><th style=\"text-align:right;\">$source</th><td style=\"text-align:center;\">" . $numOfBookings[$source] . "</td><td style=\"text-align:center;\">" . $recCancel[$source] . "</td><td style=\"text-align:center;\">" . $guestCancel[$source] . "</td><td style=\"text-align:center;\">" . $noshowCancel[$source] . "</td></tr>\n";
 }
 
-$content .= "</table>\n";
+$content .= <<<EOT
+<tr><td colspan="5"><hr></td></tr>
+<tr><th style="text-align:right;">Total</th><td style="text-align:center;">$bookingSum</td><td style="text-align:center;">$recCancelSum</td><td style="text-align:center;">$guestCancelSum</td><td style="text-align:center;">$noshowCancelSum</td></tr>
+</table>
+
+EOT;
 
 mysql_close($link);
 

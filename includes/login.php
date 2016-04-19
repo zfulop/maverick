@@ -3,15 +3,18 @@
 define('SITE_ADMIN', 'ADMIN');
 define('SITE_MGMT', 'MANAGER');
 define('SITE_RECEPTION', 'RECEPTION');
+define('SITE_CLEANER', 'CLEANER');
 
 define('ROLE_ADMIN', 'ADMIN');
 define('ROLE_MGMT', 'MANAGER');
 define('ROLE_RECEPTION', 'RECEPTION');
+define('ROLE_CLEANER', 'CLEANER');
 
 $ROLES = array(
 	SITE_ADMIN => array(ROLE_ADMIN),
 	SITE_MGMT => array(ROLE_ADMIN, ROLE_MGMT),
-	SITE_RECEPTION => array(ROLE_ADMIN, ROLE_MGMT, ROLE_RECEPTION)
+	SITE_RECEPTION => array(ROLE_ADMIN, ROLE_MGMT, ROLE_RECEPTION),
+	SITE_CLEANER => array(ROLE_ADMIN, ROLE_MGMT, ROLE_RECEPTION, ROLE_CLEANER)
 );
 
 function checkLogin($site) {
@@ -19,7 +22,7 @@ function checkLogin($site) {
 	$redirect = $_SERVER['REQUEST_URI'];
 	if(!isset($_SESSION['logged_in'])) {
 		clear_errors();
-		set_error("Not logged in");
+		//set_error("Not logged in");
 		$_SESSION['login_redirect'] = $redirect;
 		header('Location: /view_login.php');
 		return false;

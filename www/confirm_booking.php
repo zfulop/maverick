@@ -84,10 +84,10 @@ if(!$result) {
 }
 
 $total = 0;
-$roomsValue = '<table style="border-spacing: 10px;border-collapse: separate;"><tr><th>' . ROOM . '</th><th>' . TYPE . '</th><th>' . NUMBER_OF_PERSON . '</th><th>' . PAYMENT . '</th></tr>';
+$roomsValue = '<table style="border-spacing: 10px;border-collapse: separate;"><tr><th>' . ROOM . '</th><th>' . TYPE . '</th><th>' . NUMBER_OF_PERSON . '</th>' . /*'<th>' . PAYMENT . '</th>' . */'</tr>';
 while($row = mysql_fetch_assoc($result)) {
 	$payment = intval(convertAmount($row['room_payment'], 'EUR', $currency, substr($row['creation_time'], 0, 10)));
-	$roomsValue .= '<tr><td>' . $row['room_name'] . '</td><td>' . constant($row['booking_type']) . '</td><td style="text-align:center;">' . $row['num_of_person'] . '</td><td style="text-align:right;">' . $payment . $currency . '</td></tr>';
+	$roomsValue .= '<tr><td>' . $row['room_name'] . '</td><td>' . constant($row['booking_type']) . '</td><td style="text-align:center;">' . $row['num_of_person'] . '</td>' . /*'<td style="text-align:right;">' . $payment . $currency . '</td>' . */'</tr>';
 	$total += $payment;
 }
 $roomsValue .= '</table>';
@@ -125,13 +125,13 @@ if(!$result) {
 	return;
 }
 $hasServices = (mysql_num_rows($result) > 0);
-$services = '<table style="border-spacing: 10px;border-collapse: separate;"><tr><th>' . NAME . '</th><th>' . OCCASION . '</th><th>' . PRICE . '</th></tr>';
+$services = '<table style="border-spacing: 10px;border-collapse: separate;"><tr><th>' . NAME . '</th><th>' . OCCASION . '</th>'. /*'<th>' . PRICE . '</th>' . */'</tr>';
 while($row = mysql_fetch_assoc($result)) {
 	$amount = intval(convertAmount($row['amount'], $row['currency'], 'EUR', substr($row['time_of_service'], 0, 10)));
 	$prc = intval(convertAmount($row['price'], $row['svcCurr'], 'EUR', substr($row['time_of_service'], 0, 10)));
 	$occasion = intval($amount / $prc);
 	$amount = intval(convertAmount($amount, 'EUR', $currency, substr($row['time_of_service'], 0, 10)));
-	$services .= '<tr><td>' . $row['title'] . '</td><td>' . $occasion . '</td><td align="right">' . $amount . $currency . '</td></tr>';
+	$services .= '<tr><td>' . $row['title'] . '</td><td>' . $occasion . '</td>' . /*'<td align="right">' . $amount . $currency . '</td>' . */'</tr>';
 	$total += $amount;
 }
 $services .= '</table>';
@@ -171,6 +171,7 @@ if($hasServices) {
 EOT;
 }
 $paymentsHtml = '';
+/*
 if($hasPayments) {
 	$paymentsHtml = <<<EOT
                 <div class="field clearfix">
@@ -180,7 +181,7 @@ if($hasPayments) {
 
 EOT;
 }
-
+*/
 
 echo <<<EOT
 

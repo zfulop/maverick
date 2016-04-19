@@ -49,7 +49,7 @@ if(crypt($pwd, HASHED_PASSWORD) !=  HASHED_PASSWORD) {
 }
 
 $bookingJson = stripslashes($bookingJson);
-$bookingData = json_decode($bookingJson, true);
+$bookingData = json_decode($bookingJson, true, 512, JSON_UNESCAPED_UNICODE);
 // sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Booking request in " . LOCATION, 'booking data: ' . print_r($bookingData,true) . "\n\nRaw data: \n" . stripslashes($_REQUEST['booking']));
 
 if(!isset($bookingData['PropertyId'])) {
@@ -63,21 +63,26 @@ if(!isset($bookingData['PropertyId'])) {
 
 require('../includes/config/myallocator.php');
 $location = $myallocatorPropertyMap[$propertyId];
+ 
+logMessage("Location: $location ($propertyId)");
+
 require('../includes/config/' . $location . '.php');
-require('includes.php');
+logMessage("included " . '../includes/config/' . $location . '.php');
+require('./includes.php');
+logMessage("included " . './includes.php');
 require('../includes/country_alias.php');
-require('room_booking.php');
+logMessage("included " . '../includes/country_alias.php');
+require('./room_booking.php');
+logMessage("included " . './room_booking.php');
 $lang = 'eng';
 require(LANG_DIR . $lang . '.php');
 $_SESSION['login_user'] = 'myallocator';
-
+logMessage("included " . LANG_DIR . $lang . '.php');
 
 set_debug($bookingJson);
 set_debug(print_r($bookingData,true));
 
 $locationName = constant('DB_' . strtoupper($location) . '_NAME');
-
-logMessage("Using location: $location");
 
 $link = db_connect($location);
 
@@ -140,6 +145,7 @@ function cancelBooking($myAllocatorId, $link) {
 
 function createBooking($bookingData, $link) {
 	global $lang, $bookingJson, $locationName, $SOURCES, $MESSAGES, $COUNTRY_ALIASES, $propertyId;
+	logMessage("Creating booking");
 	$nowTime = date('Y-m-d H:i:s');
 	if(!isset($bookingData['Rooms']) or !is_array($bookingData['Rooms']) or count($bookingData['Rooms']) < 1) {
 		set_debug("booking data:");
@@ -153,6 +159,7 @@ function createBooking($bookingData, $link) {
 	}
 
 
+	$currency = $bookingData['TotalCurrency'];
 	$myAllocatorId = $bookingData['MyallocatorId'];
 	$bookingRef = $bookingData['OrderId'];
 	$sql = "SELECT * FROM booking_descriptions WHERE my_allocator_id='$myAllocatorId'";
@@ -171,12 +178,14 @@ function createBooking($bookingData, $link) {
 	if(!is_null($existingBookingDescription)) {
 		$descrId = $existingBookingDescription['id'];
 		$nameExt = mysql_real_escape_string($existingBookingDescription['name_ext'], $link);
+		$nowTime = $existingBookingDescription['create_time'];
 	}
 
-	$currency = $bookingData['TotalCurrency'];
 	$customer = $bookingData['Customers'][0];
-	$firstname = mysql_real_escape_string(decode($customer['CustomerFName']), $link);
-	$lastname = mysql_real_escape_string(decode($customer['CustomerLName']), $link);
+	//$firstname = mysql_real_escape_string(decode($customer['CustomerFName']), $link);
+	//$lastname = mysql_real_escape_string(decode($customer['CustomerLName']), $link);
+	$firstname = mysql_real_escape_string($customer['CustomerFName'], $link);
+	$lastname = mysql_real_escape_string($customer['CustomerLName'], $link);
 	$email = $customer['CustomerEmail'];
 	$phone = '';
 	$nationality = isset($customer['CustomerCountry']) ? $customer['CustomerCountry'] : '';
@@ -288,7 +297,8 @@ function createBooking($bookingData, $link) {
 				} else {
 					$curr = 'EUR';
 				}
-				$descr = mysql_real_escape_string(decode($oneService['Description']), $link);
+				//$descr = mysql_real_escape_string(decode($oneService['Description']), $link);
+				$descr = mysql_real_escape_string($oneService['Description'], $link);
 				$svcText = 'Parkolás';
 				if(substr($oneService['Description'],0,7) == 'Reggeli') {
 					$svcText = 'Reggeli - FatMama';
@@ -362,6 +372,12 @@ function createBooking($bookingData, $link) {
 				} elseif(is_array($numOfPersonForRoomType[$roomTypeId])) {
 					$numOfPersonForRoomType[$roomTypeId][] = $numOfPerson;
 				}
+			} elseif(isApartment($roomTypesData[$roomTypeId]) and $roomData['Units'] > 1) {
+				$numOfPersonArr = array();
+				for($i = 0; $i < $roomData['Units']; $i++) {
+					$numOfPersonArr[] = $numOfPerson;
+				}
+				$numOfPersonForRoomType[$roomTypeId] = $numOfPersonArr;
 			} else {
 				$numOfPersonForRoomType[$roomTypeId] = $numOfPerson;
 			}
@@ -447,8 +463,10 @@ function createBooking($bookingData, $link) {
 	respond(null, true);
 	$message = '';
 	foreach($bookingDescriptionIds as $descriptionId) {
-		$firstName = decode($bookingData['Customers'][0]['CustomerFName']);
-		$lastName = decode($bookingData['Customers'][0]['CustomerLName']);
+		//$firstName = decode($bookingData['Customers'][0]['CustomerFName']);
+		//$lastName = decode($bookingData['Customers'][0]['CustomerLName']);
+		$firstName = $bookingData['Customers'][0]['CustomerFName'];
+		$lastName = $bookingData['Customers'][0]['CustomerLName'];
 
 		//$message .= "<a href=\"http://" . $_SERVER['HTTP_HOST'] . "/edit_booking.php?description_id=$descriptionId\">View booking</a><br>\n";
 		$message .= "<a href=\"http://recepcio.roomcaptain.com/edit_booking.php?description_id=$descriptionId\">View booking</a><br>\n";
@@ -672,7 +690,7 @@ function getBookingId(&$roomTypesBooked, $roomTypeId, $numOfPerson) {
 
 
 function logMessage($message) {
-	$fh = fopen("myallocator." . date('Ymd') . ".log", "a");
+	$fh = fopen("logs/myallocator." . date('Ymd') . ".log", "a");
 	if($fh) {
 		fwrite($fh, date('Y-m-d H:i:s') . " ");
 		fwrite($fh, $message . "\n");

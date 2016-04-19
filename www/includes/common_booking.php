@@ -331,7 +331,7 @@ function loadServices($link) {
 }
 
 
-function getBookingSummaryHtml($buttonText) {
+function getBookingSummaryHtml($buttonText, $step) {
 	$bookingSummary = BOOKING_SUMMARY;
 	$total = TOTAL;
 	$extraServices = ADD_EXTRA_SERVICES;
@@ -360,19 +360,23 @@ function getBookingSummaryHtml($buttonText) {
 	$hostelSelected = (getLocation() == 'hostel' ? ' selected' : '');
 	$apartmentsSelected = (getLocation() == 'apartments' ? ' selected' : '');
 
+	$roomsInactive = ($step > 0 ? '' : ' inactive');
+	$servicesInactive = ($step > 1 ? '' : ' inactive');
+	$contactInactive = ($step > 2 ? '' : ' inactive');
+
 	$html = <<<EOT
 	    <section id="booking-summary">
           <div class="bkSummary">
               <h1>$bookingSummary</h1>
               
               <ul class="details">
-                <li class="rooms inactive" data-label="$chooseYourRoom">
+                <li class="rooms$roomsInactive" data-label="$chooseYourRoom">
                   $chooseYourRoom
                 </li>
-                <li class="services inactive" data-label="$extraServices">
+                <li class="services$servicesInactive" data-label="$extraServices">
                   $extraServices
                 </li>
-                <li class="contact inactive" data-label="$submitYourDetails">
+                <li class="contact$contactInactive" data-label="$submitYourDetails">
                   $submitYourDetails
                 </li>
               </ul>
