@@ -260,11 +260,11 @@ button{border:0;margin:0;outline:0;padding:0}
 @media only screen and (min-width: 1024px){.rooms .card .type{bottom:25px;margin-bottom:0;position:absolute}
 }@media only screen and (min-width: 1024px){.rooms .card .type strong{display:block;margin-bottom:.6em}
 }.rooms .card .type strong a{display:none;}
-@media only screen and (min-width: 1024px){.rooms .card .type strong a{display:inline;font-weight:600;margin-left:5px}
+@media only screen and (min-width: 1024px){.rooms .roomCard .type strong a{display:inline;font-weight:600;margin-left:5px}
 }.rooms .card .sale{display:none;}
-@media only screen and (min-width: 1024px){.rooms .card .sale{display:block;left:0;position:absolute;top:0}
-.rooms .card .sale:before{border-top:80px solid #fff568;border-right:80px solid transparent;content:'';left:0;position:absolute;top:0}
-.rooms .card .sale span{font-weight:bold;padding:10px;position:absolute;text-align:center;text-transform:uppercase}
+@media only screen and (min-width: 1024px){.rooms .roomCard .sale{display:block;left:0;position:absolute;top:0}
+.rooms .roomCard .sale:before{border-top:80px solid #fff568;border-right:80px solid transparent;content:'';left:0;position:absolute;top:0}
+.rooms .roomCard .sale span{font-weight:bold;padding:10px;position:absolute;text-align:center;text-transform:uppercase}
 }.rooms .card .special-offer{background:#fff568;-webkit-box-shadow:0 0 2px rgba(0,0,0,0.2);-moz-box-shadow:0 0 2px rgba(0,0,0,0.2);box-shadow:0 0 2px rgba(0,0,0,0.2);height:30px;line-height:30px;left:5px;padding:0 8px;position:absolute;right:5px;top:100%;z-index:5;}
 .rooms .card .special-offer:before{border-bottom:6px solid #fff568;border-left:6px solid transparent;border-right:6px solid transparent;bottom:100%;content:'';left:12px;position:absolute}
 @media only screen and (min-width: 1024px){.rooms .card .special-offer{left:20px;padding-left:20px;padding-right:20px;right:20px}

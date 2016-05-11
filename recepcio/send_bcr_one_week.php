@@ -43,6 +43,11 @@ function sendBcr($row, $location, $link) {
 	$email = $row['email'];
 	$name = $row['name'];
 	$fnight = $row['first_night'];
+	
+	if($email == '') {
+		return;
+	}
+	
 	$mailMessage = getBcrMessage($row, BCR_MESSAGE_ONE_WEEK, $link);
 	$inlineAttachments = array(	
 		'logo' => EMAIL_IMG_DIR . 'logo-' . $location . '.jpg',

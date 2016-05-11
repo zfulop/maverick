@@ -221,7 +221,7 @@ echo <<<EOT
 		</td>
 	</tr>
 	<tr>
-		<td>&nbsp;</td><td>Reservation booked after:</td>
+		<td>&nbsp;</td><td>Reservation booked on or after:</td>
 		<td>
 			<input id="sb_booked_after_date" name="booked_after_date" value="$bookedAfterDate" size="10" maxlength="10" type="text" value=""><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'sb_booked_after_date', 'chooserSpanSBBA', 2008, 2025, 'Y-m-d', false);"> 
 			<div id="chooserSpanSBBA" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div>

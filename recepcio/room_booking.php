@@ -944,6 +944,9 @@ function verifyBlacklist($name, $email, $maverickEmail, $link) {
 }
 
 function isNameMatch($dbName, $nameToCheck) {
+	if($dbName == '' or is_null($dbName)) {
+		return false;
+	}
 	$nameToCheck = strtolower($nameToCheck);
 	$nameToCheck = stripAccents($nameToCheck);
 	foreach(explode(' ', $dbName) as $namePart) {

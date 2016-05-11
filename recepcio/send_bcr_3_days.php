@@ -53,6 +53,10 @@ function sendBcr($row, $location, $link) {
 	$name = $row['name'];
 	$fnight = $row['first_night'];
 	
+	if($email == '') {
+		return;
+	}
+	
 	$mailMessage = getBcrMessage($row, $bcrMessage, $link);
 
 	$inlineAttachments = array(	

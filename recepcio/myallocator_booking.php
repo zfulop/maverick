@@ -182,10 +182,10 @@ function createBooking($bookingData, $link) {
 	}
 
 	$customer = $bookingData['Customers'][0];
-	//$firstname = mysql_real_escape_string(decode($customer['CustomerFName']), $link);
-	//$lastname = mysql_real_escape_string(decode($customer['CustomerLName']), $link);
-	$firstname = mysql_real_escape_string($customer['CustomerFName'], $link);
-	$lastname = mysql_real_escape_string($customer['CustomerLName'], $link);
+	$firstname = mysql_real_escape_string(decode($customer['CustomerFName']), $link);
+	$lastname = mysql_real_escape_string(decode($customer['CustomerLName']), $link);
+	// $firstname = mysql_real_escape_string($customer['CustomerFName'], $link);
+	// $lastname = mysql_real_escape_string($customer['CustomerLName'], $link);
 	$email = $customer['CustomerEmail'];
 	$phone = '';
 	$nationality = isset($customer['CustomerCountry']) ? $customer['CustomerCountry'] : '';

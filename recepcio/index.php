@@ -22,9 +22,13 @@ if(date('G') < 5 and !isset($_REQUEST['day_to_show'])) {
 	$dayToShow = date('Y-m-d');
 	$today = date('Y/m/d', strtotime(date('Y-m-d') . ' -1 day'));
 	$yesterday = date('Y/m/d', strtotime(date('Y-m-d') . ' -2 day'));
+	$todayDash = date('Y-m-d', strtotime(date('Y-m-d') . ' -1 day'));
+	$tomorrowDash = date('Y-m-d');
 } else {
 	$today = date('Y/m/d', strtotime($dayToShow));
 	$yesterday = date('Y/m/d', strtotime($dayToShow . ' -1 day'));
+	$todayDash = $dayToShow;
+	$tomorrowDash = date('Y-m-d', strtotime($dayToShow . ' +1 day'));
 }
 
 $bdids = array();
@@ -157,26 +161,20 @@ if(!$result) {
 	}
 }
 
-$twoWeeksFromToday = date('Y/m/d', strtotime(date('Y-m-d') . ' + 2 weeks'));
-$bcrTo = array();
-$sendBcr = array();
-$sql = "SELECT * FROM booking_descriptions WHERE first_night<='$twoWeeksFromToday' AND cancelled=0 AND confirmed=0 AND checked_in=0 AND bcr_sent IS NULL ORDER BY first_night";
+$cleanedRooms = array();
+$sql = "SELECT * FROM cleaner_action WHERE type='FINISH_ROOM' AND time_of_event>'$todayDash' AND time_of_event<'$tomorrowDash'";
 $result = mysql_query($sql, $link);
 $initSendBcr = '';
 if(!$result) {
-	trigger_error("Cannot bookings without BCR: " . mysql_error($link) . " (SQL: $sql)");
-	set_error("Cannot get bookings without BCR");
+	trigger_error("Cannot get cleaned rooms: " . mysql_error($link) . " (SQL: $sql)");
+	set_error("Cannot get cleaned rooms");
 } else {
-	$counter = 1;
 	while($row = mysql_fetch_assoc($result)) {
-		$bcrTo[] = $row;
-		$bdid = $row['id'];
-		if($counter <= 3 and strlen(trim($row['email'])) > 1) {
-			$initSendBcr .= "\t\t\tsetTimeout(function() { sendBcr($bdid); }, " . (2000*$counter) . ");\n";
-			$counter+=1;
-		}
+		$cleanedRooms[$row['room_id']] = $row;
 	}
 }
+
+
 
 $extraHeader =<<<EOT
 
@@ -195,42 +193,13 @@ $extraHeader =<<<EOT
 			}
 		}
 
-		function bcrSent(id) {
-			new Ajax.Request('set_bcr_sent.php', {
-				method: 'post',
-				parameters: {description_id: id},
-				onSuccess: function(transport) {
-					alert(transport.responseText);
-					$('bcr_' + id).hide();
-				}
-			});
-		}
-
-		function sendBcr(id) {
-			new Ajax.Request('send_bcr.php', {
-				method: 'post',
-				parameters: {description_id: id},
-				onSuccess: function(transport) {
-					if(transport.responseText.substring(0,2) == 'OK') {
-						alert('The BCR sent is set for the booking: ' + transport.responseText.substring(3));
-						$('bcr_' + id).hide();
-					} else {
-						alert('BCR could not be sent for the booking: ' + transport.responseText);
-					}
-				}
-			});
-		}
-
-		function initSendBcr() {
-$initSendBcr
-		}
 
 	</script>
 
 EOT;
 
 
-html_start("Maverick Reception - Activities for today ($today)", $extraHeader, true, 'initSendBcr();');
+html_start("Maverick Reception - Activities for today ($today)", $extraHeader, true);
 
 	echo <<<EOT
 
@@ -272,7 +241,7 @@ if(count($arrivingToday) > 0) {
 
 <h2>Guests arriving today</h2>
 <table>
-	<tr><th>$nameTitle</th><th>$roomTitle</th><th>$arrivalTimeTitle</th></tr>
+	<tr><th>$nameTitle</th><th>$roomTitle</th><th>$arrivalTimeTitle</th><th>Cln</th></tr>
 
 EOT;
 	$dataArr = array();
@@ -282,25 +251,30 @@ EOT;
 		if(!is_null($bookingDescr['prev_first_night'])) {
 			$name = '<b>'. $name . '</b> ' . $bookingDescr['prev_first_night'];
 		}
-		$rooms = '';
 		$aTime = $bookingDescr['arrival_time'];
 		if(isset($bookings[$descrId])) {
+			$roomAccounted = array();
+			$rooms = '';
+			$roomsCleaned = '';
 			foreach($bookings[$descrId] as $oneBooking) {
 				$roomName = $roomNames[$oneBooking['room_id']];
+				$roomId = $oneBooking['room_id'];
 				foreach($roomChanges as $bookingId => $changes) {
 					foreach($changes as $oneRoomChange) {
 						if($oneRoomChange['booking_id'] == $oneBooking['id'] and $oneRoomChange['date_of_room_change'] == $today) {
 							$roomName = $roomNames[$oneRoomChange['new_room_id']];
+							$roomId = $oneRoomChange['new_room_id'];
 						}
 					}
 				}
 				$rooms .= $roomName . ' (' . $oneBooking['num_of_person'] . ')<br>';
+				$roomsCleaned .= isset($cleanedRooms[$roomId]) ? 'Cleaned<br>' : 'Not Ready<br>';
 				if($_SESSION['arriving_order'] == 'room') {
-					$dataArr[] = array($name, $roomName . ' (' . $oneBooking['num_of_person'] . ')', $aTime, $descrId);
+					$dataArr[] = array($name, $roomName . ' (' . $oneBooking['num_of_person'] . ')', $aTime, $descrId, isset($cleanedRooms[$roomId]) ? 'Cleaned<br>' : 'Not Ready<br>');
 				}
 			}
 			if($_SESSION['arriving_order'] != 'room') {
-				$dataArr[] = array($name, $roomName . ' (' . $oneBooking['num_of_person'] . ')', $aTime, $descrId);
+				$dataArr[] = array($name, $rooms, $aTime, $descrId, $roomsCleaned);
 			}
 		}
 	}
@@ -319,7 +293,8 @@ EOT;
 		$room = $row[1];
 		$aTime = $row[2];
 		$descrId = $row[3];
-		echo "	<tr><td><a href=\"edit_booking.php?description_id=$descrId\">$name</a></td><td>$room</td><td>$aTime</td></tr>\n";
+		$roomCleaned = $row[4];
+		echo "	<tr><td><a href=\"edit_booking.php?description_id=$descrId\">$name</a></td><td>$room</td><td>$aTime</td><td style=\"font-size: 60%;\">$roomCleaned</td></tr>\n";
 	}
 
 
@@ -422,19 +397,24 @@ EOT;
 		$fromRoom = null;
 		$toRoom = null;
 		$guest = null;
-		$action = '';
-		$roomChangeHappened = true;
+		$leaveAction = '';
+		$enterAction = '';
 		if(!is_null($changeToday)) {
 			if(!is_null($changeYesterday) && isDiffRoomChange($changeYesterday, $changeToday)) {
 				$toRoom = $roomNames[$changeToday['new_room_id']];
 				$fromRoom = $roomNames[$changeYesterday['new_room_id']];
-				$action = 'save_booking_room_change.php?today=' . urlencode($today) . '&brc_id[]=' . $changeToday['id'] . '&brc_id[]=' . $changeYesterday['id'];
-				$roomChangeHappened = !is_null($changeToday['enter_new_room_time']) and !is_null($changeYesterday['leave_new_room_time']);
+				if(is_null($changeYesterday['leave_new_room_time'])) {
+					$leaveAction = 'save_booking_room_change.php?today=' . urlencode($today) . '&leave_room_brc=' . $changeYesterday['id'];
+				}
+				if(is_null($changeToday['enter_new_room_time'])) {
+					$enterAction = 'save_booking_room_change.php?today=' . urlencode($today) . '&enter_room_brc=' . $changeToday['id'];
+				}
 			} else if(is_null($changeYesterday)) {
 				$toRoom = $roomNames[$changeToday['new_room_id']];
 				$fromRoom = $roomNames[$changeToday['room_id']];
-				$action = 'save_booking_room_change.php?today=' . urlencode($today) . '&brc_id[]=' . $changeToday['id'];
-				$roomChangeHappened = !is_null($changeToday['enter_new_room_time']);
+				if(is_null($changeToday['enter_new_room_time'])) {
+					$enterAction = 'save_booking_room_change.php?today=' . urlencode($today) . '&enter_room_brc=' . $changeToday['id'];
+				}
 			}
 			$guest = $changeToday['bgd_name'];
 			if(is_null($guest)) {
@@ -443,17 +423,20 @@ EOT;
 		} else if(!is_null($changeYesterday)) {
 			$toRoom = $roomNames[$changeYesterday['room_id']];
 			$fromRoom = $roomNames[$changeYesterday['new_room_id']];
+			if(is_null($changeYesterday['leave_new_room_time'])) {
+				$leaveAction = 'save_booking_room_change.php?today=' . urlencode($today) . '&leave_room_brc=' . $changeYesterday['id'];
+			}
 			$action = 'save_booking_room_change.php?today=' . urlencode($today) . '&brc_id[]=' . $changeYesterday['id'];
-			$roomChangeHappened = !is_null($changeYesterday['leave_new_room_time']);
 			$guest = $changeYesterday['bgd_name'];
 			if(is_null($guest)) {
 				$guest = $changeYesterday['bd_name'];
 			}
 		}
-		if(strlen($action) > 0 and !$roomChangeHappened) {
-			$action = "<a href=\"$action\">Change room</a>";
-		} else {
-			$action = "Room changed";
+		$action = '';
+		if(strlen($leaveAction) > 0) {
+			$action = "<a href=\"$leaveAction\">Leave room</a>";
+		} elseif(strlen($enterAction) > 0) {
+			$action = "<a href=\"$enterAction\">Enter new room</a>";
 		}
 
 		if(!is_null($fromRoom)) {
@@ -618,61 +601,6 @@ foreach($dataArr as $row) {
 
 echo <<<EOT
 
-</table>
-
-
-<h2>Send BCR to</h2>
-<table style="border: 1px solid #000;">
-	<tr>
-		<th>Name</th>
-		<th>First Night</th>
-		<th>Last Night</th>
-		<th>Email</th>
-		<th>Telephone</th>
-		<th>Souce</th>
-		<th>Comment</th>
-		<th>Action</th>
-	</tr>
-
-EOT;
-
-
-$bgColor='#ffffff';
-foreach($bcrTo as $bookingDescr) {
-	$bgColor = ($bgColor=='#ffffff' ? '#dddddd' : '#ffffff');
-	$id = $bookingDescr['id'];
-	$name = $bookingDescr['name_ext'] . ' ' . $bookingDescr['name'];
-	$fnight = str_replace('/','-',$bookingDescr['first_night']);
-	$lnight = str_replace('/','-',$bookingDescr['last_night']);
-	$email = $bookingDescr['email'];
-	$telephone = $bookingDescr['telephone'];
-	$source = $bookingDescr['source'];
-	$comment = $bookingDescr['comment'];
-		echo <<<EOT
-	<tr id="bcr_$id" style="background-color: $bgColor;">
-		<td><a href="edit_booking.php?description_id=$id">$name</a></td>
-		<td>$fnight</td>
-		<td>$lnight</td>
-		<td>$email</td>
-		<td>$telephone</td>
-		<td>$source</td>
-		<td style="position: relative;">
-			<div style="text-align: center;">
-				<a href="#" id="comment_show_btn_$id" onclick="$('comment_$id').show();$('comment_hide_btn_$id').show();$('comment_show_btn_$id').hide();return false;">Show</a>
-				<a href="#" id="comment_hide_btn_$id" onclick="$('comment_$id').hide();$('comment_hide_btn_$id').hide();$('comment_show_btn_$id').show();return false;" style="display: none;">Hide</a>
-			</div>
-			<div id="comment_$id" style="display: none; boder: 1px dotted black; background-color: #eeeeee; width: 250px; height: 300px; overflow: none; position: absolute; font-size: 80%; z-index: 10; overflow:scroll"><pre>$comment</pre></div>
-		</td>
-		<td>
-			<a href="#" onclick="bcrSent($id); return false;">Set BCR-Sent</a>|
-			<a href="#" onclick="sendBcr($id); return false;">Send BCR</a>
-		</td>
-	</tr>
-EOT;
-}
-
-
-echo <<<EOT
 </table>
 
 EOT;

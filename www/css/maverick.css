@@ -361,7 +361,7 @@ div#special-offers {
 
 
 .roomCard {
-    
+    position: relative;
     width: 100%;
     background: #fff;
     margin-bottom: 20px;
@@ -1015,8 +1015,8 @@ section#contact-form h2 {
     line-height: 30px;
     padding: 0 8px;
     position: absolute;
-    width: 70%;
-    left: 10%;
+    width: 90%;
+    left: 40px;
 
     
 }
@@ -1155,18 +1155,19 @@ section#contact-form h2 {
         }
         
         
-        .specOff {
-    
-            margin-right: 380px;
-            width: calc((100% - 560px) * 0.7);
-            left: 250px;
-			max-width: 800px;
-        }
-        
         
 
 }
 
+@media screen and (max-width: 1380px) and (min-width: 1024px) {
+        .specOff {    
+            margin-right: 380px;
+            width: 80%;
+            left: 40px;
+            max-width: 800px;
+        }
+        
+}
 
 @media screen and (max-width: 1279px) {
 

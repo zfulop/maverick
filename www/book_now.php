@@ -113,6 +113,16 @@ $rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d',
 $roomTypesData = loadRoomTypes($link, $lang);
 
 
+$bookings = getBookingsWithDiscount($location, $arriveDateTs, $nights, $roomTypesData, $rooms, $specialOffers);
+
+if(count($bookings) < 1) {
+	$_SESSION['booking_error'] = MUST_SELECT_BOOKING;
+	header('Location: available_rooms.php');
+	mysql_close($link);
+	return;
+}
+
+
 $numOfPersonForRoomType = array();
 $hasBookings = false;
 foreach($roomTypesData as $roomTypeId => $roomType) {

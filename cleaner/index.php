@@ -48,7 +48,7 @@ if(!$result) {
 }
 echo "There are " . mysql_num_rows($result) . " room changes on $today<br>\n";
 while($row = mysql_fetch_assoc($result)) {
-	$roomId = (is_null($oneRoomToClean['yesterday_new_room_id']) ? $oneRoomToClean['room_id'] : $oneRoomToClean['yesterday_new_room_id']);
+	$roomId = (is_null($row['yesterday_new_room_id']) ? $row['room_id'] : $row['yesterday_new_room_id']);
 	if($row['room_id'] != $row['yesterday_new_room_id'] or $row['room_id'] != $row['today_new_room_id']) {
 		if(!isset($roomsToClean[$roomId])) {
 			$roomsToClean[$roomId] = array();
@@ -109,7 +109,7 @@ foreach($roomsToClean as $roomId => $cleanList) {
 
 	$roomName = $room['name'];
 	if($roomCleaned) {
-		echo "<a href=\"enter_room.php?room_id=$roomId\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName is clean</a>\n";
+		echo "<!-- a href=\"enter_room.php?room_id=$roomId\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName is clean</a -->\n";
 	} elseif(!is_null($cleanerEntered)) {
 		echo "<a href=\"enter_room.php?room_id=$roomId\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName<br>In progress by $cleanerEntered</a>\n";
 	} elseif(!$canCleanRoom) {

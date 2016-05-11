@@ -9,9 +9,9 @@ require(RECEPCIO_BASE_DIR . 'room_booking.php');
 // and the apartment setting accordingly (location can be hostel,lodge,apartment)
 
 if(isset($_REQUEST['location']) and $_REQUEST['location'] == 'apartments') {
-	$_SESSION['apartment'] == 'yes';
+	$_SESSION['apartment'] = 'yes';
 } elseif(isset($_REQUEST['location'])) {
-	$_SESSION['apartment'] == 'no';
+	$_SESSION['apartment'] = 'no';
 }
 
 
@@ -456,6 +456,7 @@ EOT;
 
 	echo <<<EOT
             <div class="roomCard">
+$sale
               <div class='left roomPic roomPic2'><img src='$roomImg' alt='pic' class='imgResp open-gallery' data-gallery-title="$gallery" data-gallery-url="gallery.php?room_type_id=$roomTypeId"></div>
               <div class='roomHead left'>
                   <h2><a class='open-gallery' data-gallery-title="$gallery" data-gallery-url="gallery.php?room_type_id=$roomTypeId">$name</a></h2>
