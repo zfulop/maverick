@@ -68,9 +68,8 @@ function sendBcr($row, $location, $link) {
 	);
 
 	$locationName = constant('LOCATION_NAME_' . strtoupper($location));
-	$result = sendMail(CONTACT_EMAIL, $locationName, 
-		$email, $name, sprintf($subject, $locationName), $mailMessage, $inlineAttachments);
-
+	$subject = str_replace('LOCATION', $locationName, $subject);
+	$result = sendMail(CONTACT_EMAIL, $locationName, $email, $name, $subject, $mailMessage, $inlineAttachments);
 	if($confirmed) {
 		echo "Confirmed email sent to $name $email $fnight  [result: $result]\n";
 	} else {

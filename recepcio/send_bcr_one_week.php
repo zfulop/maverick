@@ -58,6 +58,8 @@ function sendBcr($row, $location, $link) {
 	);
 
 	$locationName = constant('LOCATION_NAME_' . strtoupper($location));
+	$subject = str_replace('LOCATION', $locationName, BCR_MESSAGE_ONE_WEEK_SUBJECT);
+	
 	$result = sendMail(CONTACT_EMAIL, $locationName, 
 		$email, $name, sprintf(BCR_MESSAGE_ONE_WEEK_SUBJECT, $locationName), $mailMessage, $inlineAttachments);
 
