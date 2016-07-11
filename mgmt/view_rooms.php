@@ -48,6 +48,8 @@ $sunChecked = in_array(7, $_SESSION['room_price_days']) ? 'checked' : '';
 $link = db_connect();
 
 $roomTypesHtmlOptions = '';
+$rpRoomTypesHtmlOptions = '';
+
 
 $sql = "SELECT * FROM room_types ORDER BY _order";
 $result = mysql_query($sql, $link);
@@ -59,7 +61,8 @@ if(!$result) {
 }
 $roomTypes = array();
 while($row = mysql_fetch_assoc($result)) {
-	$roomTypesHtmlOptions .= '		<option value="' . $row['id'] . '"' . (in_array($row['id'], $rpRoomTypeIds) ? ' selected' : '') . '>' . $row['name'] . "</option>\n";
+	$roomTypesHtmlOptions .= '		<option value="' . $row['id'] . '">' . $row['name'] . "</option>\n";
+	$rpRoomTypesHtmlOptions .= '		<option value="' . $row['id'] . '"' . (in_array($row['id'], $rpRoomTypeIds) ? ' selected' : '') . '>' . $row['name'] . "</option>\n";
 	$row['rooms'] = array();
 	$roomTypes[$row['id']] = $row;
 }
@@ -73,6 +76,22 @@ if(!$result) {
 }
 while($row = mysql_fetch_assoc($result)) {
 	$roomTypes[$row['room_type_id']]['rooms'][] = $row;
+}
+
+$roomsToRoomTypes = array();
+$sql = "SELECT * FROM rooms_to_room_types";
+$result = mysql_query($sql, $link);
+if(!$result) {
+	trigger_error("Cannot get rooms in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	header('Location: ' . $_SERVER['HTTP_REFERER']);
+	mysql_close($link);
+	return;
+}
+while($row = mysql_fetch_assoc($result)) {
+	if(!isset($roomsToRoomTypes[$row['room_id']])) {
+		$roomsToRoomTypes[$row['room_id']] = array();
+	}
+	$roomsToRoomTypes[$row['room_id']][] = $row['room_type_id'];
 }
 
 
@@ -93,7 +112,29 @@ function submitPriceForm() {
 	if($('sync').checked) {
 		setTimeout(function(){ location.reload(); }, 5000);
 	}	
+
+
 }
+
+
+function includesArr(arr, searchElement) {
+    var len = parseInt(arr.length);
+    if (len === 0) {
+      return false;
+    }
+    var i = 0;
+    var currentElement;
+    while (i < len) {
+      currentElement = arr[i];
+      if (searchElement === currentElement) {
+	return true;
+      }
+      i++;
+    }
+    return false;
+}
+
+
 </script>
 
 EOT;
@@ -162,6 +203,9 @@ echo <<<EOT
 	<tr><td><label>Type</label></td><td><select name="type" id="room_type" style="width: 200px; font-size: 11px;">
 $roomTypesHtmlOptions
 	</select></td></tr>
+	<tr><td><label>Additional room types</label></td><td><select name="additional_types[]" multiple="multiple" id="additional_room_types" style="width: 200px; height: 100px; font-size: 11px;">
+$roomTypesHtmlOptions
+	</select></td></tr>
 	<tr><td><label>Valid from</label></td><td><input name="valid_from" id="valid_from" style="width: 80px;"> <span> (YYYY/MM/DD) - inclusive</span></td></tr>
 	<tr><td><label>Valid to</label></td><td><input name="valid_to" id="valid_to" style="width: 80px;"> <span> (YYYY/MM/DD) - inclusive</span></td></tr>
 </table>
@@ -188,7 +232,7 @@ $roomTypesHtmlOptions
 <tr><th colspan="2">Set price of a room for a date interval.</strong></th></tr>
 <tr><td colspan="2">To delete special price, set the date and leave the price field empty.</td></tr>
 <tr><td>Room type: </td><td><select style="display: inline; float: none; height: 100px;" multiple="true" name="room_type_ids[]">
-$roomTypesHtmlOptions
+$rpRoomTypesHtmlOptions
 </select></td></tr>
 <tr><td>Start date: </td><td><input name="start_date" id="rp_start_date" size="10" maxlength="10" type="text" value="$rpStartDate"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'rp_start_date', 'chooserSpanRPSD', 2008, 2025, 'Y-m-d', false);"><div id="chooserSpanRPSD" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div></td></tr>
 <tr><td>End date: </td><td><input name="end_date" id="rp_end_date" size="10" maxlength="10" type="text" value="$rpEndDate"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'rp_end_date', 'chooserSpanRPED', 2008, 2025, 'Y-m-d', false);"><div id="chooserSpanRPED" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div></td></tr>
@@ -281,25 +325,43 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 	echo "	<td colspan=\"7\">\n";
 	echo "		<table>\n";
 	foreach($roomType['rooms'] as $room) {
-		echo "<script type=\"text/javascript\">\n";
-		echo "	function edit" . $room['id'] . "() {\n";
-		echo "		document.getElementById('room_form').reset();\n";
-		echo "		document.getElementById('room_form').style.display='block';\n";
-		echo "		document.getElementById('create_btn').style.display='none';\n";
-		echo "		document.getElementById('room_name').value='" . $room['name'] . "';\n";
-		echo "		document.getElementById('room_id').value='" . $room['id'] . "';\n";
-		echo "		document.getElementById('valid_from').value='" . $room['valid_from'] . "';\n";
-		echo "		document.getElementById('valid_to').value='" . $room['valid_to'] . "';\n";
-		echo "		document.getElementById('room_type').selectedIndex=" . array_search($room['room_type_id'], array_keys($roomTypes)) . ";\n";
-		echo "	}\n";
-		echo "</script>\n";
+		$roomId = $room['id'];
+		$roomName = $room['name'];
+		$roomValidFrom = $room['valid_from'];
+		$roomValidTo = $room['valid_to'];
+		$rtSelectedIdx = array_search($room['room_type_id'], array_keys($roomTypes));
+		$roomTypesArr = '';
+		if(isset($roomsToRoomTypes[$roomId])) {
+			$roomTypesArr = implode(",", $roomsToRoomTypes[$roomId]);
+		}
+		echo <<<EOT
+<script type="text/javascript">
+	function edit$roomId() {
+		var roomTypesArr = [$roomTypesArr];
+		document.getElementById('room_form').reset();
+		document.getElementById('room_form').style.display='block';
+		document.getElementById('create_btn').style.display='none';
+		document.getElementById('room_name').value='$roomName';
+		document.getElementById('room_id').value='$roomId';
+		document.getElementById('valid_from').value='$roomValidFrom';
+		document.getElementById('valid_to').value='$roomValidTo';
+		document.getElementById('room_type').selectedIndex=$rtSelectedIdx;
+		var select = document.getElementById('additional_room_types');
+		l=select.options.length;
+		for(var i=0; i < l; i++ ) {
+			o = select.options[i];
+			if(includesArr(roomTypesArr, parseInt(o.value))) { o.selected = true; }
+		}
+	}
+</script>
 
+			<tr><td>$roomName</td><td>$roomValidFrom - $roomValidTo</td>
+			    <td><a href="#" onclick="edit$roomId();">Edit</a><br>
+			        <a href="delete_room.php?id=$roomId">Delete</a><br>
+			    </td>
+			</tr>
 
-
-		echo "			<tr><td>" . $room['name'] . "</td><td>" . $room['valid_from'] . ' - ' . $room['valid_to'] . "</td><td>";
-		echo "<a href=\"#\" onclick=\"edit" . $room['id'] . "();\">Edit</a><br>";
-		echo "<a href=\"delete_room.php?id=" . $room['id'] . "\">Delete</a><br>";
-		echo "</td></tr>";
+EOT;
 	}
 	echo "		</table>\n";
 	echo "	</td>\n";

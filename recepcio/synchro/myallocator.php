@@ -303,7 +303,7 @@ return;
 
 
 function logMessage($message) {
-	$fh = fopen("sync." . date('Ymd') . ".log", "a");
+	$fh = fopen("../logs/sync." . date('Ymd') . ".log", "a");
 	if($fh) {
 		fwrite($fh, date('Y-m-d H:i:s') . "\n");
 		fwrite($fh, $message . "\n");

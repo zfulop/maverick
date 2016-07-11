@@ -19,6 +19,7 @@
 			}
 			return $img_file;
 		} else {
+			set_error("Cannot move uploaded image to $img_file");
 			return false;
 		}
 	}

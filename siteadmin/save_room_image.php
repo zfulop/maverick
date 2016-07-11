@@ -16,6 +16,16 @@ for($i = 0; $i < 10; $i++) {
 	if(count($roomTypeIds) < 1) {
 		continue;
 	}
+
+	$fullpath = saveUploadedImage('photo_' . $i, ROOMS_IMG_DIR, 1000, 1000);
+	$imgFile = basename($fullpath);
+	if(!$fullpath) {
+		set_error("Cannot upload image");
+		continue;
+	} else {
+		set_message("Image uploaded ($imgFile)");
+	}
+
 	$defaultImg = 0;
 	if(isset($_REQUEST['default_img_' . $i])) {
 		$defaultImg = 1;
@@ -33,15 +43,6 @@ for($i = 0; $i < 10; $i++) {
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot change ordering of images in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
-	}
-
-	$fullpath = saveUploadedImage('photo_' . $i, ROOMS_IMG_DIR, 1000, 1000);
-	$imgFile = basename($fullpath);
-	if($imgFile === false) {
-		set_error("Cannot upload image");
-		continue;
-	} else {
-		set_message("Image uploaded ($imgFile)");
 	}
 
 	list($width, $height, $type, $attr) = getimagesize($fullpath);

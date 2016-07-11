@@ -140,7 +140,9 @@ $roomTypesData = loadRoomTypes($link, $lang);
 
 $rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
 foreach($rooms as $roomId => $roomData) {
-	processRoomData($arriveDateTs, $nights, $roomData, $roomTypesData[$roomData['room_type_id']]);
+	foreach($roomData['room_types']	as $roomTypeId => $roomTypeName) {
+		processRoomData($arriveDateTs, $nights, $roomData, $roomTypesData[$roomTypeId]);
+	}
 }
 
 uasort($roomTypesData, 'sortRoomsByAvailOrder');

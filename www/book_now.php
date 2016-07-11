@@ -707,8 +707,9 @@ $inlineAttachments = array(
 );
 
 $locationName = constant('LOCATION_NAME_' . strtoupper($location));
+$subject = str_replace('LOCATION', $locationName, BOOKING_CONFIRMATION_EMAIL_SUBJECT);
 $result = sendMail('reservation@mavericklodges.com', $locationName, 
-	$email, "$lastname, $firstname", sprintf(BOOKING_CONFIRMATION_EMAIL_SUBJECT, $locationName), $mailMessage, $inlineAttachments);
+	$email, "$lastname, $firstname", $subject, $mailMessage, $inlineAttachments);
 //set_debug("Send mail response: $result");
 //
 

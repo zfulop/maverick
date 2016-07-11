@@ -2,7 +2,9 @@
 
 
 define('HASHED_PASSWORD', '$1$rM3.YS0.$.BMdC5Qd31wO6VUArIhb21');
+define('SIMULATION', false);
 
+date_default_timezone_set('Europe/Budapest');
 
 $SOURCES = array(
 	'hw2' => 'hostelworld',
@@ -38,18 +40,36 @@ $MESSAGES = array(
 	'57' => 'invalid property id'
 );
 
-$bookingJson = $_REQUEST['booking'];
-$pwd = $_REQUEST['password'];
+if(php_sapi_name() === 'cli') {
+	$bookingJson = file_get_contents($argv[1]);
+	for ($i = 0; $i <= 31; ++$i) { 
+		$bookingJson = str_replace(chr($i), "", $bookingJson); 
+	}
+	$bookingJson = str_replace(chr(127), "", $bookingJson);
+	if (0 === strpos(bin2hex($bookingJson), 'efbbbf')) {
+		$bookingJson = substr($bookingJson, 3);
+	}
+	
+	logMessage("File content encoding: " . mb_detect_encoding($bookingJson, mb_detect_order(), true));
+} else {
+	$bookingJson = $_REQUEST['booking'];
+	$pwd = $_REQUEST['password'];
+	if(crypt($pwd, HASHED_PASSWORD) !=  HASHED_PASSWORD) {
+		respond('10', false, "Incorrect password");
+		return;
+	}
+	$bookingJson = stripslashes($bookingJson);
+}
 
-logMessage($bookingJson);
-
-if(crypt($pwd, HASHED_PASSWORD) !=  HASHED_PASSWORD) {
-	respond('10', false, "Incorrect password");
+logMessage("JSON START>>>" . $bookingJson . "<<<JSON END");
+$bookingData = json_decode($bookingJson, true, 512, JSON_UNESCAPED_UNICODE);
+$err = json_last_error();
+if($err) {
+	logMessage("Error parsing json: $err");
+	respond('21', false, "Error parsing json: $err");
 	return;
 }
 
-$bookingJson = stripslashes($bookingJson);
-$bookingData = json_decode($bookingJson, true, 512, JSON_UNESCAPED_UNICODE);
 // sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Booking request in " . LOCATION, 'booking data: ' . print_r($bookingData,true) . "\n\nRaw data: \n" . stripslashes($_REQUEST['booking']));
 
 if(!isset($bookingData['PropertyId'])) {
@@ -88,6 +108,10 @@ $link = db_connect($location);
 
 mysql_query("START TRANSACTION", $link);
 
+$roomTypesData = loadRoomTypes($link);
+
+$loadedRooms = array();
+
 $result = null;
 if((strpos($bookingJson, "\"IsCancellation\":true") > 0) or (isset($bookingData['IsCancellation']) and $bookingData['IsCancellation'])) {
 	$matches = array();
@@ -101,8 +125,10 @@ if((strpos($bookingJson, "\"IsCancellation\":true") > 0) or (isset($bookingData[
 }
 
 if(!$result) {
+	logMessage("Rolling back db changes");
 	mysql_query("ROLLBACK", $link);
 } else {
+	logMessage("Commiting db changes");
 	mysql_query("COMMIT", $link);
 }
 
@@ -126,12 +152,16 @@ function cancelBooking($myAllocatorId, $link) {
 
 	if(intval($descrId) > 0) {
 		$sql = "UPDATE booking_descriptions SET cancelled=1,cancel_type='guest' WHERE id=$descrId";
-		$result = mysql_query($sql, $link);
-		if(!$result) {
-			respond('51', false, "Cannot cancel booking in admin interface: " . mysql_error($link) . " (SQL: $sql)");
-			return false;
+		if(SIMULATION) {
+			logMessage("Not actually cancelling as this is a SIMULATION only. SQL: $sql");
 		} else {
-			logMessage("Booking cancelled.");
+			$result = mysql_query($sql, $link);
+			if(!$result) {
+				respond('51', false, "Cannot cancel booking in admin interface: " . mysql_error($link) . " (SQL: $sql)");
+				return false;
+			} else {
+				logMessage("Booking cancelled.");
+			}
 		}
 	}
 
@@ -144,7 +174,7 @@ function cancelBooking($myAllocatorId, $link) {
 
 
 function createBooking($bookingData, $link) {
-	global $lang, $bookingJson, $locationName, $SOURCES, $MESSAGES, $COUNTRY_ALIASES, $propertyId;
+	global $lang, $bookingJson, $locationName, $SOURCES, $MESSAGES, $COUNTRY_ALIASES, $propertyId, $loadedRooms;
 	logMessage("Creating booking");
 	$nowTime = date('Y-m-d H:i:s');
 	if(!isset($bookingData['Rooms']) or !is_array($bookingData['Rooms']) or count($bookingData['Rooms']) < 1) {
@@ -153,40 +183,37 @@ function createBooking($bookingData, $link) {
 		respond('22', false, 'Rooms element not in the request or not an array or an empty array');
 		return false;
 	}
+
 	if(!isset($bookingData['Customers']) or !is_array($bookingData['Customers']) or count($bookingData['Customers']) < 1) {
 		respond('22', false, 'Customers element not in the request or not an array or an empty array');
 		return false;
 	}
 
+	foreach($bookingData['Rooms'] as $room) {
+		$arriveDate = $room['StartDate'];
+		$lastNight = $room['EndDate'];
+		$cutoff = strtotime($arriveDate . " +1 day +3 hours");
+//		if($cutoff < time()) {
+//			respond('54', false, "Cannot create booking: arrive date ($arriveDate) is in the past");
+//			return false;
+//		}
+		if($arriveDate > $lastNight) {
+			respond('55', false, "Cannot create booking: arrive date ($arriveDate) must be before (or the same as) last night ($lastNight)");
+			return false;
+		}
+	}
 
 	$currency = $bookingData['TotalCurrency'];
 	$myAllocatorId = $bookingData['MyallocatorId'];
 	$bookingRef = $bookingData['OrderId'];
-	$sql = "SELECT * FROM booking_descriptions WHERE my_allocator_id='$myAllocatorId'";
-	$result = mysql_query($sql, $link);
-	if(!$result) {
-		respond('51', false, "Cannot retrieve booking in admin interface when creating it: " . mysql_error($link) . " (SQL: $sql)");
-		return false;
-	}
-	$existingBookingDescription = null;
-	if(mysql_num_rows($result) > 0) {
-		$existingBookingDescription = mysql_fetch_assoc($result);
-		logMessage("Existing booking found.");
-	}
-
-
-	if(!is_null($existingBookingDescription)) {
-		$descrId = $existingBookingDescription['id'];
-		$nameExt = mysql_real_escape_string($existingBookingDescription['name_ext'], $link);
-		$nowTime = $existingBookingDescription['create_time'];
-	}
 
 	$customer = $bookingData['Customers'][0];
 	$firstname = mysql_real_escape_string(decode($customer['CustomerFName']), $link);
 	$lastname = mysql_real_escape_string(decode($customer['CustomerLName']), $link);
-	// $firstname = mysql_real_escape_string($customer['CustomerFName'], $link);
-	// $lastname = mysql_real_escape_string($customer['CustomerLName'], $link);
 	$email = $customer['CustomerEmail'];
+
+	verifyBlacklist("$firstname $lastname", $email, CONTACT_EMAIL, $link);
+
 	$phone = '';
 	$nationality = isset($customer['CustomerCountry']) ? $customer['CustomerCountry'] : '';
 	if($nationality == '') {
@@ -199,7 +226,6 @@ function createBooking($bookingData, $link) {
 	$country = isset($customer['CustomerCountry']) ? mysql_real_escape_string($customer['CustomerCountry'], $link) : '';
 	$address = $city . ', ' . $country;
 	$comment = mysql_real_escape_string(print_r($bookingData, true), $link);
-
 	$source = (isset($bookingData['Channel']) and isset($SOURCES[$bookingData['Channel']])) ? $SOURCES[$bookingData['Channel']] : '';
 	if(is_array($source) and ($bookingData['Channel'] == 'exp')) {
 		$source = $source[$bookingData['ChannelSpecific']['PaymentType']];
@@ -213,118 +239,26 @@ function createBooking($bookingData, $link) {
 	set_debug("after combine: <pre>" . print_r($bookingData['Rooms'], true) . "</pre>\n");
 
 	$roomTypesData = loadRoomTypes($link, $lang);
-	set_debug("room types: <pre>" . print_r($roomTypesData, true) . "</pre>\n");
-
-	if(!is_null($existingBookingDescription) and isSameBooking($existingBookingDescription, $bookingData, $link, $propertyId, $roomTypesData)) {
-		logMessage("Existing booking found. Updating just the name, address, etc.");
-		$comment = mysql_real_escape_string("Updated on " . date ('Y-m-d H:m:i') . "\n\n" . print_r($bookingData, true), $link);
-		$sql = "UPDATE booking_descriptions SET name='$firstname $lastname', address='$address', nationality='$nationality', email='$email', telephone='$phone',comment='$comment' WHERE id=$descrId";
-		set_debug($sql);
-		if(!mysql_query($sql, $link)) {
-			respond('51', false, 'Cannot update booking description: ' . mysql_error($link) . " (SQL: $sql)");
-		} else {
-			respond(null, true);
-		}
-		return;
-	}
-
-	if(!is_null($existingBookingDescription)) {
-		$sql = "DELETE FROM booking_room_changes WHERE booking_id in (select id from bookings where description_id=$descrId)";
-		if(!mysql_query($sql, $link)) {
-			logMessage("Cannot delete booking room changes when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
-		}
-		$sql = "DELETE FROM bookings WHERE description_id=$descrId";
-		if(!mysql_query($sql, $link)) {
-			logMessage("Cannot delete bookings when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
-		}
-		$sql = "DELETE FROM booking_descriptions WHERE id=$descrId";
-		if(!mysql_query($sql, $link)) {
-			logMessage("Cannot delete booking description when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
-		}
-
-		$sql = "DELETE FROM payments WHERE booking_description_id=$descrId AND comment='*booking deposit*'";
-		if(!mysql_query($sql, $link)) {
-			logMessage("Cannot delete booking description when modifying booking: " . mysql_error($link) . " (SQL: $sql)");
-		}
-	}
-
-
-	$bookingDescriptionIds = array();
-
-	$allSameDate = isAllSameDate($bookingData['Rooms']);
-	logMessage("allSaveDate=" . $allSameDate);
-	if($allSameDate) {
-		logMessage("all same date");
-		$arriveDate = $bookingData['Rooms'][0]['StartDate'];
-		$lastNight = $bookingData['Rooms'][0]['EndDate'];
-		$arriveDateTs = strtotime($arriveDate);
-		$lastNightTs = strtotime($lastNight);
-		$cutoff = strtotime(date('Y-m-d') . " +1 day +3 hours");
-		if($cutoff < time()) {
-			respond('54', false, "Cannot create booking: arrive date ($arriveDate) is in the past");
-			return false;
-		}
-		if($arriveDate > $lastNight) {
-			respond('55', false, "Cannot create booking: arrive date ($arriveDate) must be before (or the same as) last night ($lastNight)");
-			return false;
-		}
-
-		$nights = round(($lastNightTs-$arriveDateTs) / (60*60*24)) + 1;
-		$lastNightTs = strtotime($lastNight);
-
-		verifyBlacklist("$firstname $lastname", $email, CONTACT_EMAIL, $link);
-
-		$sql = "INSERT INTO booking_descriptions (name, name_ext, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency, my_allocator_id, create_time, booking_ref) VALUES ('$firstname $lastname', '$nameExt', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', '$source', '', '$lang', '$currency', '$myAllocatorId', '$nowTime', '$bookingRef')";
-		set_debug($sql);
-		if(!mysql_query($sql, $link)) {
-			respond('51', false, 'Cannot create booking description: ' . mysql_error($link) . " (SQL: $sql)");
-			return;
-		}
-		$descriptionId = mysql_insert_id($link);
-		$bookingDescriptionIds[] = $descriptionId;
-	}
+	$bookingDescriptions = array();
+	$extraServices = array();
+	$serviceChargeAmt = 0;
 
 	// Save the parking as a service change
-	$serviceChargeAmt = 0;
-	$bdid = $bookingDescriptionIds[0];
-	$nowTime = date('Y-m-d H:i:s');
 	if(isset($bookingData['ExtraServices'])) {
 		foreach($bookingData['ExtraServices'] as $oneService) {
 			if((substr($oneService['Description'],0,6) == 'Parkol' or substr($oneService['Description'],0,7) == 'Reggeli') and isset($oneService['Price'])) {
 				$amount = doubleval($oneService['Price']);
-				if(isset($bookingData['TotalCurrency'])) {
-					$curr = $bookingData['TotalCurrency'];
-				} else {
-					$curr = 'EUR';
-				}
-				//$descr = mysql_real_escape_string(decode($oneService['Description']), $link);
-				$descr = mysql_real_escape_string($oneService['Description'], $link);
+				$curr = $oneService['Currency'];
+				$descr = mysql_real_escape_string(decode($oneService['Description']), $link);
 				$svcText = 'Parkolás';
 				if(substr($oneService['Description'],0,7) == 'Reggeli') {
 					$svcText = 'Reggeli - FatMama';
 				}
 				logMessage("Saving extra service as service_charge: $svcText, $amount $curr");
-				$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($bdid, $amount, '$curr', '$nowTime', '$descr', '$svcText')";
-				$result = mysql_query($sql, $link);
-				if(!$result) {
-					logMessage("Cannot save service charge: " . mysql_error($link) . " (SQL: $sql)");
-				} else {
-					$serviceChargeAmt += $amount;
-					set_debug("Save successful. SQL: $sql");
-				}
+				$extraServices[] = array('amount' => $amount, 'comment' => $descr, 'type' => $svcText, 'currency' => $curr);
+				$serviceChargeAmt += $amount;
 			}
 		}
-	}
-	
-	// Save IFA as a service charge
-	$ifa = ($bookingData['TotalPrice'] - $serviceChargeAmt) * 0.034;
-	logMessage("Saving IFA as service_charge: $ifa");
-	$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($bdid, $ifa, 'EUR', '$nowTime', 'IFA', 'IFA / City Tax')";
-	$result = mysql_query($sql, $link);
-	if(!$result) {
-		set_debug("Cannot save service charge: " . mysql_error($link) . " (SQL: $sql)");
-	} else {
-		set_debug("Save successful. SQL: $sql");
 	}
 
 	foreach($bookingData['Rooms'] as $roomData) {
@@ -333,153 +267,561 @@ function createBooking($bookingData, $link) {
 		$lastNight = $roomData['EndDate'];
 		$lastNightTs = strtotime($lastNight);
 		$nights = round(($lastNightTs-$arriveDateTs) / (60*60*24)) + 1;
+		$bdKey = $arriveDate . '|' . $lastNight;
+      
+		if(!isset($bookingDescriptions[$bdKey])) {
+			$bookingDescriptions[$bdKey] = array('arriveDate' => $arriveDate, 'lastNight' => $lastNight, 'name' => "$firstname $lastname", 'email' => $email, 'bookings' => array(), 'sql' => "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency, my_allocator_id, create_time, booking_ref) VALUES ('$firstname $lastname', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', '$source', '', '$lang', '$currency', '$myAllocatorId', '$nowTime', '$bookingRef')");
+		}
 
-		$specialOffers = loadSpecialOffers($arriveDate, $lastNight, $link);
-		$rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
+		$rooms = null;
+		if(isset($loadedRooms[$arriveDate . '|' . $lastNight])) {
+			$rooms = $loadedRooms[$arriveDate . '|' . $lastNight];
+		} else {
+			$rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
+			$loadedRooms[$arriveDate . '|' . $lastNight] = $rooms;
+		}
 
-		$numOfPersonForRoomType = array();
-		$priceForRoomType = array();
-		$numOfBookings = 0;
 		foreach($roomData['RoomTypeIds'] as $myAllocRoomTypeId) {
-			$roomTypeId = findRoomTypeId($myAllocRoomTypeId, $propertyId);
-			if(is_null($roomTypeId)) {
+			$roomTypeIds = findRoomTypeId($myAllocRoomTypeId, $propertyId);
+			if(is_null($roomTypeIds)) {
 				set_debug("Cannot find roomTypeId for myallocator room id: $myAllocRoomTypeId");
 				respond('52', false, "Cannot find roomTypeId for myallocator room id: $myAllocRoomTypeId, property id: $propertyId");
 				return false;
 			}
-			$numOfPerson = $roomData['Units'];
-			$numOfBookings += $roomData['Units'];
-			if(isPrivate($roomTypesData[$roomTypeId]) or isApartment($roomTypesData[$roomTypeId])) {
-				$numOfPerson = $numOfPerson * $roomTypesData[$roomTypeId]['num_of_beds'];
-			}
-			if(is_array($roomTypeId)) {
-				$goodId = null;
-				foreach($roomTypeId as $oneId) {
-					if(count(getOverbookings(array($oneId => $numOfPerson), $arriveDate, $lastNight, $rooms)) < 1) {
-						$goodId = $oneId;
-						break;
-					}
-				}
-				if(is_null($goodId)) {
-					$roomTypeId = $roomTypeId[0];
-				} else {
-					$roomTypeId = $goodId;
-				}
-			}
-			if(isset($numOfPersonForRoomType[$roomTypeId])) {
-				if(is_numeric($numOfPersonForRoomType[$roomTypeId])) {
-					$numOfPersonForRoomType[$roomTypeId] = array($numOfPersonForRoomType[$roomTypeId], $numOfPerson);
-				} elseif(is_array($numOfPersonForRoomType[$roomTypeId])) {
-					$numOfPersonForRoomType[$roomTypeId][] = $numOfPerson;
-				}
-			} elseif(isApartment($roomTypesData[$roomTypeId]) and $roomData['Units'] > 1) {
-				$numOfPersonArr = array();
-				for($i = 0; $i < $roomData['Units']; $i++) {
-					$numOfPersonArr[] = $numOfPerson;
-				}
-				$numOfPersonForRoomType[$roomTypeId] = $numOfPersonArr;
-			} else {
-				$numOfPersonForRoomType[$roomTypeId] = $numOfPerson;
-			}
+
 			$price = $roomData['Price'];
-//			if(isset($bookingData['TotalTaxes'])) {
-//				$price = $price + $bookingData['TotalTaxes'] / count($bookingData['Rooms']);
-//			}
-			if(isPrivate($roomTypesData[$roomTypeId])) {
-				$priceForRoomType[$roomTypeId] = $price / floatval($roomData['Units']);
+//                      if(isset($bookingData['TotalTaxes'])) {
+//                            $price = $price + $bookingData['TotalTaxes'] / count($bookingData['Rooms']);
+//                      }
+			if(isPrivate($roomTypesData[$roomTypeIds[0]]) or isApartment($roomTypesData[$roomTypeIds[0]])) {
+				for($i = 0; $i < $roomData['Units']; $i++) {
+					$bookingDescriptions[$bdKey]['bookings'][] = array('type' => 'ROOM', 'myAllocRoomTypeId' => $myAllocRoomTypeId, 'numOfPerson' => $roomTypesData[$roomTypeIds[0]]['num_of_beds'], 'price' => ($price / floatval($roomData['Units'])), 'propertyId'=> $propertyId);
+				}
 			} else {
-				$priceForRoomType[$roomTypeId] = $price;
+				$bookingDescriptions[$bdKey]['bookings'][] = array('type' => 'BED', 'myAllocRoomTypeId' => $myAllocRoomTypeId, 'numOfPerson' => $roomData['Units'], 'price' => $price, 'propertyId'=> $propertyId);
 			}
 		}
 
-		if(!$allSameDate) {
-			$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency, my_allocator_id, create_time, booking_ref) VALUES ('$firstname $lastname', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', '$source', '', '$lang', '$currency', '$myAllocatorId', '$nowTime', '$bookingRef')";
-			set_debug($sql);
-			if(!mysql_query($sql, $link)) {
+	} // end of loop bookingData['Rooms']
+	logMessage("Incoming booking(s):");
+	foreach($bookingDescriptions as $bdKey => $bd) {
+		list($fn,$ln) = explode('|', $bdKey);
+		logMessage("   " . $fn . '-' . $ln);
+		foreach($bd['bookings'] as $b) {
+			logMessage("      type:" . $b['type'] . ',myAllocRoomTypeId:' . $b['myAllocRoomTypeId'] . ',numOfPerson:' . $b['numOfPerson'] . ',price:' . $b['price']);
+		}
+	}
+	
+
+	// Adjust room price if it includes service charge
+	$roomPrice = calcRoomPrice($bookingDescriptions);
+	logMessage("Total price: " . $bookingData['TotalPrice'] . ", total room price: $roomPrice, service charges: $serviceChargeAmt");
+	if($roomPrice == $bookingData['TotalPrice'] and $serviceChargeAmt > 0) {
+		logMessage("Room price include service charge, lets deduct it");
+		$scAmtPerBooking = $serviceChargeAmt / getNumOfBookings($bookingDescriptions);
+		foreach($bookingDescriptions as $bdKey => $bd) {
+			foreach($bd['bookings'] as $b) {
+				$b['price'] -= $scAmtPerBooking;
+			}
+		}
+	}
+	$roomPrice = calcRoomPrice($bookingDescriptions);
+	logMessage("After adjustment total room price: $roomPrice");
+
+	$ifa = $roomPrice * 0.034;
+	$extraServices[] = array('amount' => $ifa, 'comment' => 'IFA', 'type' => 'IFA / City Tax', 'currency' => $bookingData['TotalCurrency']);
+
+	// Now compare with DB data
+	$dbBookingDescriptions = loadDBBookings($myAllocatorId, $link);
+	logMessage("Already saved booking(s):");
+	foreach($dbBookingDescriptions as $id => $bd) {
+		logMessage("   " . $bd['first_night'] . '-' . $bd['last_night']);
+		foreach($bd['bookings'] as $b) {
+			logMessage("      roomtypeid:" . $b['original_room_type_id'] . ',num of person:' . $b['num_of_person'] . ',room payment:' . $b['room_payment']);
+		}
+	}
+	$diffs = reportDiff($dbBookingDescriptions, $bookingDescriptions);
+	if(count($dbBookingDescriptions) > 0) {
+		$diffMsg = '';
+		foreach($diffs as $oneDiff) {
+			$diffMsg .= '   ' . $oneDiff['type'] . ' - ' . $oneDiff['descr'] . "\n";
+		}
+		if(count($diffs) > 0) {
+			logMessage("The differences between DB and the incoming message: \n$diffMsg");
+		} else {
+			logMessage("No difference found between DB and the incoming message.");
+		}
+	} else {
+		logMessage("This is a new booking (not yet in the DB.");
+	}
+	
+	$response = true;
+	if(count($diffs) < 1) {
+		logMessage("There are no differences. Finish here.");
+	} elseif(isCheckedIn($dbBookingDescriptions)) {
+		logMessage("Guest checked in, just mailing the differences.");
+		sendDiffEmail($dbBookingDescriptions, $diffs);
+	} elseif(isOnlyPriceDiff($diffs)) {
+		logMessage("same rooms in booking, update prices only");
+		$response = updatePrices($dbBookingDescriptions, $bookingDescriptions, $diffs);
+		if($response) {
+			$response = saveExtraServices($dbBookingDescriptions, $extraServices, array_keys($dbBookingDescriptions));
+		}
+	} elseif(count($dbBookingDescriptions) < 1) {
+		logMessage("no existing booking yet");
+		$descrIds = insertBookingIntoDb($bookingDescriptions);
+		if($descrIds) {
+			$response = saveExtraServices(array(), $extraServices, $descrIds);
+		}
+		sendEmailNotification($bookingDescriptions);
+	} else {
+		logMessage("there is existing booking and the scructure is different. Remove the existing bookings and create new ones.");
+		$response = deleteExistingBooking($dbBookingDescriptions, $bookingDescriptions, $diffs);
+		$descrIds = null;
+		if($response) {
+			$descrIds = insertBookingIntoDb($bookingDescriptions);
+		}
+		if($descrIds) {
+			$response = updateExistingPayments($dbBookingDescriptions, $bookingDescriptions, $descrIds);
+		}
+		if($response) {
+			$response = saveExtraServices($dbBookingDescriptions, $extraServices, $descrIds);
+		}
+		if($response) {
+			$response = saveDeposit($bookingData, $descrIds);
+		}
+
+		sendEmailNotification($bookingDescriptions);
+	}
+
+	if(!$response) {
+		respond('51', false, "Cannot create booking: DB Error");
+	} else {
+		respond(null, true);
+	}
+
+	return $response;
+}
+
+function loadDBBookings($myAllocatorId, $link) {
+	$sql = "SELECT * FROM booking_descriptions WHERE my_allocator_id='$myAllocatorId'";
+	$result = mysql_query($sql, $link);
+	if(!$result) {
+		respond('51', false, "Cannot retrieve booking when handling incoming myallocator booking request: " . mysql_error($link) . " (SQL: $sql)");
+		return false;
+	}
+	$existingBookingDescription = array();
+	while($row = mysql_fetch_assoc($result)) {
+		$row['bookings'] = array();
+		$existingBookingDescription[$row['id']] = $row;
+	}
+
+	if(count($existingBookingDescription) > 0) {
+		$bookingCounter = 1;
+		$sql = "SELECT b.description_id, b.booking_type, b.num_of_person, b.room_payment, b.original_room_type_id, rt.name as room_type_name FROM bookings b INNER JOIN room_types rt ON b.original_room_type_id=rt.id WHERE b.booking_type='ROOM' AND b.description_id IN (" . implode(",", array_keys($existingBookingDescription)) . ")";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			logMessage("Cannot retrieve ROOM bookings when handling incoming myallocator booking request: " . mysql_error($link) . " (SQL: $sql)");
+			return false;
+		}
+		while($row = mysql_fetch_assoc($result)) {
+			$row['id'] = $bookingCounter;
+			$bookingCounter += 1;
+			$existingBookingDescription[$row['description_id']]['bookings'][] = $row;
+		}
+		$sql = "SELECT b.description_id, b.booking_type, sum(b.num_of_person) AS num_of_person, sum(b.room_payment) AS room_payment, b.original_room_type_id, rt.name as room_type_name FROM bookings b INNER JOIN room_types rt ON b.original_room_type_id=rt.id WHERE b.booking_type='BED' AND b.description_id IN (" . implode(",", array_keys($existingBookingDescription)) . ") GROUP BY b.description_id, b.booking_type, b.original_room_type_id, rt.name";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			logMessage("Cannot retrieve BED bookings when handling incoming myallocator booking request: " . mysql_error($link) . " (SQL: $sql)");
+			return false;
+		}
+		while($row = mysql_fetch_assoc($result)) {
+			$row['id'] = $bookingCounter;
+			$bookingCounter += 1;
+			$existingBookingDescription[$row['description_id']]['bookings'][] = $row;
+		}
+	}
+	return $existingBookingDescription;
+}
+
+function isCheckedIn($existingBookingDescription) {
+	logMessage('Checking if booking is checked in');
+	foreach($existingBookingDescription as $bdId => $bd) {
+		if($bd['checked_in'] == 1) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function calcRoomPrice($bookingDescriptions) {
+	$roomPrice = 0;
+	foreach($bookingDescriptions as $bdKey => $bd) {
+		foreach($bd['bookings'] as $b) {
+			$roomPrice += $b['price'];
+		}
+	}
+	return $roomPrice;
+}
+
+function getNumOfBookings($bookingDescriptions) {
+	$numOfBookings = 0;
+	foreach($bookingDescriptions as $bdKey => $bd) {
+		$numOfBookings += count($bd['bookings']);
+	}
+	return $numOfBookings;
+}
+
+// $bookingDescriptions: bdKey => array(arriveDate, lastNight, bookings => array(myAllocRoomTypeId, numOfPerson, price)) | bdKey=arriveDate|lastNight
+// $dbBookingDescription: $bdId => array(first_night, last_night, bookings => array(room_id, num_of_person, room_payment)
+function reportDiff(&$dbBookingDescriptions, &$bookingDescriptions) {
+	global $roomTypesData;
+	$diffs = array();
+	$bdKeysAccounted = array();
+	foreach($dbBookingDescriptions as $bdId => $dbBd) {
+		$bdKey = str_replace('/','-',$dbBd['first_night']) . '|' . str_replace('/','-',$dbBd['last_night']);
+		if(isset($bookingDescriptions[$bdKey])) {
+			$bdKeysAccounted[] = $bdKey;
+			$diffs = array_merge($diffs, reportDiffBd($dbBd, $bookingDescriptions[$bdKey]));
+		} else {
+			$bookings = '';
+			foreach($dbBookingDescriptions[$bdId]['bookings'] as $b) {
+				$bookings .= "<div style=\"margin-left: 15px;\">room type: " . $roomTypesData[$b['original_room_type_id']]['name'] . ',num of person:' . $b['num_of_person'] . ',room payment:' . $b['room_payment'] . "</div>";
+			}
+			$diffs[] = array('type' => 'EXTRA_IN_DB', 'descr' => 'There are extra bookings in db between dates: ' . $dbBd['first_night'] . " and " . $dbBd['last_night'] . " that are missing from incoming message. Existing bookings: $bookings");
+		}
+	}
+	foreach(array_diff(array_keys($bookingDescriptions), $bdKeysAccounted) as $oneDiff) {
+		list($firstNight, $lastNight) = explode("|", $oneDiff);
+		$bookings = '';
+		foreach($bookingDescriptions[$oneDiff]['bookings'] as $b) {
+			$roomTypeIds = findRoomTypeId($b['myAllocRoomTypeId'], $b['propertyId']);
+			$bookings .= "<div style=\"margin-left: 15px;\">room type:" . $roomTypesData[$roomTypeIds[0]]['name'] . ',num of person:' . $b['numOfPerson'] . ',room payment:' . $b['price'] . "</div>";
+		}
+		$diffs[] = array('type' => 'MISSING_FROM_DB', 'descr' => 'No bookings in db between dates: ' . $firstNight . " and " . $lastNight . " but there are booking(s) in the incoming message: $bookings");
+	}
+	return $diffs;
+}
+
+
+// $bookingDescriptions: bookings => array(myAllocRoomTypeId, numOfPerson, price)
+// $dbBookingDescription: bookings => array(room_id, num_of_person, room_payment)
+function reportDiffBd(&$dbBookingDescription, &$bookingDescription) {
+	global $roomTypesData;
+	$diffs = array();
+	$bookingIdsMatched = array();
+	foreach($bookingDescription['bookings'] as $oneBooking) {
+		$roomTypeIds = findRoomTypeId($oneBooking['myAllocRoomTypeId'], $oneBooking['propertyId']);
+		$bookingMatched = false;
+		foreach($dbBookingDescription['bookings'] as $oneDbBooking) {
+			if(in_array($oneDbBooking['original_room_type_id'], $roomTypeIds) && !in_array($oneDbBooking['id'], $bookingIdsMatched)) {
+				$bookingMatched = true;
+				$bookingIdsMatched[] = $oneDbBooking['id'];
+				$diffs = array_merge($diffs, reportDiffOneBooking($oneDbBooking, $oneBooking, $dbBookingDescription));
+				break;
+			}
+		}
+		if(!$bookingMatched) {
+			$diffs[] = array(	'type' => 'MISSING_BOOKING_FROM_DB', 
+								'descr' => 'No bookings in db for room type: ' . $roomTypesData[$roomTypeIds[0]]['name'] . ', num of person: ' . $oneBooking['numOfPerson'] . ' between dates: ' . $dbBookingDescription['first_night'] . ' and ' . $dbBookingDescription['last_night'] . ', room payment: ' . $oneBooking['price'] . ' but it is in the incoming message', 
+								'booking' => $oneBooking,
+								'bookingDescription' => $bookingDescription);
+		}
+	}
+	// Iterate through the DB bookings and see which bookings are there in extra
+	foreach($dbBookingDescription['bookings'] as $oneDbBooking) {
+		if(!in_array($oneDbBooking['id'], $bookingIdsMatched)) {
+			$diffs[] = array(	'type' => 'MISSING_BOOKING_FROM_DB', 
+								'descr' => 'Extra booking in db for room type: ' . $roomTypesData[$oneDbBooking['original_room_type_id']] . ', num of person: ' .  $oneDbBooking['num_of_person'] . ' between dates: ' . $dbBookingDescription['first_night'] . ' and ' . $dbBookingDescription['last_night'] . ', room payment: ' . $oneDbBooking['room_payment'] . ', this is not in the incoming message', 
+								'booking' => $oneBooking,
+								'bookingDescription' => $bookingDescription);
+		}
+	}
+	return $diffs;
+}
+
+function reportDiffOneBooking($oneDbBooking, $oneBooking, $dbBookingDescription) {
+	$diffs = array();
+	if($oneDbBooking['num_of_person'] < $oneBooking['numOfPerson']) {
+			$diffs[] = array('type' => 'LESS_GUEST_IN_DB', 'descr' => 'There are ' . $oneBooking['numOfPerson'] . ' guests from myalloc but only ' . $oneDbBooking['num_of_person'] . ' guests in the db for room type: ' . $oneDbBooking['room_type_name']);
+	} elseif($oneDbBooking['num_of_person'] > $oneBooking['numOfPerson']) {
+			$diffs[] = array('type' => 'MORE_GUEST_IN_DB', 'descr' => 'There are ' . $oneBooking['numOfPerson'] . ' guests from myalloc but there are ' . $oneDbBooking['num_of_person'] . ' guests in the db for room type: ' . $oneDbBooking['room_type_name']);
+	} elseif($oneDbBooking['room_payment'] != $oneBooking['price']) {
+			$diffs[] = array('type' => 'PRICE_MISMATCH', 'descr' => 'The price is ' . $oneBooking['price'] . ' for ' . $oneBooking['numOfPerson'] . ' guests from myalloc but in the db we have the price of ' . $oneDbBooking['room_payment'] . ' for room type: ' . $oneDbBooking['room_type_name'], 'newPrice' => $oneBooking['price'], 'booking_description_id' => $dbBookingDescription['id'], 'original_room_type_id' => $oneDbBooking['original_room_type_id'], 'booking_type' => $oneDbBooking['booking_type'], 'num_of_person' => $oneBooking['numOfPerson']);
+	}
+	return $diffs;
+}
+
+function sendDiffEmail(&$dbBookingDescriptions, $diffs) {
+	global $locationName;
+	$subject = 'Checked in booking change arrived from myalloc to $locationName';
+	$bd = $dbBookingDescriptions[array_keys($dbBookingDescriptions)[0]];
+	$descriptionId = $bd['id'];
+	$name = $bd['name'];
+	$email = $bd['email'];
+	$fn = $bd['first_night'];
+	$ln = $bd['last_night'];
+	$message .= "<a href=\"http://recepcio.roomcaptain.com/edit_booking.php?description_id=$descriptionId\">View booking</a><br>\n";
+	$message .= "$name - $email<br>\n";
+	$message .= "$fn - $ln<br>\n";
+	$message .= "Changes<br>\n";
+	$message .= "<ul>";
+	foreach($diffs as $oneDiff) {
+		$message .= "	<li>" . $oneDiff['descr'] . "</li>\n";
+	}
+	$message .= "</ul>";
+	$result = sendMail(CONTACT_EMAIL, $locationName, CONTACT_EMAIL, $locationName, $subject, $message);
+	if(!is_null($result)) {
+		logMessage("Cannot send diff email: " . $result);
+	}
+
+}
+
+function sendEmailNotification(&$bookingDescriptions) {
+	global $locationName;
+	// logMessage("inside sendEmailNotification() - bookingDescriptions: " . print_r($bookingDescriptions, true));
+	$subject = "New booking arrived from myalloc to $locationName";
+	$message = '';
+	foreach($bookingDescriptions as $bdId => $bd) {
+		$descriptionId = $bd['description_id'];
+		$name = $bd['name'];
+		$email = $bd['email'];
+		$fn = $bd['arriveDate'];
+		$ln = $bd['lastNight'];
+		$message .= "$name - $email <a href=\"http://recepcio.roomcaptain.com/edit_booking.php?description_id=$descriptionId\">$fn - $ln</a><br>\n";
+		logMessage("Sending email to reception about booking for $name $email between dates: $fn - $ln and ID: $descriptionId");
+	}
+	$result = sendMail(CONTACT_EMAIL, $locationName, CONTACT_EMAIL, $locationName, $subject, $message);
+	if(!is_null($result)) {
+		logMessage("Cannot send notification email: " . $result);
+	}
+
+}
+
+
+function isOnlyPriceDiff($diffs) {
+	logMessage('Checking if diff is only price');
+	$onyPriceDiff = true;
+	foreach($diffs as $oneDiff) {
+		if($oneDiff['type'] != 'PRICE_MISMATCH') {
+			$onyPriceDiff = false;
+			break;
+		}
+	}
+	return $onyPriceDiff;
+}
+
+function updatePrices($dbBookingDescription, $bookingDescriptions, $diffs) {
+	global $link;
+	$sqls = array();
+	foreach($diffs as $oneDiff) {
+		if($oneDiff['type'] == 'PRICE_MISMATCH') {
+			$bookingType = $oneDiff['booking_type'];
+			if($bookingType == 'BED') {
+				$newPrice = $oneDiff['newPrice'] / $oneDiff['num_of_person'];
+			} else {
+				$newPrice = $oneDiff['newPrice'];
+			}
+			$bdId = $oneDiff['booking_description_id'];
+			$origRoomTypeId = $oneDiff['original_room_type_id'];
+			logMessage("Updating price for booking_description_id: $bdId, new price: $newPrice and original_room_type_id: $origRoomTypeId");
+			$sqls[] = "UPDATE bookings SET room_payment=$newPrice WHERE description_id=$bdId AND booking_type='$bookingType' AND original_room_type_id=$origRoomTypeId";
+		}
+	}
+	
+	if(SIMULATION) {
+		logMessage("SIMULATION mode, so not actualy udating prices. SQL(s): \n   " . implode("\n   ", $sqls));
+	} else {
+		foreach($sqls as $sql) {
+			$result = mysql_query($sql, $link);
+			if(!$result) {
+				logMessage("Cannot update price: " . mysql_error($link) . " (SQL: $sql");
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+function deleteExistingBooking($dbBookingDescriptions, $bookingDescriptions, $diffs) {
+	global $link;
+	$ids = array_keys($dbBookingDescriptions);
+	$sqls = array();
+	if(count($ids) > 0) {
+		$sqls[] = 'DELETE FROM booking_room_changes WHERE booking_id in (select id from bookings where description_id in (' . implode(',',$ids) . '))';
+		$sqls[] = 'DELETE FROM bookings WHERE description_id in (' . implode(',',$ids) . ')';
+		$sqls[] = 'DELETE FROM booking_descriptions WHERE id in (' . implode(',',$ids) . ')';
+		$sqls[] = 'DELETE FROM payments WHERE booking_description_id in (' . implode(',',$ids) . ') AND comment=\'*booking deposit*\'';
+	}
+
+	if(SIMULATION) {
+		logMessage("SIMULATION mode, so not actualy deleting existing data. SQL(s): \n   " . implode("\n   ", $sqls));
+	} else {
+		foreach($sqls as $sql) {
+			$result = mysql_query($sql, $link);
+			if(!$result) {
+				logMessage("Cannot delete booking data: " . mysql_error($link) . " (SQL: $sql");
+				return false;
+			}
+		}
+	}
+	
+	return true;
+}
+
+function insertBookingIntoDb(&$bookingDescriptions) {
+	global $loadedRooms, $roomTypesData, $link;
+
+	$descrIds = array();
+	foreach($bookingDescriptions as $bdKey => &$oneBd) {
+		list($arriveDate, $lastNight) = explode('|', $bdKey);
+		if(SIMULATION) {
+			logMessage("SIMULATION mode, not actualy creating booking description.");
+		} else {
+			if(!mysql_query($oneBd['sql'], $link)) {
 				respond('51', false, 'Cannot create booking description: ' . mysql_error($link) . " (SQL: $sql)");
 				return false;
 			}
-			$descriptionId = mysql_insert_id($link);
-			$bookingDescriptionIds[] = $descriptionId;
+			$oneBd['description_id'] = mysql_insert_id($link);
+			logMessage("Created booking description with id: " . $oneBd['description_id']);
+			$descrIds[] = $oneBd['description_id'];
+			logMessage("Booking description for $bdKey is created with id: " . $oneBd['description_id']);
+		}
+		$numOfPersonForRoomType = array();
+		$priceForRoomType = array();
+		foreach($oneBd['bookings'] as $oneBooking) {
+			// array('type' => 'ROOM', 'myAllocRoomTypeId' => $myAllocRoomTypeId, 'numOfPerson' => $roomTypesData[$roomTypeId]['num_of_beds'], 'price' => ($price / floatval($roomData['Units'])), 'propertyId'=> $propertyId);
+			// array('type' => 'BED', 'myAllocRoomTypeId' => $myAllocRoomTypeId, 'numOfPerson' => $roomData['Units'], 'price' => $price, 'propertyId'=> $propertyId);
+			$roomTypeIds = findRoomTypeId($oneBooking['myAllocRoomTypeId'], $oneBooking['propertyId']);
+			$numOfPerson = $oneBooking['numOfPerson'];
+			$goodId = null;
+			foreach($roomTypeIds as $oneId) {
+				if(count(getOverbookings(array($oneId => $numOfPerson), $arriveDate, $lastNight, $rooms)) < 1) {
+					$goodId = $oneId;
+					break;
+				}
+			}
+			if(is_null($goodId)) {
+				$roomTypeId = $roomTypeIds[0];
+			} else {
+				$roomTypeId = $goodId;
+			}
+			$priceForRoomType[$roomTypeId] = $oneBooking['price'];
+			if(isApartment($roomTypesData[$roomTypeId]) and $numOfPerson > 1) {
+				if(!isset($numOfPersonForRoomType[$roomTypeId])) {
+					$numOfPersonForRoomType[$roomTypeId] = array();
+				}
+				$numOfPersonForRoomType[$roomTypeId][] = $numOfPerson;
+			} elseif(isset($numOfPersonForRoomType[$roomTypeId])) {
+				$numOfPersonForRoomType[$roomTypeId] += $numOfPerson;
+			} else {
+				$numOfPersonForRoomType[$roomTypeId] = $numOfPerson;
+			}
 		}
 
-		if(!is_null($descrId)) {
-			$newDescrId = $bookingDescriptionIds[0];
-			$sql = "UPDATE payments SET booking_description_id=$newDescrId WHERE booking_description_id=$descrId";
-			if(!mysql_query($sql, $link)) {
-				respond('51', false, 'Cannot move existing payments from old to new booking: ' . mysql_error($link) . " (SQL: $sql)");
-				return;
-			}
-			$sql = "UPDATE booking_guest_data SET booking_description_id=$newDescrId WHERE booking_description_id=$descrId";
-			if(!mysql_query($sql, $link)) {
-				respond('51', false, 'Cannot move existing guest data from old to new booking: ' . mysql_error($link) . " (SQL: $sql)");
-				return;
-			}
-
-		}
-
-
-		// echo "Num of person for room type: <pre>" . print_r($numOfPersonForRoomType, true) . "</pre>\n";
-
+		$rooms = $loadedRooms[$arriveDate . '|' . $lastNight];
 		list($toBook, $roomChanges) = getBookingData($numOfPersonForRoomType, $arriveDate, $lastNight, $rooms, $roomTypesData);
-
-		// echo "toBook: <pre>" . print_r($toBook, true) . "</pre>\n";
-		// echo "roomChanges: <pre>" . print_r($roomChanges, true) . "</pre>\n";
-
-		$scPerBooking = $serviceChargeAmt / count($bookingData['Rooms']) / $numOfBookings;
-		foreach($priceForRoomType as $roomTypeId => $price) {
-			$priceForRoomType[$roomTypeId] = $price - $scPerBooking;
-		}
-
-
-		$bookingIds = saveBookings($toBook, $roomChanges, $arriveDate, $lastNight, $rooms, $roomTypesData, $specialOffers, $descriptionId, $link, $priceForRoomType);
-	
-		$_SERVER['PHP_AUTH_USER'] = 'myallocator';
-		audit(AUDIT_CREATE_BOOKING, array('source' => 'myallocator', 'booking_data' => $toBook, 'room_change_data' => $roomChanges), $bookingIds[0], $descriptionId, $link);
-
-	}
-
-
-	if(isset($bookingData['Deposit'])) {
-		$amount = doubleval($bookingData['Deposit']);
-		if(isset($bookingData['DepositCurrency'])) {
-			$curr = $bookingData['DepositCurrency'];
+		$specialOffers = array();
+		logMessage("num of person for room type: " . print_r($numOfPersonForRoomType, true));
+		logMessage("toBook: " . print_r($toBook, true));
+		logMessage("roomChanges: " . print_r($roomChanges, true));
+		if(SIMULATION) {
+			logMessage("SIMULATION mode, not actually saving booking.");
 		} else {
-			$curr = 'EUR';
+			$bookingIds = saveBookings($toBook, $roomChanges, $arriveDate, $lastNight, $rooms, $roomTypesData, $specialOffers, $oneBd['description_id'], $link, $priceForRoomType);
+			audit(AUDIT_CREATE_BOOKING, array('source' => 'myallocator', 'booking_data' => $toBook, 'room_change_data' => $roomChanges), $bookingIds[0], $descriptionId, $link);
 		}
-		$bdid = $bookingDescriptionIds[0];
-		$nowTime = date('Y-m-d H:i:s');
-		logMessage("Setting deposit to $amount $curr");
-		$sql = "INSERT INTO payments (booking_description_id, amount, currency, time_of_payment, comment, cash, storno, type, pay_mode) VALUES ($bdid, $amount, '$curr', '$nowTime', '*booking deposit*', 1, 0, NULL, 'CASH')";
+	}
+	// logMessage("inside insertBookingIntoDb() - bookingDescriptions: " . print_r($bookingDescriptions, true));
+
+
+	return $descrIds;
+}
+
+
+
+function updateExistingPayments($dbBookingDescriptions, $bookingDescriptions, $descrIds) {
+	global $link;
+	$descrId = $descrIds[0];
+	$ids = array_keys($dbBookingDescriptions);
+	$sql = "UPDATE payments SET booking_description_id=$descrId WHERE booking_description_id IN (" . implode(',',$ids) . ")";
+	if(SIMULATION) {
+		logMessage("SIMULATION mode, not actually updating payments. SQL: $sql");
+	} else {
+		logMessage("Updating payments. SQL: $sql");
 		$result = mysql_query($sql, $link);
 		if(!$result) {
-			logMessage("Cannot save deposit payment: " . mysql_error($link) . " (SQL: $sql)");
-		} else {
-			set_debug("Save successful. SQL: $sql");
+			logMessage("Cannot update payment: " . mysql_error($link) . " (SQL: $sql)");
+			return false;
 		}
 	}
-
-
-	respond(null, true);
-	$message = '';
-	foreach($bookingDescriptionIds as $descriptionId) {
-		//$firstName = decode($bookingData['Customers'][0]['CustomerFName']);
-		//$lastName = decode($bookingData['Customers'][0]['CustomerLName']);
-		$firstName = $bookingData['Customers'][0]['CustomerFName'];
-		$lastName = $bookingData['Customers'][0]['CustomerLName'];
-
-		//$message .= "<a href=\"http://" . $_SERVER['HTTP_HOST'] . "/edit_booking.php?description_id=$descriptionId\">View booking</a><br>\n";
-		$message .= "<a href=\"http://recepcio.roomcaptain.com/edit_booking.php?description_id=$descriptionId\">View booking</a><br>\n";
-		$message .= "$firstName $lastName - $email<br>\n";
-		$message .= "<pre>$comment</pre><br><br>\n";
-	}
-
-	sendMail(CONTACT_EMAIL, $locationName, CONTACT_EMAIL, $locationName, 'Booking arrived from myallocator', $message);
-
 	return true;
 }
 
 
+
+
+function saveDeposit($bookingData, $descrIds) {
+	global $link;
+	if(!isset($bookingData['Deposit']) or ($bookingData['Deposit'] < 1)) {
+		logMessgae("No deposit to save");
+		return true;
+	}
+
+	$amt = $bookingData['Deposit'];
+	$curr = $bookingData['DepositCurrency'];
+	logMessgae("Saving deposit: $amt $curr for booking: " . $descrIds[0]);
+	$sql = "INSERT INTO payments (booking_description_id, amount, currency, time_of_payment, comment) VALUE ($descrIds[0], $amt, '$curr', '$nowTime', '*booking deposit*')";
+	logMessage("Saving deposit. SQL: $sql");
+	if(SIMULATION) {
+		logMessage("SIMULATION mode, not actually saving in the db.");
+	} else {
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			logMessage("Cannot insert deposit payment: " . mysql_error($link) . " (SQL: $sql)");
+			return false;
+		}
+	}
+	return true;
+}
+
+
+
+function saveExtraServices($dbBookingDescriptions, $extraServices, $descrIds) {
+	global $link;
+	$nowTime = date('Y-m-d H:i:s');
+	$descrId = $descrIds[0];
+	$ids = array_keys($dbBookingDescriptions);
+	if(count($ids) > 0) {
+		$sql = "DELETE FROM service_charges WHERE booking_description_id IN (" . implode(',',$ids) . ")";
+		if(SIMULATION) {
+			logMessage("SIMULATION mode, not actually deleting existing service charges. SQL: $sql");
+		} else {
+			logMessage("Deleting existing service charges. SQL: $sql");
+			$result = mysql_query($sql, $link);
+			if(!$result) {
+				logMessage("Cannot update payment: " . mysql_error($link) . " (SQL: $sql)");
+				return false;
+			}
+		}
+	}
+	foreach($extraServices as $oneSc) {
+		$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($descrId, " . $oneSc['amount'] . ',\'' . $oneSc['currency'] . '\',\'' . $nowTime . '\',\'' . $oneSc['comment'] . '\',\'' . $oneSc['type'] . '\')';
+		if(SIMULATION) {
+			logMessage("SIMULATION mode, not actually creating new service charges. SQL: $sql");
+		} else {
+			logMessage("Creating new service charge. SQL: $sql");
+			$result = mysql_query($sql, $link);
+			if(!$result) {
+				logMessage("Cannot create new service charge: " . mysql_error($link) . " (SQL: $sql)");
+				return false;
+			}
+		}
+	}
+
+
+	return true;
+}
 
 
 
@@ -497,7 +839,6 @@ function respond($code, $success, $errorMessage = null) {
 	
 	logMessage("Response: code=$code, success=$success, errorMessage=$errorMessage");
 	$retVal = array('success' => true);
-	logMessage("Always send back success to myallocator to stop resending the message.");
 	logMessage("Response (as it is sent back): " . json_encode($retVal) . "\n\n");
 	
 	
@@ -505,7 +846,10 @@ function respond($code, $success, $errorMessage = null) {
 	echo json_encode($retVal);
 
 	if(!is_null($errorMessage)) {
-		sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', 'Error with booking from myallocator to ' . LOCATION, $errorMessage . "\n\nRequest:\n" . stripslashes($_REQUEST['booking']));
+		$result = sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', 'Error with booking from myallocator to ' . LOCATION, $errorMessage . "\n\nRequest:\n" . stripslashes($_REQUEST['booking']));
+		if(!is_null($result)) {
+			logMessage("Cannot send error email: " . $result);
+		}
 	}
 }
 
@@ -514,28 +858,15 @@ function findRoomTypeId($remoteRoomId, $propertyId) {
 	global $myallocatorRoomMap;
 	foreach($myallocatorRoomMap[$propertyId] as $roomTypeInfo) {
 		if($roomTypeInfo['remoteRoomId'] == $remoteRoomId) {
-			return $roomTypeInfo['roomTypeId'];
+			if(!is_array($roomTypeInfo['roomTypeId'])) {
+				return array($roomTypeInfo['roomTypeId']);
+			} else {
+				return $roomTypeInfo['roomTypeId'];
+			}
 		}
 	}
 
 	return null;
-}
-
-function isAllSameDate(&$rooms) {
-	$allSameDate = true;
-	$arriveDate = null;
-	$lastNight = null;
-	foreach($rooms as $roomData) {
-		if(is_null($arriveDate)) {
-			$arriveDate = $roomData['StartDate'];
-			$lastNight = $roomData['EndDate'];
-		} elseif(($arriveDate != $roomData['StartDate']) or ($lastNight != $roomData['EndDate'])) {
-			set_debug("Not all same: $arriveDate!=" . $roomData['StartDate'] . ", result: " . ($arriveDate != $roomData['StartDate']) . " and $lastNight!=" . $roomData['EndDate'] . ", result: " . ($lastNight != $roomData['EndDate']));
-			$allSameDate = false;
-			break;
-		}
-	}
-	return $allSameDate;
 }
 
 
@@ -626,75 +957,17 @@ function combineRooms($rooms) {
 }
 
 
-function isSameBooking($existingBookingDescription, $bookingData, $link, $propertyId, &$roomTypesData) {
-	$fnight = str_replace('/', '-', $existingBookingDescription['first_night']);
-	$lnight = str_replace('/', '-', $existingBookingDescription['last_night']);
-	logMessage("Checking if same booking: (existing booking: $fnight - $lnight, incoming booking: " . $bookingData['StartDate'] . " - " . $bookingData['EndDate'] . ")");
-	if(($fnight != $bookingData['StartDate']) or ($lnight != $bookingData['EndDate'])) {
-		return false;
-	}
-	logMessage("Checking if same rooms types with same num of guests");
-	$sql = "SELECT b.id, r.room_type_id, b.num_of_person FROM rooms r INNER JOIN bookings b ON b.room_id=r.id WHERE b.description_id=" . $existingBookingDescription['id'];
-	$result = mysql_query($sql, $link);
-	if(!$result) {
-		respond('51', false, "Cannot retieve booking in admin interface when canceling it: " . mysql_error($link) . " (SQL: $sql)");
-		return false;
-	}
-	$roomTypesBooked = array();
-	while($row = mysql_fetch_assoc($result)) {
-		$roomTypesBooked[$row['id']] = $row;
-	}
-
-	foreach($bookingData['Rooms'] as $roomData) {
-		foreach($roomData['RoomTypeIds'] as $myAllocRoomTypeId) {
-			$roomTypeId = findRoomTypeId($myAllocRoomTypeId, $propertyId);
-			if(is_null($roomTypeId)) {
-				return false;
-			}
-			$numOfPerson = $roomData['Units'];
-			if(isPrivate($roomTypesData[$roomTypeId]) or isApartment($roomTypesData[$roomTypeId])) {
-				$numOfPerson = $numOfPerson * $roomTypesData[$roomTypeId]['num_of_beds'];
-			}
-			$bid = getBookingId($roomTypesBooked, $roomTypeId, $numOfPerson);
-			if(is_null($bid)) {
-				logMessage("New room or different units is booked in request: myallocroom id=" . $myAllocRoomTypeId . ", units=" . $roomData['Units']);
-				return false;
-			} else {
-				logMessage("Room is booked with same units from request: myallocroom id=" . $myAllocRoomTypeId . ", units=" . $roomData['Units']);
-				unset($roomTypesBooked[$bid]);
-			}
-		}
-	}
-	logMessage("All bookings in the request are already booked. Removing " . count($roomTypesBooked) . " bookings that were booked before but not needed anymore");
-	foreach($roomTypesBooked as $bid => $row) {
-		logMessage("Removing booking as it is not needed anymore: roomTypeId=" . $row['room_type_id'] . ", num_of_person=" . $row['num_of_person']);
-		$sql = "DELETE FROM bookings WHERE id=$bid";
-		$result = mysql_query($sql, $link);
-		if(!$result) {
-			logMessage("Cannot remove unneeded booking. Error: " . mysql_error($link) . " (SQL: $sql)");
-			return false;
-		}
-	}
-
-	return true;
-}
-
-function getBookingId(&$roomTypesBooked, $roomTypeId, $numOfPerson) {
-	foreach($roomTypesBooked as $bid => $row) {
-		if($row['room_type_id'] == $roomTypeId and $row['num_of_person'] == $numOfPerson) {
-			return $bid;
-		}
-	}
-	return null;
-}
-
 
 function logMessage($message) {
-	$fh = fopen("logs/myallocator." . date('Ymd') . ".log", "a");
-	if($fh) {
-		fwrite($fh, date('Y-m-d H:i:s') . " ");
-		fwrite($fh, $message . "\n");
-		fclose($fh);
+	if(php_sapi_name() === 'cli') {
+		echo date('Y-m-d H:i:s') . " " . $message . "\n";
+	} else {
+		$fh = fopen("logs/myallocator." . date('Ymd') . ".log", "a");
+		if($fh) {
+			fwrite($fh, date('Y-m-d H:i:s') . " ");
+			fwrite($fh, $message . "\n");
+			fclose($fh);
+		}
 	}
 }
 

@@ -35,6 +35,37 @@ if(!$result) {
 	mysql_close($link);
 	return;
 }
+if($id < 1) {
+	$id = mysql_insert_id($link);
+}
+
+$additionalRoomTypes = array();
+if(isset($_REQUEST['additional_types'])) {
+	$additionalRoomTypes = $_REQUEST['additional_types'];
+}
+$sql = "DELETE FROM rooms_to_room_types WHERE room_id=$id";
+$result = mysql_query($sql, $link);
+if(!$result) {
+	trigger_error("Cannot create room in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	set_error('Cannot save new room');
+	mysql_close($link);
+	return;
+}
+if(count($additionalRoomTypes) > 0) {
+	$sql = "INSERT INTO rooms_to_room_types (room_id, room_type_id) VALUES ";
+	foreach($additionalRoomTypes as $rt) {
+		$sql .= "($id, $rt),";
+	}
+	$sql = substr($sql, 0, -1);
+	$result = mysql_query($sql, $link);
+	if(!$result) {
+		trigger_error("Cannot create room in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+		set_error('Cannot save new room');
+		mysql_close($link);
+		return;
+	}
+}
+
 
 set_message('Room saved');
 mysql_query("COMMIT", $link);

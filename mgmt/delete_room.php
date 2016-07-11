@@ -49,6 +49,16 @@ if(!$result) {
 	return;
 }
 
+$sql = "DELETE FROM rooms_to_room_types WHERE room_id=$id";
+$result = mysql_query($sql, $link);
+if(!$result) {
+	trigger_error("Cannot delete room in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	set_error('Cannot delete room');
+	mysql_close($link);
+	return;
+}
+
+
 set_message('Room deleted');
 mysql_query("COMMIT", $link);
 mysql_close($link);

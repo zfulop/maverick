@@ -61,7 +61,7 @@ function sendBcr($row, $location, $link) {
 	$subject = str_replace('LOCATION', $locationName, BCR_MESSAGE_ONE_WEEK_SUBJECT);
 	
 	$result = sendMail(CONTACT_EMAIL, $locationName, 
-		$email, $name, sprintf(BCR_MESSAGE_ONE_WEEK_SUBJECT, $locationName), $mailMessage, $inlineAttachments);
+		$email, $name, $subject, $mailMessage, $inlineAttachments);
 
 	echo "BCR Email sent to $name $email $fnight [result: $result]";
 		
