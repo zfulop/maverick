@@ -217,6 +217,26 @@ echo <<<EOT
       </div>
 
 
+<!-- Google Code for Kapcsolati_oldalon_urlap_bekuldes Conversion Page -->
+<script type="text/javascript">
+/* <![CDATA[ */
+var google_conversion_id = 999565014;
+var google_conversion_language = "en";
+var google_conversion_format = "3";
+var google_conversion_color = "ffffff";
+var google_conversion_label = "CP_CCLzD0mcQ1s3Q3AM";
+var google_remarketing_only = false;
+/* ]]> */
+</script>
+<script type="text/javascript" src="//www.googleadservices.com/pagead/conversion.js">
+</script>
+<noscript>
+<div style="display:inline;">
+<img height="1" width="1" style="border-style:none;" alt="" src="//www.googleadservices.com/pagead/conversion/999565014/?label=CP_CCLzD0mcQ1s3Q3AM&amp;guid=ON&amp;script=0"/>
+</div>
+</noscript>
+
+
 EOT;
 
 html_end();

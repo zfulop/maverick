@@ -295,21 +295,54 @@ if(isset($_SESSION['booking_source']) and ($_SESSION['booking_source'] == 'WHIP'
 EOT;
 }
 
-echo <<<EOT
 
-      <h1 class="page-title page-title-booknow">$thankYou</h1>
-      
-      <div class="fluid-wrapper booking">
-        <section id="thank-you" class="clearfix">
-          <h1>$thankYouForYourBooking</h1>
-          
-          <iframe class="likebox" src="//www.facebook.com/plugins/likebox.php?href=https%3A%2F%2Fwww.facebook.com%2Fpages%2FMaverick-Hostel%2F115569091837790&amp;width&amp;height=258&amp;colorscheme=light&amp;show_faces=true&amp;header=false&amp;stream=false&amp;show_border=false"></iframe>
-        </section>
-      </div>
+$googleAdConversion = '';
+if($location == 'hostel') {
+	$googleAdConversion =<<<EOT
+<!-- Google Code for Maverick Hostel Conversion Page -->
+<script type="text/javascript">
+/* <![CDATA[ */
+var google_conversion_id = 999565014;
+var google_conversion_language = "en";
+var google_conversion_format = "2";
+var google_conversion_color = "ffffff";
+var google_conversion_label = "ZbaBCILT6AcQ1s3Q3AM";
+var google_remarketing_only = false;
+/* ]]> */
+</script>
+<script type="text/javascript" src="//www.googleadservices.com/pagead/conversion.js">
+</script>
+<noscript>
+<div style="display:inline;">
+<img height="1" width="1" style="border-style:none;" alt="" src="//www.googleadservices.com/pagead/conversion/999565014/?label=ZbaBCILT6AcQ1s3Q3AM&amp;guid=ON&amp;script=0"/>
+</div>
+</noscript>
 
+EOT;
+} elseif ($location == 'apartment') {
+	$googleAdConversion =<<<EOT
+<!-- Google Code for Apartman foglalas Conversion Page -->
+<script type="text/javascript">
+/* <![CDATA[ */
+var google_conversion_id = 999565014;
+var google_conversion_language = "en";
+var google_conversion_format = "3";
+var google_conversion_color = "ffffff";
+var google_conversion_label = "DFYbCMD0v2cQ1s3Q3AM";
+var google_remarketing_only = false;
+/* ]]> */
+</script>
+<script type="text/javascript" src="//www.googleadservices.com/pagead/conversion.js">
+</script>
+<noscript>
+<div style="display:inline;">
+<img height="1" width="1" style="border-style:none;" alt="" src="//www.googleadservices.com/pagead/conversion/999565014/?label=DFYbCMD0v2cQ1s3Q3AM&amp;guid=ON&amp;script=0"/>
+</div>
+</noscript>
 
-$extraHtml
-
+EOT;
+} elseif ($location == 'lodge') {
+	$googleAdConversion =<<<EOT
 <!-- Google Code for &uacute;j honlap - booking - LODGE Conversion Page -->
 <script type="text/javascript">
 /* <![CDATA[ */
@@ -329,6 +362,26 @@ var google_remarketing_only = false;
 <img height="1" width="1" style="border-style:none;" alt="" src="//www.googleadservices.com/pagead/conversion/999565014/?value=0&amp;label=9j9rCPqC9AcQ1s3Q3AM&amp;guid=ON&amp;script=0"/>
 </div>
 </noscript>
+
+EOT;
+}
+
+echo <<<EOT
+
+      <h1 class="page-title page-title-booknow">$thankYou</h1>
+      
+      <div class="fluid-wrapper booking">
+        <section id="thank-you" class="clearfix">
+          <h1>$thankYouForYourBooking</h1>
+          
+          <iframe class="likebox" src="//www.facebook.com/plugins/likebox.php?href=https%3A%2F%2Fwww.facebook.com%2Fpages%2FMaverick-Hostel%2F115569091837790&amp;width&amp;height=258&amp;colorscheme=light&amp;show_faces=true&amp;header=false&amp;stream=false&amp;show_border=false"></iframe>
+        </section>
+      </div>
+
+
+$extraHtml
+
+$googleAdConversion
 
 
 EOT;

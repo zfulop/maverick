@@ -250,6 +250,7 @@ $message = <<<EOT
       </td>
     </tr>
   </table>
+
 </body>
 </html>
 
@@ -280,6 +281,25 @@ echo <<<EOT
           <iframe class="likebox" src="//www.facebook.com/plugins/likebox.php?href=https%3A%2F%2Fwww.facebook.com%2Fpages%2FMaverick-Hostel%2F115569091837790&amp;width&amp;height=258&amp;colorscheme=light&amp;show_faces=true&amp;header=false&amp;stream=false&amp;show_border=false"></iframe>
         </section>
       </div>
+
+<!-- Google Code for Csoportos ajanlatkeres Conversion Page -->
+<script type="text/javascript">
+/* <![CDATA[ */
+var google_conversion_id = 999565014;
+var google_conversion_language = "en";
+var google_conversion_format = "3";
+var google_conversion_color = "ffffff";
+var google_conversion_label = "vLVQCP7Jv2cQ1s3Q3AM";
+var google_remarketing_only = false;
+/* ]]> */
+</script>
+<script type="text/javascript" src="//www.googleadservices.com/pagead/conversion.js">
+</script>
+<noscript>
+<div style="display:inline;">
+<img height="1" width="1" style="border-style:none;" alt="" src="//www.googleadservices.com/pagead/conversion/999565014/?label=vLVQCP7Jv2cQ1s3Q3AM&guid=ON&script=0"/>
+</div>
+</noscript>
 
 
 EOT;
