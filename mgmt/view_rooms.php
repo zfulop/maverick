@@ -302,8 +302,8 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 	echo "</script>\n";
 
 	echo "	<tr>";
-	echo "<td><table><tr><td rowspan=\"2\">" . $row['_order'] . ".</td><td><input type=\"button\" value=\"Move up\" onclick=\"window.location='change_order.php?direction=up&table=room_types&id=" . $row['id'] . "&order=" . $row['_order'] . "';\"></td></tr><tr><td><input type=\"button\" value=\"Move down\" onclick=\"window.location='change_order.php?direction=down&table=room_types&id=" . $row['id'] . "&order=" . $row['_order'] . "';\"></td></tr></table></td>";
-	echo "<td><strong>" . $roomType['name'] . "</strong></td>";
+	echo "<td><table><tr><td rowspan=\"2\">" . $roomType['_order'] . ".</td><td><input type=\"button\" value=\"Move up\" onclick=\"window.location='change_order.php?direction=up&table=room_types&id=" . $roomType['id'] . "&order=" . $roomType['_order'] . "';\"></td></tr><tr><td><input type=\"button\" value=\"Move down\" onclick=\"window.location='change_order.php?direction=down&table=room_types&id=" . $roomType['id'] . "&order=" . $roomType['_order'] . "';\"></td></tr></table></td>";
+	echo "<td><strong>" . $roomType['name'] . "</strong></td>";omTypo
 	echo "<td>" . $roomType['type'] . "</td>";
 	echo "<td>" . $roomType['price_per_bed'] . "</td>";
 	echo "<td>" . $roomType['price_per_room'] . "</td>";
