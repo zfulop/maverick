@@ -66,6 +66,9 @@ foreach(getLanguages() as $lang => $name) {
 	$name = mysql_real_escape_string($_REQUEST["name_$lang"], $link);
 	$description = mysql_real_escape_string($_REQUEST["description_$lang"], $link);
 	$shortDescription = mysql_real_escape_string($_REQUEST["short_description_$lang"], $link);
+	$size = mysql_real_escape_string($_REQUEST["size_$lang"], $link);
+	$location = mysql_real_escape_string($_REQUEST["location_$lang"], $link);
+	$bathroom = mysql_real_escape_string($_REQUEST["bathroom_$lang"], $link);
 	$sql = "INSERT INTO lang_text (table_name, column_name, row_id, lang, value) VALUES ('room_types', 'name', $id, '$lang', '$name')";
 	if(!mysql_query($sql, $link)) {
 		trigger_error("Can save room type name in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -83,6 +86,27 @@ foreach(getLanguages() as $lang => $name) {
 	$sql = "INSERT INTO lang_text (table_name, column_name, row_id, lang, value) VALUES ('room_types', 'short_description', $id, '$lang', '$shortDescription')";
 	if(!mysql_query($sql, $link)) {
 		trigger_error("Cannot save room type short_description in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+		set_error('Cannot save room type');
+		mysql_close($link);
+		return;
+	}
+	$sql = "INSERT INTO lang_text (table_name, column_name, row_id, lang, value) VALUES ('room_types', 'location', $id, '$lang', '$location')";
+	if(!mysql_query($sql, $link)) {
+		trigger_error("Cannot save room type location in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+		set_error('Cannot save room type');
+		mysql_close($link);
+		return;
+	}
+	$sql = "INSERT INTO lang_text (table_name, column_name, row_id, lang, value) VALUES ('room_types', 'size', $id, '$lang', '$size')";
+	if(!mysql_query($sql, $link)) {
+		trigger_error("Cannot save room type size in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+		set_error('Cannot save room type');
+		mysql_close($link);
+		return;
+	}
+	$sql = "INSERT INTO lang_text (table_name, column_name, row_id, lang, value) VALUES ('room_types', 'bathroom', $id, '$lang', '$bathroom')";
+	if(!mysql_query($sql, $link)) {
+		trigger_error("Cannot save room type bathroom in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 		set_error('Cannot save room type');
 		mysql_close($link);
 		return;

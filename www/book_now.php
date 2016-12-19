@@ -26,6 +26,11 @@ $zip = $_REQUEST['data_zip'];
 $country = $_REQUEST['data_country'];
 $comment = $_REQUEST['data_comment'];
 
+if(trim($firstname)=='1' or trim($lastname)=='1' or trim($email)=='1') {
+	header('Location: index.php');
+	return;
+}
+
 $_SESSION['firstname'] = $_REQUEST['data_firstname'];
 $_SESSION['lastname'] = $_REQUEST['data_last_name'];
 $_SESSION['email'] = $_REQUEST['data_email'];
@@ -128,19 +133,11 @@ $hasBookings = false;
 foreach($roomTypesData as $roomTypeId => $roomType) {
 	$key = 'room_type_' . $location . '_' . $roomTypeId;
 	if(isset($_SESSION[$key])) {
-		$numOfPersonForRoomType[$roomTypeId] = $_SESSION[$key];
+		$numOfPersonForRoomType[] = array('roomTypeIds'=> array($roomTypeId), 'numOfPerson' => array($_SESSION[$key]));
 		if($_SESSION[$key] > 0) {
 			$hasBookings = true;
 		}
 	}
-	/*if(isApartment($roomType)) {
-		for($i = 2; $i <= $roomType['num_of_beds']; $i++) {
-			$key = 'room_type_' . $location . '_' . $roomTypeId . '_' . $i;
-			if(isset($_SESSION[$key])) {
-				$numOfPersonForRoomType[$roomTypeId . '_' . $i] = $_SESSION[$key];
-			}
-		}
-	}*/
 }
 
 if(!$hasBookings) {

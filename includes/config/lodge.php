@@ -58,14 +58,34 @@ $myallocatorRoomMap = array(
 		),
 		array(
 			'roomName' => 'Female 8 bed dorm',
-			'roomTypeId' => ,
+			'roomTypeId' => 74,
 			'remoteRoomId' => '78144'
 		),
 		array(
 			'roomName' => 'Female 10 bed dorm',
-			'roomTypeId' => 72,
+			'roomTypeId' => 73,
 			'remoteRoomId' => '78143'
-		)	
+		),
+		array(
+			'roomName' => 'Twin room ensuite',
+			'roomTypeId' => 75,
+			'remoteRoomId' => '83648'
+		),
+		array(
+			'roomName' => 'One-Bedroom apartment C42',
+			'roomTypeId' => 76,
+			'remoteRoomId' => '87828'
+		),
+		array(
+			'roomName' => 'One-Bedroom apartment C23',
+			'roomTypeId' => 77,
+			'remoteRoomId' => '87829'
+		),
+		array(
+			'roomName' => 'Two-Bedroom apartment B25',
+			'roomTypeId' => 78,
+			'remoteRoomId' => '87830'
+		)
 	)
 );
 

@@ -12,6 +12,7 @@ define('PHP_MAILER_SENDTYPE_SMTP_SECURE', '');
 define('PHP_MAILER_SENDTYPE_SMTP_USER', 'maverick_webserver');
 define('PHP_MAILER_SENDTYPE_SMTP_PASSWORD', 'MnFoN3I3ajdiODN5');
 
+define('LOG_DIR', '/home/zolika/logs/cleaner/');
 
 define('EMAIL_IMG_DIR', "/home/zolika/www/img/email/");
 

@@ -59,16 +59,11 @@ while($row = mysql_fetch_assoc($result)) {
 //
 $numOfPersonForRoomType = array();
 foreach($roomTypes as $roomTypeId => $roomType) {
-	/*if(isApartment($roomType)) {
-		for($i = 2; $i <= $roomType['num_of_beds']; $i++) {
-			if(isset($_REQUEST['num_of_person_' . $roomTypeId . '_' . $i]) {
-				$numOfPersonForRoomType[$roomTypeId . '_' . $i] = $_REQUEST['num_of_person_' . $roomTypeId . '_' . $i];
-			}
-		}
-	} else {*/
-		$numOfPersonForRoomType[$roomTypeId] = $_REQUEST['num_of_person_' . $roomTypeId];
-	//}
+	if(isset($_REQUEST['num_of_person_' . $roomTypeId]) and intval($_REQUEST['num_of_person_' . $roomTypeId]) > 0) {
+		$numOfPersonForRoomType[] = array('roomTypeIds'=> array($roomTypeId), 'numOfPerson' => array($_REQUEST['num_of_person_' . $roomTypeId]));
+	}
 }
+
 $overbookings = getOverbookings($numOfPersonForRoomType, $startDate, $endDate, $rooms);
 $error = false;
 $warning = false;

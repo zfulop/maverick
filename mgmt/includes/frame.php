@@ -7,23 +7,23 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 	$title = $_SESSION['login_hotel_name'] . ' - Mgmt - ' . $title;
 	$loginName = $_SESSION['login_user'];
 
-	$logout = MGMT_ROOT_URL . 'logout.php';
-	$changePassword = MGMT_ROOT_URL . 'change_password.php';
-	$index = MGMT_ROOT_URL . 'index.php';
-	$users = MGMT_ROOT_URL . 'view_users.php';
-	$report = MGMT_ROOT_URL . 'view_money_report.php';
-	$cashBookings = MGMT_ROOT_URL . 'view_cash_bookings.php';
-	$shifts = MGMT_ROOT_URL . 'view_shifts.php';
-	$vacations = MGMT_ROOT_URL . 'view_vacations.php';
-	$lists = MGMT_ROOT_URL . 'view_lists.php';
-	$minMax = MGMT_ROOT_URL . 'view_min_max_stay.php';
-	$photos = MGMT_ROOT_URL . 'view_room_images.php';
-	$rooms = MGMT_ROOT_URL . 'view_rooms.php';
-	$texts = MGMT_ROOT_URL . 'view_site_text.php';
-	$audit = MGMT_ROOT_URL . 'view_audit.php';
-	$pricing = MGMT_ROOT_URL . 'view_pricing.php';
+	$logout = ROOT_URL . 'logout.php';
+	$changePassword = ROOT_URL . 'change_password.php';
+	$index = ROOT_URL . 'index.php';
+	$users = ROOT_URL . 'view_users.php';
+	$report = ROOT_URL . 'view_money_report.php';
+	$cashBookings = ROOT_URL . 'view_cash_bookings.php';
+	$shifts = ROOT_URL . 'view_shifts.php';
+	$vacations = ROOT_URL . 'view_vacations.php';
+	$lists = ROOT_URL . 'view_lists.php';
+	$minMax = ROOT_URL . 'view_min_max_stay.php';
+	$photos = ROOT_URL . 'view_room_images.php';
+	$rooms = ROOT_URL . 'view_rooms.php';
+	$texts = ROOT_URL . 'view_site_text.php';
+	$audit = ROOT_URL . 'view_audit.php';
+	$pricing = ROOT_URL . 'view_pricing.php';
 
-	$tooltipJs = MGMT_ROOT_URL . 'js/wz_tooltip.js';
+	$tooltipJs = ROOT_URL . 'js/wz_tooltip.js';
 
 	if($incldeWzTooltip) {
 		$tooltipJsHtml = "<script type=\"text/javascript\" src=\"$tooltipJs\"></script>\n";
@@ -31,8 +31,8 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 		$tooltipJsHtml = '';
 	}
 
-	$prototypeJs = MGMT_ROOT_URL . 'js/prototype.js';
-	$css = MGMT_ROOT_URL . 'maverick-mgmt.css';
+	$prototypeJs = ROOT_URL . 'js/prototype.js';
+	$css = ROOT_URL . 'maverick-mgmt.css';
 
 	echo <<<EOT
 <html>

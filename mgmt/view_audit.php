@@ -32,7 +32,7 @@ if(isset($_REQUEST['rec_login'])) {
 }
 
 $recOptions = '<option value="">All</option>';
-$sql = "SELECT name, login FROM receptionists ORDER BY name";
+$sql = "SELECT name, username as login FROM users WHERE role='RECEPTION' ORDER BY name";
 $result = mysql_query($sql, $link);
 while($row = mysql_fetch_assoc($result)) {
 	$login = $row['login'];

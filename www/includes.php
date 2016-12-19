@@ -15,8 +15,9 @@ require('includes/message.php');
 require('includes/ip_to_location.php');
 require('includes/audit.php');
 require('includes/mail.php');
+require('../includes/logger.php');
 
-set_error_handler('printOutErrorHandler');
+set_error_handler('log4phpErrorHandler');
 //set_error_handler('sessionErrorHandler');
 //set_error_handler('nullErrorHandler');
 session_start();

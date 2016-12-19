@@ -174,6 +174,9 @@ foreach(getLanguages() as $langCode => $langName) {
 	<tr><td><label>Name ($langName)</label></td><td><input name="name_$langCode" id="name_$langCode" style="width: 200px"></td></tr>
 	<tr><td><label>Short description ($langName) (eg. dbl room)</label></td><td><input style="width: 600px;" name="short_description_$langCode" id="short_description_$langCode"></td></tr>
 	<tr><td><label>Description ($langName)</label></td><td><textarea style="width: 600px; height=400px;" name="description_$langCode" id="description_$langCode"></textarea></td></tr>
+	<tr><td><label>Size ($langName)</label></td><td><textarea style="width: 600px; height=400px;" name="size_$langCode" id="size_$langCode"></textarea></td></tr>
+	<tr><td><label>Location ($langName)</label></td><td><textarea style="width: 600px; height=400px;" name="location_$langCode" id="location_$langCode"></textarea></td></tr>
+	<tr><td><label>Bathroom ($langName)</label></td><td><textarea style="width: 600px; height=400px;" name="bathroom_$langCode" id="bathroom_$langCode"></textarea></td></tr>
 
 EOT;
 }
@@ -297,13 +300,22 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 		if(isset($cols['short_description'])) {
 			echo "		document.getElementById('short_description_$lang').value='" . js_escape($cols['short_description']) . "';\n";
 		}
+		if(isset($cols['location'])) {
+			echo "		document.getElementById('location_$lang').value='" . js_escape($cols['location']) . "';\n";
+		}
+		if(isset($cols['size'])) {
+			echo "		document.getElementById('size_$lang').value='" . js_escape($cols['size']) . "';\n";
+		}
+		if(isset($cols['bathroom'])) {
+			echo "		document.getElementById('bathroom_$lang').value='" . js_escape($cols['bathroom']) . "';\n";
+		}
 	}
 	echo "	}\n";
 	echo "</script>\n";
 
 	echo "	<tr>";
 	echo "<td><table><tr><td rowspan=\"2\">" . $roomType['_order'] . ".</td><td><input type=\"button\" value=\"Move up\" onclick=\"window.location='change_order.php?direction=up&table=room_types&id=" . $roomType['id'] . "&order=" . $roomType['_order'] . "';\"></td></tr><tr><td><input type=\"button\" value=\"Move down\" onclick=\"window.location='change_order.php?direction=down&table=room_types&id=" . $roomType['id'] . "&order=" . $roomType['_order'] . "';\"></td></tr></table></td>";
-	echo "<td><strong>" . $roomType['name'] . "</strong></td>";omTypo
+	echo "<td><strong>" . $roomType['name'] . "</strong></td>";
 	echo "<td>" . $roomType['type'] . "</td>";
 	echo "<td>" . $roomType['price_per_bed'] . "</td>";
 	echo "<td>" . $roomType['price_per_room'] . "</td>";

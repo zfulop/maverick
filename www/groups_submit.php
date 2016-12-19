@@ -37,6 +37,10 @@ $_SESSION['group_nationality'] = $_REQUEST['data_nationality'];
 $_SESSION['group_roomType'] = $_REQUEST['data_roomtype'];
 $_SESSION['group_comment'] = $_REQUEST['data_comment'];
 
+if(trim($firstname)=='1' or trim($lastname)=='1' or trim($email)=='1') {
+	header('Location: ' . $_SERVER['HTTP_REFERER']);
+	return;
+}
 
 $error = false;
 if(strlen(trim($firstname)) < 1) {

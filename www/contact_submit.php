@@ -17,6 +17,7 @@ $destination = $_REQUEST['destination'];
 $nationality = $_REQUEST['nationality'];
 $comment = $_REQUEST['comment'];
 
+
 $_SESSION['contact_firstname'] = $_REQUEST['firstname'];
 $_SESSION['contact_lastname'] = $_REQUEST['lastname'];
 $_SESSION['contact_email'] = $_REQUEST['email'];
@@ -27,6 +28,10 @@ $_SESSION['contact_destination'] = $_REQUEST['destination'];
 $_SESSION['contact_nationality'] = $_REQUEST['nationality'];
 $_SESSION['contact_comment'] = $_REQUEST['comment'];
 
+if(trim($firstname)=='1' or trim($lastname)=='1' or trim($email)=='1') {
+	header('Location: ' . $_SERVER['HTTP_REFERER']);
+	return;
+}
 
 $error = false;
 if(strlen(trim($firstname)) < 1) {

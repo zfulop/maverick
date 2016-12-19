@@ -33,14 +33,8 @@ $specialOffers = loadSpecialOffers($startDate, $endDate, $link);
 //
 $numOfPersonForRoomType = array();
 foreach($roomTypes as $roomTypeId => $roomType) {
-	if(isApartment($roomType)) {
-		for($i = 2; $i <= $roomType['num_of_beds']; $i++) {
-			if(isset($_REQUEST['num_of_person_' . $roomTypeId . '_' . $i])) {
-				$numOfPersonForRoomType[$roomTypeId . '_' . $i] = $_REQUEST['num_of_person_' . $roomTypeId . '_' . $i];
-			}
-		}
-	} elseif(isset($_REQUEST['num_of_person_' . $roomTypeId])) {
-		$numOfPersonForRoomType[$roomTypeId] = $_REQUEST['num_of_person_' . $roomTypeId];
+	if(isset($_REQUEST['num_of_person_' . $roomTypeId]) and intval($_REQUEST['num_of_person_' . $roomTypeId]) > 0) {
+		$numOfPersonForRoomType[] = array('roomTypeIds'=> array($roomTypeId), 'numOfPerson' => array($_REQUEST['num_of_person_' . $roomTypeId]));
 	}
 }
 
@@ -80,7 +74,7 @@ if($warning) {
 
 
 // We can save the booking now!
-set_debug("We can add the booking now!");
+logDebug("We can add the booking now!");
 
 
 // Now create an array: $toBook that contains the roomId as a key and the value contains the number

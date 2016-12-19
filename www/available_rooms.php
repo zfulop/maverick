@@ -8,12 +8,6 @@ require(RECEPCIO_BASE_DIR . 'room_booking.php');
 // If a new search is executed from the availability screen, we have to adjust the location 
 // and the apartment setting accordingly (location can be hostel,lodge,apartment)
 
-if(isset($_REQUEST['location']) and $_REQUEST['location'] == 'apartments') {
-	$_SESSION['apartment'] = 'yes';
-} elseif(isset($_REQUEST['location'])) {
-	$_SESSION['apartment'] = 'no';
-}
-
 
 $location = getLocation();
 $lang = getCurrentLanguage();
@@ -228,7 +222,7 @@ echo <<<EOT
 EOT;
 
 foreach($roomTypesData as $roomTypeId => $roomType) {
-	if(showApartments() !== isApartment($roomType)) {
+	if(showApartments() !== isApartment($roomType) and $location != 'lodge') {
 		continue;
 	}
 	if($location == 'hostel' and isClientFromHU() and $roomType['num_of_beds'] > 5) {

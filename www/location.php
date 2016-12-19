@@ -18,12 +18,6 @@ if(isset($_SESSION['booking_error'])) {
 	unset($_SESSION['booking_error']);
 }
 
-if(isset($_REQUEST['apartment'])) {
-	$_SESSION['apartment'] = $_REQUEST['apartment'];
-} elseif(!isset($_SESSION['apartment'])) {
-	$_SESSION['apartment'] = 'no';
-}
-
 
 $afterBody = <<<EOT
     <div id='gallery'>
@@ -125,10 +119,10 @@ foreach($specialOffers as $spId => $so) {
 	if($so['visible'] != 1) {
 		continue;
 	}
-	if(showApartments() and !isSOForApartment($so, $roomTypesData)) {
+	if(showApartments() and $location != 'lodge' and !isSOForApartment($so, $roomTypesData)) {
 		continue;
 	}
-	if(!showApartments() and !isSOForDormOrPrivate($so, $roomTypesData)) {
+	if(!showApartments() and $location != 'lodge' and !isSOForDormOrPrivate($so, $roomTypesData)) {
 		continue;
 	}
 	$title = $so['title'];
@@ -381,7 +375,7 @@ $gallery = GALLERY;
 
 $locationName = getLocationName($location);
 foreach($roomTypesData as $roomTypeId => $roomType) {
-	if(showApartments() !== isApartment($roomType)) {
+	if(showApartments() !== isApartment($roomType) and $location != 'lodge') {
 		continue;
 	}
 	if($location=='hostel' and isClientFromHU() and $roomType['num_of_beds'] > 5) {

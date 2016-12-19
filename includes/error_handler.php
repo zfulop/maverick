@@ -39,6 +39,12 @@ function sessionErrorHandler($errno, $errstr, $errfile, $errline, $errcontext) {
 	set_error("[$errno] $errstr ($errfile:$errline)");
 }
 
+// error handler function
+function log4phpErrorHandler($errno, $errstr, $errfile, $errline, $errcontext) {
+	logError("[$errno] $errstr ($errfile:$errline)");
+}
+
+
 function dbErrorHandler($errno, $errstr, $errfile, $errline, $errcontext) {
 	//$handler = set_error_handler("nullErrorHandler");
 	$errorLink = mysql_connect(DB_HOST, DB_USER, DB_PASSWORD, true);
