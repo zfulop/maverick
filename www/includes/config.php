@@ -27,8 +27,8 @@ define('PHP_MAILER_SENDTYPE_SMTP_HOST', 'mail.smtp2go.com');
 define('PHP_MAILER_SENDTYPE_SMTP_PORT', '80');
 define('PHP_MAILER_SENDTYPE_SMTP_AUTHORIZATION_REQ', true);
 define('PHP_MAILER_SENDTYPE_SMTP_SECURE', '');
-define('PHP_MAILER_SENDTYPE_SMTP_USER', 'maverick_webserver');
-define('PHP_MAILER_SENDTYPE_SMTP_PASSWORD', 'MnFoN3I3ajdiODN5');
+define('PHP_MAILER_SENDTYPE_SMTP_USER', 'sdfvew');
+define('PHP_MAILER_SENDTYPE_SMTP_PASSWORD', 'NmQ4Ym9qMnB2dzli');
 
 define('EMAIL_IMG_DIR', BASE_DIR . "img/email/");
 define('ROOMS_IMG_DIR', BASE_DIR . "img/rooms/");

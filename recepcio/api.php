@@ -8,7 +8,7 @@ if(!isset($_REQUEST['action'])) {
 	return;
 }
 $action = $_REQUEST['action'];
-
+logDebug("\nAPI action: $action");
 if($action == 'rooms') {
 	$retVal = _loadRooms();
 } elseif($action == 'availability') {
@@ -25,6 +25,7 @@ if($action == 'rooms') {
 
 header("Content-Type: application/json");
 echo json_encode($retVal);
+logDebug("end of API call");
 return;
 
 
@@ -58,6 +59,12 @@ function loadAvailability() {
 	$toDate = $_REQUEST['to'];
 	$nights = round((strtotime($toDate) - strtotime($fromDate)) / (60*60*24));
 
+	$filterRoomIds = null;
+	if(isset($_REQUEST['filter_room_types'])) {
+		$filterRoomIds = explode(',', $_REQUEST['filter_room_types']);
+		logDebug("Filtering for room type ids: " . print_r($filterRoomIds, true));
+	}
+	
 	logDebug("Loading availability from $fromDate to $toDate ($nights nights)");
 
 	if($fromDate < date('Y-m-d')) {
@@ -90,8 +97,9 @@ function loadAvailability() {
 
 	logDebug("Loading special offers for period");
 	$retVal = array();
-	$retVal['special_offers'] = loadSpecialOffers($arriveDate,$lastNight, $link, $lang);
-
+	$specialOffers = loadSpecialOffers($arriveDate,$lastNight, $link, $lang);
+	$retVal['special_offers'] = $specialOffers;
+	 
 	logDebug("Loading room types");
 	$roomTypesData = loadRoomTypes($link, $lang);
 	loadRoomImages($roomTypesData, $link);
@@ -100,14 +108,18 @@ function loadAvailability() {
 	$rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
 	foreach($rooms as $roomId => $roomData) {
 		foreach($roomData['room_types']	as $roomTypeId => $roomTypeName) {
-			fillInPriceAndAvailability($arriveDateTs, $nights, $roomData, $roomTypesData[$roomTypeId]);
+			if(is_null($filterRoomIds) or in_array($roomTypeId, $filterRoomIds)) {
+				fillInPriceAndAvailability($arriveDateTs, $nights, $roomData, $roomTypesData[$roomTypeId]);
+			}
 		}
 	}
 
 	$retVal['rooms'] = array();
 	foreach($roomTypesData as $roomTypeId => $roomType) {
-		matchSpecialOffer($roomType, $roomTypeId, $nights, $arriveDate, $specialOffers, $link);
-		$retVal['rooms'][] = $roomType;
+		if(is_null($filterRoomIds) or in_array($roomTypeId, $filterRoomIds)) {
+			matchSpecialOffer($roomType, $roomTypeId, $nights, $arriveDate, $specialOffers, $link);
+			$retVal['rooms'][] = $roomType;
+		}
 	}
 
 	mysql_close($link);
@@ -190,7 +202,6 @@ function sortRoomsByAvailOrder($rt1, $rt2) {
 	}
 }
 
-
 function matchSpecialOffer(&$roomType, $roomTypeId, $nights, $arriveDate, $specialOffers, $link) {
 	$so = null;
 	$specialOfferForOneMoreDay = null;
@@ -270,7 +281,7 @@ function doBooking() {
 		trigger_error("Cannot save booking: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 		mysql_query('ROLLBACK', $link);
 		mysql_close($link);
-		return array('error' => 'DB_ERROR');
+		return array('error' => 'Could not save booking description.');
 	}
 	$descriptionId = mysql_insert_id($link);
 
@@ -289,7 +300,7 @@ function doBooking() {
 			trigger_error("Cannot save service charge: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 			mysql_query('ROLLBACK', $link);
 			mysql_close($link);
-			return array('error' => 'DB_ERROR');
+			return array('error' => 'Could not save the selected services.');
 		}
 	}
 
@@ -807,12 +818,16 @@ function loadRoomCalendarAvailability() {
 	}
 	$location = $_REQUEST['location'];
 	$lang = $_REQUEST['lang'];
-	$link = db_connect($location);
-
 	$startDate = $_REQUEST['from'];
 	$endDate = $_REQUEST['to'];
 	$startTs = strtotime($startDate);
 	$endTs = strtotime($endDate);
+
+	if($endTs < $startTs) {
+		return array('error' => 'CHECKOUT_DATE_MUST_BE_AFTER_CHECKIN_DATE');
+	}
+
+	$link = db_connect($location);
 
 	$roomTypeId = $_REQUEST['room_type_id'];
 
@@ -828,14 +843,22 @@ function loadRoomCalendarAvailability() {
 		$month = strftime("%b", $currTs);
 		$currDate = date('Y-m-d', $currTs);
 		$availability = 0;
+		$availabilityRoom = 0;
 		foreach($rooms as $roomId => $roomData) {
 			if($roomData['room_type_id'] != $roomTypeId) {
 				continue;
 			}
-			$availability += getNumOfAvailBeds($roomData, $currDate);
+			$beds = getNumOfAvailBeds($roomData, $currDate);
+			if((isPrivate($roomData) or isApartment($roomData)) and $beds < $roomData['num_of_beds']) {
+				$beds = 0;
+			}
+			$availability += $beds;
+			if($beds > 0 and (isPrivate($roomData) or isApartment($roomData))) {
+				$availabilityRoom += 1;
+			}
 		}
 
-		$avail[] = array('date' => $currDate, 'numberOfAvailableBeds' => $availability);
+		$avail[] = array('date' => $currDate, 'numberOfAvailableBeds' => $availability, 'numberOfAvailableRooms' => $availabilityRoom);
 	}
 
 	mysql_close($link);

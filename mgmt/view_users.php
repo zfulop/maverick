@@ -59,6 +59,7 @@ echo <<<EOT
 	<option id="MANAGER" value="MANAGER">MANAGER</option>
 	<option id="RECEPTION" value="RECEPTION">RECEPTION</option>
 	<option id="CLEANER" value="CLEANER">CLEANER</option>
+	<option id="CLEANER_SUPERVISOR" value="CLEANER_SUPERVISOR">CLEANER SUPERVISOR</option>
 </select></div>
 </fieldset>
 <fieldset>

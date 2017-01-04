@@ -573,7 +573,7 @@ function getBookingRoomData($arriveDateTs, $nights, $roomData, $numOfBeds, $room
 	return $oneRoom;
 }
 
-function findSpecialOffer($specialOffers, $roomType, $nights, $arriveDate, $numOfBeds) {
+function findSpecialOffer(&$specialOffers, &$roomType, $nights, $arriveDate, $numOfBeds) {
 	$discount = 0;
 	$selectedSo = null;
 	foreach($specialOffers as $so) {
@@ -585,19 +585,22 @@ function findSpecialOffer($specialOffers, $roomType, $nights, $arriveDate, $numO
 	return array($discount, $selectedSo);
 }
 
-function specialOfferApplies($specialOffer, $roomType, $nights, $arriveDate, $numOfBedsInRoom = null) {
-	logDebug("Checking if special offer applies to arrive date: $arriveDate, nights: $nights, roomType: " . print_r($roomType, true) . ", special offer: " . print_r($specialOffer, true));
+function specialOfferApplies(&$specialOffer, &$roomType, $nights, $arriveDate, $numOfBedsInRoom = null) {
+	logDebug("Checking if special offer applies to arrive date: $arriveDate, nights: $nights, roomType: " . $roomType['name'] . '[' . $roomType['id'] . '], special offer: ' . $specialOffer['name']);
 	if(!is_null($specialOffer['room_type_ids']) and strpos($specialOffer['room_type_ids'],$roomType['id']) === false) {
+		logDebug("this special ofer is not applicable for this room type");
 		return false;
 	}
 
 	if(!is_null($specialOffer['nights']) and $nights < $specialOffer['nights']) {
+		logDebug("this special ofer is applicable for at least " . $specialOffer['nights'] . " nights only");
 		return false;
 	}
 
 	if(!is_null($specialOffer['valid_num_of_days_before_arrival'])) {
 		$cutoffDate = date('Y-m-d', strtotime(date('Y-m-d') . ' +' . $specialOffer['valid_num_of_days_before_arrival'] . ' day'));
 		if($arriveDate > $cutoffDate) {
+			logDebug("this special ofer is applicable for atmost  " . $specialOffer['valid_num_of_days_before_arrival'] . " days before arrival");
 			return false;
 		}
 	}
@@ -605,11 +608,12 @@ function specialOfferApplies($specialOffer, $roomType, $nights, $arriveDate, $nu
 	if(!is_null($specialOffer['early_bird_day_count'])) {
 		$cutoffDate = date('Y-m-d', strtotime(date('Y-m-d') . ' +' . $specialOffer['early_bird_day_count'] . ' day'));
 		if($arriveDate < $cutoffDate) {
+			logDebug("this special ofer is applicable for atleast  " . $specialOffer['valid_num_of_days_before_arrival'] . " days before arrival");
 			return false;
 		}
 	}
 
-	logDebug("it applies!");
+	logDebug("this special offer applies!");
 
 	return true;
 }

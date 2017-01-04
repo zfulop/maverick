@@ -9,8 +9,8 @@ define('PHP_MAILER_SENDTYPE_SMTP_HOST', 'mail.smtp2go.com');
 define('PHP_MAILER_SENDTYPE_SMTP_PORT', '80');
 define('PHP_MAILER_SENDTYPE_SMTP_AUTHORIZATION_REQ', true);
 define('PHP_MAILER_SENDTYPE_SMTP_SECURE', '');
-define('PHP_MAILER_SENDTYPE_SMTP_USER', 'maverick_webserver');
-define('PHP_MAILER_SENDTYPE_SMTP_PASSWORD', 'MnFoN3I3ajdiODN5');
+define('PHP_MAILER_SENDTYPE_SMTP_USER', 'sdfvew');
+define('PHP_MAILER_SENDTYPE_SMTP_PASSWORD', 'NmQ4Ym9qMnB2dzli');
 
 define('LOG_DIR', '/home/zolika/logs/mgmt/');
 
@@ -19,6 +19,7 @@ define('EMAIL_IMG_DIR', '/home/zolika/www/img/email/');
 define('ROOT_URL', '/');
 
 define('RECEPCIO_BASE_DIR', '/home/zolika/roomcaptain_recepcio/');
+define('RECEPCIO_BASE_URL', 'http://recepcio.roomcaptain.com/');
 
 define('ADMIN_BASE_DIR', '/home/zolika/roomcaptain_admin/');
 
