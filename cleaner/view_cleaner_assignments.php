@@ -39,7 +39,7 @@ logDebug("room changes for $dayToShow: " . print_r($roomChanges, true));
 
 echo <<<EOT
 
-<form action"assign_cleaners.php" method="POST" accept-charset="utf-8">
+<form action="assign_cleaners.php" method="POST" accept-charset="utf-8">
 <table class="table form-inline">
 	<tr>
 		<th>Room name</th>
@@ -109,10 +109,10 @@ foreach($rooms as $roomId => $roomData) {
 	<tr>
 		<td>$roomName</td><td>$numOfBeds</td>
 		<td><select name="room_cleaner_$roomId">$rcleanerOptions</select></td>
-		<td><input name="room_note_$roomId"></td>
+		<td><input name="room_note_$roomId" value="$roomNotes"></td>
 		<td>$roomStatus</td>
 		<td><select name="bathroom_cleaner_$roomId">$brcleanerOptions</select></td>
-		<td><input name="bathroom_note_$roomId"></td>
+		<td><input name="bathroom_note_$roomId" value="$bathroomNotes"></td>
 		<td>$bathroomStatus</td>
 		<td>
 			<a href="#" onclick="room_id=$roomId" class="btn btn-success">Confirm bathroom</a>
