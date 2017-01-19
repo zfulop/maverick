@@ -21,9 +21,9 @@ foreach($rooms as $roomId => $oneRoom) {
 		$roomName = $oneRoom['name'];
 		logDebug("Saving cleaner assignments for room: $roomName($roomId)");
 		$bids = $_REQUEST["booking_ids_$roomId"];
-		$roomCleaner = $_REQUEST["room_cleaner__$roomId"];
+		$roomCleaner = $_REQUEST["room_cleaner_$roomId"];
 		$roomNotes = $_REQUEST["room_note_$roomId"];
-		$bathroomCleaner = $_REQUEST["bathroom_cleaner__$roomId"];
+		$bathroomCleaner = $_REQUEST["bathroom_cleaner_$roomId"];
 		$bathroomNotes = $_REQUEST["bathroom_note_$roomId"];
 		if(strlen($roomCleaner) > 0) {
 			logDebug("room is for $roomCleaner, comment: $roomNotes, booking ids: $bids");
@@ -36,7 +36,7 @@ foreach($rooms as $roomId => $oneRoom) {
 		if(strlen($bathroomCleaner) > 0) {
 			logDebug("bathroom is for $roomCleaner, comment: $roomNotes, booking ids: $bids");
 			if(CleanerDao::replaceCleanerAssignment($bathroomCleaner, $roomId, 'BATHROOM', $bids, $bathroomNotes, $link)) {
-				set_message("bathroom: $roomName is assigned to $roomCleaner");
+				set_message("bathroom: $roomName is assigned to $bathroomCleaner");
 			} else {
 				set_error("cannot assign $roomCleaner to bathroom: $roomName");
 			}

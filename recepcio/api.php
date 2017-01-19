@@ -13,6 +13,8 @@ if($action == 'rooms') {
 	$retVal = _loadRooms();
 } elseif($action == 'availability') {
 	$retVal = loadAvailability();
+} elseif($action == 'services') {
+	$retVal = loadServices();
 } elseif($action == 'book') {
 	$retVal = doBooking();
 } elseif($action == 'dictionary') {
@@ -232,6 +234,26 @@ function checkMissingParameters($paramNames) {
 }
 
 
+
+function loadServices() {
+	if(!checkMissingParameters(array('location','lang'))) {
+		return null;
+	}
+
+	logDebug("Loading services");
+	$location = $_REQUEST['location'];
+	$lang = $_REQUEST['lang'];
+	$link = db_connect($location);
+	
+	$services = loadServicesFromDB($lang, $link);
+
+	logDebug("Services loaded");
+	mysql_close($link);
+	return $services;
+}
+
+
+
 function doBooking() {
 	if(!checkMissingParameters(array('firstname','lastname','email','phone','nationality','street','city','zip','comment','booking_data','from_date','to_date'))) {
 		return null;
@@ -272,7 +294,7 @@ function doBooking() {
 	$specialOffers = loadSpecialOffers($arriveDate,$lastNight, $link);
 	$rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
 	$roomTypesData = loadRoomTypes($link, $lang);
-	$services = loadServices($link);
+	$services = loadServices($lang, $link);
 
 	$bookingRequest = json_decode($_REQUEST['booking_data']);
 
@@ -287,15 +309,24 @@ function doBooking() {
 
 	list($toBook, $roomChanges) = getBookingData($bookingRequest, $arriveDate, $lastNight, $rooms, $roomTypesData);
 	$bookingIds = saveBookings($toBook, $roomChanges, $arriveDate, $lastNight, $rooms, $roomTypesData, $specialOffers, $descriptionId, $link);
-	$bookedServices = getBookedServices($services, $location, 'EUR');
+	$bookedServices = json_decode($_REQUEST['services']);
 	foreach($bookedServices as $service) {
-		$title = $service['title'];
+		$id = $service['id'];
+		if(!isset($services[$id])) {
+			logError("The booking contains a service with id: $id tha tis not in the DB. Ignoring.");
+		}
+		$title = $services[$id]['name'];
+		$comment = $service['comment'];
 		$occasion =  $service['occasion'];
-		$price =  $service['price'];
-		$serviceCurrency = $service['currency'];
+		if($occasion < 1) {
+			logError("The service: $title [$id] has occasion: $occasion. It has to be greater than 0. Ignoring.");
+		}
+		$price =  $services[$id]['price'] * $occasion;
+		$serviceCurrency = $services[$id]['currency'];
 		$now = date('Y-m-d H:i:s');
-		$type = $services[$service['serviceId']]['service_charge_type'];
-		$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($descriptionId, $price, '$serviceCurrency', '$now', '$title for $occasion occasions', '$type')";
+		$type = $services[$id]['service_charge_type'];
+		$comment = mysql_real_escape_string("$title for $occasion occasions. $comment", $link);
+		$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($descriptionId, $price, '$serviceCurrency', '$now', '$comment', '$type')";
 		if(!mysql_query($sql, $link)) {
 			trigger_error("Cannot save service charge: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 			mysql_query('ROLLBACK', $link);
@@ -864,6 +895,21 @@ function loadRoomCalendarAvailability() {
 	mysql_close($link);
 	return $avail;
 }
+
+function loadServicesFromDB($lang, $link) {
+	$services = array();
+	$sql = "SELECT s.id,s.price,s.currency,s.img, s.free_service, t.value AS title, d.value AS description , u.value AS unit_name FROM services s INNER JOIN lang_text t ON (s.id=t.row_id AND t.table_name='services' AND t.column_name='title' AND t.lang='$lang') INNER JOIN lang_text d ON (s.id=d.row_id AND d.table_name='services' AND d.column_name='description' AND d.lang='$lang') LEFT OUTER JOIN lang_text u ON (s.id=u.row_id AND u.table_name='services' AND u.column_name='unit_name' AND u.lang='$lang') ORDER BY s._order";
+	$result = mysql_query($sql, $link);
+	while($row = mysql_fetch_assoc($result)) {
+		if(strlen($row['img']) > 0) {
+			$row['img'] = SERVICES_IMG_URL . $row['img'];
+		}
+		$services[$row['id']] = $row;
+	}
+
+	return $services;
+}
+
 
 
 ?>

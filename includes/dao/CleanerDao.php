@@ -105,7 +105,7 @@ class CleanerDao {
 	public static function insertCleanerAction($cleaner, $roomId, $type, $comment, $link) {
 		$now = date('Y-m-d H:i:s');
 		$comment = mysql_real_escape_string($comment, $link);
-		$sql = "INSERT INTO cleaner_action (cleaner, room_id, time_of_event, type, comment) VALUES ('$cleaner',$roomId, '$now', $type, '$comment')";
+		$sql = "INSERT INTO cleaner_action (cleaner, room_id, time_of_event, type, comment) VALUES ('$cleaner',$roomId, '$now', '$type', '$comment')";
 		$result = mysql_query($sql, $link);
 		if(!$result) {
 			trigger_error("Cannot insert clear action. Error: " . mysql_error($link) . " (SQL: $sql)");
@@ -175,7 +175,6 @@ class CleanerDao {
 	 * Return            - true if successfull, false otherwise
 	 */
 	public static function replaceCleanerAssignment($cleaner, $roomId, $roomPart, $bookingIds, $comment, $link) {
-		$bookingIds = implode(",", $bookingIds);
 		$today = date('Y-m-d');
 		$sql = "DELETE FROM cleaner_assignment WHERE room_id=$roomId AND room_part='$roomPart' AND date_of_cleaning='$today'";
 		$result = mysql_query($sql, $link);

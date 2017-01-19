@@ -20,7 +20,7 @@ $yesterday = date('Y/m/d', strtotime($dayToShow . ' -1 day'));
 $leaves = BookingDao::getLeavingBookings($dayToShow, $link);
 
 // Get rooms where there was a room_change yesterday and today there is either no room change or a room change to a different room.
-$roomChanges = BookingDao::getLeavingBookings($dayToShow, $link);
+$roomChanges = BookingDao::getRoomChangeBookings($dayToShow, $link);
 
 // Get cleaner assignments
 $assignments = CleanerDao::getCleanerAssignments($dayToShow, $link);
@@ -34,8 +34,8 @@ $cleaners = UserDao::getUsersForRole('CLEANER', $link);
 
 html_start("Assign rooms to cleaners");
 
-logDebug("leaves for $dayToShow: " . print_r($leaves, true));
-logDebug("room changes for $dayToShow: " . print_r($roomChanges, true));
+logDebug("leaves for $dayToShow: " . count($leaves));
+logDebug("room changes for $dayToShow: " . count($roomChanges));
 
 echo <<<EOT
 
@@ -86,7 +86,7 @@ foreach($rooms as $roomId => $roomData) {
 		}
 	}
 	foreach($roomChanges as $oneRc) {
-		$changedRoomId = (is_null($row['yesterday_new_room_id']) ? $row['room_id'] : $row['yesterday_new_room_id']);
+		$changedRoomId = (is_null($oneRc['yesterday_new_room_id']) ? $oneRc['room_id'] : $oneRc['yesterday_new_room_id']);
 		if($changedRoomId == $roomId) {
 			$bookingIds[] = $oneRc['bid'];
 			$numOfBeds += $oneRc['num_of_person'] + $oneRc['extra_beds'];
@@ -95,11 +95,18 @@ foreach($rooms as $roomId => $roomData) {
 	
 	
 	if($numOfBeds > 0) {
+		$roomAssignment = getAssignment($assignments, 'ROOM', $roomId);
+		$bathroomAssignment = getAssignment($assignments, 'BATHROOM', $roomId);
+		$roomNotes = is_null($roomAssignment) ? '' : $roomAssignment['comment'];
+		$bathroomNotes = is_null($bathroomAssignment) ? '' : $bathroomAssignment['comment'];
+		
 		$rcleanerOptions = "<option value=\"\"></option>";
 		$brcleanerOptions = "<option value=\"\"></option>";
 		foreach($cleaners as $oneCleaner) {
-			$rcleanerOptions .= "<option value=\"" . $oneCleaner['username'] . "\"" . (isCleanerAssigned($oneCleaner['name'], 'ROOM', $assignments) ? ' selected' : '') . ">" . $oneCleaner['name'] . "</option>";
-			$brcleanerOptions .= "<option value=\"" . $oneCleaner['username'] . "\"" . (isCleanerAssigned($oneCleaner['name'], 'BATHROOM', $assignments) ? ' selected' : '') . ">" . $oneCleaner['name'] . "</option>";
+			$rselected = (!is_null($roomAssignment) and ($roomAssignment['cleaner'] == $oneCleaner['username']));
+			$brselected = (!is_null($bathroomAssignment) and ($bathroomAssignment['cleaner'] == $oneCleaner['username']));
+			$rcleanerOptions .= "<option value=\"" . $oneCleaner['username'] . "\"" . ($rselected ? ' selected' : '') . ">" . $oneCleaner['name'] . "</option>";
+			$brcleanerOptions .= "<option value=\"" . $oneCleaner['username'] . "\"" . ($brselected ? ' selected' : '') . ">" . $oneCleaner['name'] . "</option>";
 		}
 		$roomStatus = getRoomStatus($actions, $roomId);
 		$bathroomStatus = getBathRoomStatus($actions, $roomId);
@@ -138,14 +145,14 @@ EOT;
 
 html_end();
 
-
-function isCleanerAssigned($cleanerName, $cleanType, &$assignments) {
+function getAssignment($assignments, $roomPart, $roomId) {
 	foreach($assignments as $oneAssignment) {
-		if($oneAssignment['type'] == $cleanType and $oneAssignment['cleaner'] == $cleanerName) {
-			return true;
+		if($oneAssignment['room_part'] == $roomPart and $oneAssignment['room_id'] == $roomId) {
+			logDebug("For room: $roomId and part: $roomPart the assigned cleaner is " . $oneAssignment['cleaner']);
+			return $oneAssignment;
 		}
 	}
-	return false;
+	return null;
 }
 
 function getRoomStatus($actions, $roomId) {

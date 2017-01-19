@@ -15,7 +15,7 @@ $link = db_connect();
 $type = ($roomPart = 'ROOM' ? 'FINISH_ROOM' : 'FINISH_BATHROOM');
 
 $now = date('Y-m-d H:i:s');
-if(!CleanerDao::insertCleanerAction($cleaner, $roomId, $type, $link)) {
+if(!CleanerDao::insertCleanerAction($cleaner, $roomId, $type, '', $link)) {
 	set_error('Cannot save finishing the room');
 } else {
 	set_message('Finished room');

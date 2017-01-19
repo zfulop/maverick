@@ -27,6 +27,12 @@ $assignments = CleanerDao::getCleanerAssignmentsForCleaner($cleaner, $dayToShow,
 // Get cleaner actions
 $actions = CleanerDao::getCleanerActionsForCleaner($cleaner, $dayToShow, $link);
 
+// Get rooms from where guests are leaving
+$leaves = BookingDao::getLeavingBookings($dayToShow, $link);
+
+// Get rooms where there was a room_change yesterday and today there is either no room change or a room change to a different room.
+$roomChanges = BookingDao::getRoomChangeBookings($dayToShow, $link);
+
 $lastActionForRoom = array();
 $lastActionForBathroom = array();
 foreach($actions as $oneAction) {
@@ -36,7 +42,7 @@ foreach($actions as $oneAction) {
 		} else {
 			$lastActionForBathroom[$oneAction['room_id']] = $oneAction['type'] . ' ' . $oneAction['comment'];
 		}
-	} else {
+	} elseif($oneAction['type'] != 'NOTE') {
 		if(strpos($oneAction['room_id'], 'BATH') > 0) {
 			$lastActionForBathroom[$oneAction['room_id']] = $oneAction['type'];
 		} else {
@@ -72,14 +78,12 @@ foreach($assignments as $oneAssignment) {
 	$roomStatus = '';
 	$roomCleaned = false;
 	$roomPart = $oneAssignment['room_part'];
-	if(isset($lastActionForRoom[$roomId])) {
-		if($roomPart == 'ROOM') {
-			$roomStatus = $lastActionForRoom[$roomId];
-			$roomCleaned = ($lastActionForRoom[$roomId] == 'CONFIRM_FINISH_ROOM');
-		} else {
-			$roomStatus = $lastActionForBathroom[$roomId];
-			$roomCleaned = ($lastActionForBathoom[$roomId] == 'CONFIRM_FINISH_BATHROOM');
-		}
+	if(isset($lastActionForRoom[$roomId]) and $roomPart == 'ROOM') {
+		$roomStatus = $lastActionForRoom[$roomId];
+		$roomCleaned = ($lastActionForRoom[$roomId] == 'CONFIRM_FINISH_ROOM');
+	} elseif(isset($lastActionForBathroom[$roomId]) and $roomPart == 'BATHROOM') {
+		$roomStatus = $lastActionForBathroom[$roomId];
+		$roomCleaned = ($lastActionForBathoom[$roomId] == 'CONFIRM_FINISH_BATHROOM');
 	}
 	$canCleanRoom = canCleanRoom($roomId, $leaves, $roomChanges);
 	if(isset($actions[$roomId])) {
@@ -94,11 +98,11 @@ foreach($assignments as $oneAssignment) {
 	}
 
 	if($roomCleaned) {
-		echo "<!-- a href=\"enter_room.php?room_id=$roomId&room_part$roomPart=\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName is clean</a -->\n";
+		echo "<!-- a href=\"enter_room.php?room_id=$roomId&room_part$roomPart=\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName $roomPart is clean</a -->\n";
 	} elseif(!$canCleanRoom) {
 		echo "<a href=\"#\" role=\"button\" class=\"btn btn-default btn-lg btn-block disabled\">$roomName<br>Guest still in room</a>\n";
 	} else {
-		echo "<a href=\"enter_room.php?room_id=$roomId&room_part$roomPart\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName ($roomStatus)</a>\n";
+		echo "<a href=\"enter_room.php?room_id=$roomId&room_part$roomPart\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName $roomPart<br>$roomStatus</a>\n";
 	}
 }
 
@@ -115,22 +119,30 @@ html_end();
 
 function canCleanRoom($roomId, $leaves, $roomChanges) {
 	logDebug("Checking if we can clean room: $roomId");
+	$leavesCnt = 0;
+	$rcCnt = 0;
 	foreach($leaves as $oneLeave) {
-		if($oneLeave['checked_in'] == 1) {
+		$leftRoomId = (is_null($oneLeave['new_room_id']) ? $oneLeave['room_id'] : $oneLeave['new_room_id']);	
+		if($leftRoomId == $roomId and $oneLeave['checked_in'] == 1) {
 			logDebug("The leaving booking: " . $oneLeave['bid'] . " is still checked in. Cannot clean it yet.");
 			return false;
 		}
+		if($leftRoomId  == $roomId) { $leavesCnt += 1; }
 	}
+	logDebug("All the $leavesCnt leavers are already checked out");
 	foreach($roomChanges as $oneChange) {
-		if(!is_null($oneChange['today_new_room_id']) and is_null($oneChange['enter_room_time'])) {
+		$changedRoomId = (is_null($oneRc['yesterday_new_room_id']) ? $oneRc['room_id'] : $oneRc['yesterday_new_room_id']);
+		if($changedRoomId  == $roomId and !is_null($oneChange['today_new_room_id']) and is_null($oneChange['enter_room_time'])) {
 			logDebug("The room change goes to the 'changed room' but has not yet entered it (still in the normal room)");
 			return false;
 		}
-		if(!is_null($oneChange['yesterday_new_room_id']) and is_null($oneChange['left_room_time'])) {
+		if($changedRoomId  == $roomId and !is_null($oneChange['yesterday_new_room_id']) and is_null($oneChange['left_room_time'])) {
 			logDebug("The room change goes to the 'normal room' but has not yet left the changed room");
 			return false;
 		}
+		if($changedRoomId  == $roomId) { $rcCnt += 1; }
 	}
+	logDebug("All the $rcCnt room changers changed already");
 	return true;
 }
 

@@ -15,12 +15,13 @@ $link = db_connect();
 
 // Load room data
 $roomData = RoomDao::getRoom($roomId, $link);
+$roomTypeData = RoomDao::getRoomType($roomData['room_type_id'], 'eng', $link);
 $dayToShow = date('Y-m-d');
 
 $theAssignment = null;
 $assignments = CleanerDao::getCleanerAssignmentsForCleaner($cleaner, $dayToShow, $link);
 foreach($assignments as $oneAssignment) {
-	if($assignment['room_part'] == $roomPart) {
+	if($oneAssignment['room_part'] == $roomPart) {
 		$theAssignment = $oneAssignment;
 		break;
 	}
@@ -35,7 +36,7 @@ if(is_null($theAssignment)) {
 	$bookingIds = explode(",", $theAssignment['booking_ids']);
 	$bookings = BookingDao::getBookings($bookingIds, $link);
 	$bdIds = array();
-	foreach($bookings as $b) { $bdIds[] = $bookings['description_id']; }
+	foreach($bookings as $b) { $bdIds[] = $b['description_id']; }
 	$bookingGuestData = BookingDao::getBookingGuestData($bdIds, $link);
 	$beds = array();
 	foreach($bookingGuestData as $gd) {
@@ -44,14 +45,14 @@ if(is_null($theAssignment)) {
 		}
 	}
 	$beds = implode(",", $beds);
-	if(strlen(theAssignment['comment']) > 0) {
-		$assignmentNotesHtml = "<div class=\"panel panel-default\"><div class=\"panel-body\">" . theAssignment['comment'] . "</div></div>\n";
+	if(strlen($theAssignment['comment']) > 0) {
+		$assignmentNotesHtml = "<div class=\"panel panel-default\"><div class=\"panel-body\">" . $theAssignment['comment'] . "</div></div>\n";
 	}
 }
 
 
 $toCleanHtml = '';
-if($roomData['type'] != 'DORM') {
+if($roomTypeData['type'] != 'DORM') {
 	$toCleanHtml = 'Clean the whole room';
 } else {
 	$toCleanHtml = "Clean beds: $beds";
@@ -59,7 +60,7 @@ if($roomData['type'] != 'DORM') {
 
 
 // Get cleaner actions
-$actions = CleanerDao::getCleanerActions($dateOfAction, $link);
+$actions = CleanerDao::getCleanerActions($dayToShow, $link);
 $notes = array();
 foreach($actions as $oneAction) {
 	if($oneAction['room_id'] == $roomId and $oneAction['type'] == 'NOTE') {
@@ -78,11 +79,12 @@ if(count($notes) > 0) {
 
 $noteOptions = '';
 foreach(ListsDao::getCleanerItemTypes($link) as $item) {
-	$noteOptions .= "<option value=\"" . $item['type'] . "\">" . $item['type'] . "</option>";
+	$noteOptions .= "<option value=\"$item\">$item</option>";
 }
 
-html_start($roomData['name'] . ' - ' . $roomData['rt_name']);
+html_start($roomData['name'] . ' - ' . $roomTypeData['name']);
 
+echo "<h2>" . $roomData['name'] . ' - ' . $roomTypeData['name'] . "</h2>\n";
 echo <<<EOT
 <a href="finish_room.php?room_id=$roomId&room_part=$roomPart" role="button" class="btn btn-default btn-lg btn-block">Finish $roomPart</a>
 <a href="leave_room.php?room_id=$roomId&room_part=$roomPart" role="button" class="btn btn-default btn-lg btn-block">Leave $roomPart (without finish)</a>
@@ -91,6 +93,7 @@ $assignmentNotesHtml
 <div class="panel panel-default"><div class="panel-body">
 <form class="form-inline" action="add_note.php" accept-charset="utf-8">
 	<input type="hidden" name="room_id" value="$roomId">
+	<input type="hidden" name="room_part" value="$roomPart">
 	<div class="form-group">
 		<label for="note">Note: </label>
 		<select class="form-control" id="note" name="note">
@@ -108,6 +111,7 @@ EOT;
 
 html_end();
 
+mysql_close($link);
 
 
 ?>

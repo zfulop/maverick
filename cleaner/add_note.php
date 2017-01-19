@@ -7,16 +7,17 @@ if(!checkLogin(SITE_CLEANER)) {
 }
 
 $roomId = $_REQUEST['room_id'];
+$roomPart = $_REQUEST['room_part'];
 $cleaner = $_SESSION['login_user'];
 
 $link = db_connect();
 
-if(!CleanerDao::insertCleanerAction($cleaner, $roomId, 'NOTE', $_REQUEST['note'], $link) {
+if(!CleanerDao::insertCleanerAction($cleaner, $roomId, 'NOTE', $_REQUEST['note'], $link)) {
 	set_error("Cannot insert note.");
 } else {
 	set_message('Note saved');
 }
 
-header("Location: view_room.php?room_id=$roomId");
+header("Location: view_room.php?room_id=$roomId&room_part=$roomPart");
 
 ?>
