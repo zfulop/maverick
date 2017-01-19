@@ -255,13 +255,13 @@ function loadServices() {
 
 
 function doBooking() {
-	if(!checkMissingParameters(array('firstname','lastname','email','phone','nationality','street','city','zip','comment','booking_data','from_date','to_date'))) {
+	if(!checkMissingParameters(array('firstname','lastname','email','phone','nationality','street','city','zip','country','currency','comment','booking_data','from_date','to_date'))) {
 		return null;
 	}
 
-	$location = getLocation();
-	$lang = getCurrentLanguage();
-	$currency = getCurrency();
+	$location = $_REQUEST['location'];
+	$lang = $_REQUEST['lang'];
+	$currency = $_REQUEST['currency'];
 
 	$firstname = $_REQUEST['firstname'];
 	$lastname = $_REQUEST['lastname'];
@@ -294,7 +294,7 @@ function doBooking() {
 	$specialOffers = loadSpecialOffers($arriveDate,$lastNight, $link);
 	$rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
 	$roomTypesData = loadRoomTypes($link, $lang);
-	$services = loadServices($lang, $link);
+	$services = loadServicesFromDB($lang, $link);
 
 	$bookingRequest = json_decode($_REQUEST['booking_data']);
 

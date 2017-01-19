@@ -563,6 +563,7 @@ for($i = 0; $i < $numOfNights; $i++) {
 	$dates[] = $currDate;
 }
 
+$bookingIdsComaSeparatedList = implode(',',$bookingIds);
 echo <<<EOT
 
 <h2>Rooms/Beds: </h2>
@@ -570,8 +571,11 @@ echo <<<EOT
 <table>
 	<tr>
 		<td valign="top" style="padding-right: 10px;border-right: 1px solid #000;">
+			<form action="save_extra_beds.php" method="POST">
+			<input type="hidden" name="booking_description_id" value="$descrId">
+			<input type="hidden" name="booking_ids" value="$bookingIdsComaSeparatedList">
 			<table>
-				<tr><th rowspan="2">Room name</th><th rowspan="2">Type</th><th rowspan="2"># of beds</th><th rowspan="2">Price</th><th colspan="$numOfNights">Room changes</th></tr>
+				<tr><th rowspan="2">Room name</th><th rowspan="2">Type</th><th rowspan="2"># of beds</th><th rowspan="2">Extra beds</th><th rowspan="2">Price</th><th colspan="$numOfNights">Room changes</th></tr>
 				<tr>
 EOT;
 
@@ -590,7 +594,7 @@ $roomTotal = 0;
 foreach($bookings as $booking) {
 	$bid = $booking['id'];
 	$rn = urlencode($booking['room_name']);
-	echo "				<tr><td>" . $booking['room_name'] . "</td><td>" . $booking['booking_type'] . "</td><td align=\"center\">" . $booking['num_of_person'] . "</td><td align=\"right\">" . sprintf("%10.1f",$booking['room_payment']) . " euro</td>";
+	echo "				<tr><td>" . $booking['room_name'] . "</td><td>" . $booking['booking_type'] . "</td><td align=\"center\">" . $booking['num_of_person'] . "</td><td><input size=\"2\" name=\"extra_beds_$bid\" value=\"" . $booking['extra_beds'] . "\"></td><td align=\"right\">" . sprintf("%10.1f",$booking['room_payment']) . " euro</td>";
 	foreach($dates as $oneDate) {
 		$roomName = '';
 		$style = ($oneDate == $todayPer ? 'color:red;' : '') . "width: 50px;";
@@ -603,8 +607,25 @@ foreach($bookings as $booking) {
 	$roomTotal += $booking['room_payment'];
 }
 
+$roomTotalStr = sprintf("%.1f", $roomTotal);
 
-$roomsHtml = '';
+echo <<<EOT
+				<tr><td colspan="5"><hr></td></tr>
+				<tr><td colspan="4"><b>Total room price</b></td><td align="right">$roomTotalStr euro</td></tr>
+			</table>
+			<input type="submit" value="Save extra beds">
+			</form>
+		</td>
+		<td valign="top" style="padding-left: 10px;">
+			<h3>Add Booking:</h3>
+			<form action="add_booking.php" accept-charset="utf-8" method="post">
+				<input type="hidden" name="booking_description_id" value="$descrId">
+				<input type="hidden" name="first_night" value="$fnight">
+				<input type="hidden" name="last_night" value="$lnight">
+				<table>
+				
+EOT;
+
 foreach($roomTypes as $roomTypeId => $roomType) {
 	$excludeNums = array();
 	if(isPrivate($roomTyp)) {
@@ -617,25 +638,10 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 		$excludeNums[] = 1;
 	}
 	$options = getOptions($roomType['num_of_rooms'] * $roomType['num_of_beds'], $excludeNums);
-	$roomsHtml .= "\t\t\t\t\t<tr><td>" . str_replace(" ", "&nbsp;", $roomType['name']) . "</td><td><select name=\"num_of_person_$roomTypeId\" id=\"num_of_person_$roomTypeId\" onchange=\"recalculatePayment();\">$options</select></td></tr>\n";
+	echo "\t\t\t\t\t<tr><td>" . str_replace(" ", "&nbsp;", $roomType['name']) . "</td><td><select name=\"num_of_person_$roomTypeId\" id=\"num_of_person_$roomTypeId\" onchange=\"recalculatePayment();\">$options</select></td></tr>\n";
 }
 
-
-$roomTotalStr = sprintf("%.1f", $roomTotal);
-
 echo <<<EOT
-				<tr><td colspan="4"><hr></td></tr>
-				<tr><td colspan="3"><b>Total room price</b></td><td align="right">$roomTotalStr euro</td></tr>
-			</table>
-		</td>
-		<td valign="top" style="padding-left: 10px;">
-			<h3>Add Booking:</h3>
-			<form action="add_booking.php" accept-charset="utf-8" method="post">
-				<input type="hidden" name="booking_description_id" value="$descrId">
-				<input type="hidden" name="first_night" value="$fnight">
-				<input type="hidden" name="last_night" value="$lnight">
-				<table>
-$roomsHtml
 				</table>
 				<input type="submit" value="Add">
 			</form>
