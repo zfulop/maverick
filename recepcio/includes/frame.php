@@ -20,7 +20,6 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 	$dblRoomChange = ROOT_URL . 'view_dbl_room_changes.php';
 	$booking = ROOT_URL . 'view_booking.php';
 	$gtransfer = ROOT_URL . 'view_guest_transfer.php';
-	$schedule = ROOT_URL . 'view_schedule.php';
 	$mendingList = ROOT_URL . 'view_mending_list.php';
 	$shoppingList = ROOT_URL . 'view_shopping_list.php';
 	$roomsToClean = ROOT_URL . 'view_rooms_to_clean.php';
@@ -33,6 +32,7 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 	$siteTexts = ROOT_URL . 'view_sitetexts.php';
 	$logout = ROOT_URL . 'logout.php';
 	$blacklist = ROOT_URL . 'view_blacklist.php';
+	$schedule = ROOT_URL . 'view_schedule.php';
 
 	$tooltipJs = ROOT_URL . 'js/wz_tooltip.js';
 
@@ -110,12 +110,12 @@ EOT;
 		<a href="#" style="float: left; font-size: 14px; padding-right: 20px;" id="maintenanceMainMenu" onclick="showMenu('maintenanceMenu', this);return false;">Maintenance</a>
 		<div id="maintenanceMenu" class="submenu" onmouseleave="$(this).hide();">
 			<ul style="list-style: none;">
-				<li><a href="$schedule" style="font-size: 14px; padding-right: 20px;">Reception/Cleaning schedule</a></li>
 				<li><a href="$vacations" style="font-size: 14px; padding-right: 20px;">Vacations</a></li>
 				<li><a href="$mendingList" style="font-size: 14px; padding-right: 20px;">Mending List</a></li>
 				<li><a href="$shoppingList" style="font-size: 14px; padding-right: 20px;">Shopping List</a></li>
 				<li><a href="$blacklist" style="font-size: 14px; padding-right: 20px;">Blacklisted guests</a></li>
 				<li><a href="$roomsToClean" style="font-size: 14px; padding-right: 20px;">Rooms to clean</a></li>
+				<li><a href="$schedule" style="font-size: 14px; padding-right: 20px;">View reception/cleaner schedule</a></li>
 			</ul>
 		</div>
 		<a href="#" style="float: left; font-size: 14px; padding-right: 20px;" id="moneyMainMenu" onclick="showMenu('moneyMenu', this);return false;">Money</a>

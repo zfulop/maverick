@@ -586,6 +586,10 @@ function findSpecialOffer(&$specialOffers, &$roomType, $nights, $arriveDate, $nu
 }
 
 function specialOfferApplies(&$specialOffer, &$roomType, $nights, $arriveDate, $numOfBedsInRoom = null) {
+	if(is_null($specialOffer) or is_null($roomType)) {
+		return false;
+	}
+
 	logDebug("Checking if special offer applies to arrive date: $arriveDate, nights: $nights, roomType: " . $roomType['name'] . '[' . $roomType['id'] . '], special offer: ' . $specialOffer['name']);
 	if(!is_null($specialOffer['room_type_ids']) and strpos($specialOffer['room_type_ids'],$roomType['id']) === false) {
 		logDebug("this special ofer is not applicable for this room type");

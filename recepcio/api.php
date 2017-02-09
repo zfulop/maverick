@@ -1,5 +1,17 @@
 <?php
 
+if(!isset($_REQUEST['location'])) {
+	echo "location parameter missing";
+	return;
+}
+
+$configFile = '../includes/config/' . $_REQUEST['location'] . '.php';
+if(!file_exists($configFile)) {
+	echo "invalid location parameter";
+	return;
+}
+require($configFile);
+
 require('includes.php');
 require('room_booking.php');
 
@@ -9,6 +21,8 @@ if(!isset($_REQUEST['action'])) {
 }
 $action = $_REQUEST['action'];
 logDebug("\nAPI action: $action");
+
+$retVal = null;
 if($action == 'rooms') {
 	$retVal = _loadRooms();
 } elseif($action == 'availability') {
@@ -25,37 +39,52 @@ if($action == 'rooms') {
 	echo "invalid action parameter value";
 }
 
-header("Content-Type: application/json");
-echo json_encode($retVal);
+if(!is_null($retVal)) {
+	header("Content-Type: application/json; charset=utf-8");
+	echo json_encode($retVal, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+}
 logDebug("end of API call");
 return;
 
 
 function _loadRooms() {
-	if(!checkMissingParameters(array('location','lang'))) {
+	if(!checkMissingParameters(array('location','lang','currency'))) {
 		return null;
 	}
 
 	logDebug("Loading rooms");
 	$location = $_REQUEST['location'];
 	$lang = $_REQUEST['lang'];
+	$currency = $_REQUEST['currency'];
 	$link = db_connect($location);
 	
-	$roomTypesData = loadRoomTypes($link, $lang);
-	loadRoomImages($roomTypesData, $link);
+	$roomTypesData = RoomDao::getRoomTypes($lang, $link);
+	foreach(loadRoomImages($lang, $link) as $rtId => $imgs) {
+		if(!isset($roomTypesData[$rtId])) {
+			continue;
+		}
+		$roomTypesData[$rtId]['images'] = $imgs;
+	}
 
-	logDebug("Rooms loaded");
+	$today = date('Y-m-d');
+	foreach($roomTypesData as &$roomType) {
+		$roomType['price_per_bed'] = convertAmount($roomType['price_per_bed'], 'EUR', $currency, $today);
+		$roomType['price_per_room'] = convertAmount($roomType['price_per_room'], 'EUR', $currency, $today);
+	}
+
+	logDebug("Rooms loaded. There are " . count($roomTypesData) . " room types");
 	mysql_close($link);
 	return $roomTypesData;
 }
 
 function loadAvailability() {
-	if(!checkMissingParameters(array('location','lang','from','to'))) {
+	if(!checkMissingParameters(array('location','lang','from','to','currency'))) {
 		return null;
 	}
 
 	$location = $_REQUEST['location'];
 	$lang = $_REQUEST['lang'];
+	$currency = $_REQUEST['currency'];	
 
 	$fromDate = $_REQUEST['from'];
 	$toDate = $_REQUEST['to'];
@@ -103,15 +132,25 @@ function loadAvailability() {
 	$retVal['special_offers'] = $specialOffers;
 	 
 	logDebug("Loading room types");
-	$roomTypesData = loadRoomTypes($link, $lang);
-	loadRoomImages($roomTypesData, $link);
+	$roomTypesData = RoomDao::getRoomTypes($lang, $link);
+	foreach(loadRoomImages($lang, $link) as $rtId => $imgs) {
+		if(!isset($roomTypesData[$rtId])) {
+			continue;
+		}
+		$roomTypesData[$rtId]['images'] = $imgs;
+	}
+	$today = date('Y-m-d');
+	foreach($roomTypesData as &$roomType) {
+		$roomType['price_per_bed'] = convertAmount($roomType['price_per_bed'], 'EUR', $currency, $today);
+		$roomType['price_per_room'] = convertAmount($roomType['price_per_room'], 'EUR', $currency, $today);
+	}	
 
 	logDebug("Loading rooms and their bookings for the selected period");
 	$rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
 	foreach($rooms as $roomId => $roomData) {
 		foreach($roomData['room_types']	as $roomTypeId => $roomTypeName) {
 			if(is_null($filterRoomIds) or in_array($roomTypeId, $filterRoomIds)) {
-				fillInPriceAndAvailability($arriveDateTs, $nights, $roomData, $roomTypesData[$roomTypeId]);
+				fillInPriceAndAvailability($arriveDateTs, $nights, $roomData, $roomTypesData[$roomTypeId], $currency);
 			}
 		}
 	}
@@ -128,26 +167,27 @@ function loadAvailability() {
 	return $retVal;
 }
 
-function loadRoomImages(&$roomTypes, $link) {
+function loadRoomImages($lang, $link) {
 	logDebug("Loading room images");
-	$sql = "SELECT * FROM room_images";
-	$result = mysql_query($sql, $link);
-	$roomImg = '';
-	if(mysql_num_rows($result) > 0) {
-		while($row = mysql_fetch_assoc($result)) {
-			if(!isset($roomTypes[$row['room_type_id']]['images'])) {
-				$roomTypes[$row['room_type_id']]['images'] = array();
-			}
-			$row['original_img_url'] = ROOMS_IMG_URL . $row['filename'];
-			$row['medium_img_url'] = ROOMS_IMG_URL . (is_null($row['medium']) ? $row['filename'] : $row['medium']);
-			$row['thumb_img_url'] = ROOMS_IMG_URL . (is_null($row['thumb']) ? $row['filename'] : $row['thumb']);
-			$roomTypes[$row['room_type_id']]['images'][] = $row;
+	$roomImages = array();
+	$imgCnt = 0;
+	foreach(RoomDao::getRoomImages($lang, $link) as $imgId => $row) {
+		if(!isset($roomImages[$row['room_type_id']])) {
+			$roomImages[$row['room_type_id']] = array();
 		}
+		$row['original_img_url'] = ROOMS_IMG_URL . $row['filename'];
+		$row['medium_img_url'] = ROOMS_IMG_URL . (is_null($row['medium']) ? $row['filename'] : $row['medium']);
+		$row['thumb_img_url'] = ROOMS_IMG_URL . (is_null($row['thumb']) ? $row['filename'] : $row['thumb']);
+		$row['description'] = $row['description'][$lang];
+		$roomImages[$row['room_type_id']][] = $row;
+		$imgCnt += 1;
 	}
+	logDebug("There are $imgCnt room images loaded for " . count($roomImages) . " room types");
+	return $roomImages;
 }
 
 
-function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType) {
+function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType, $currency) {
 	$oneDayTS = $arriveTS;
 	$type = $roomData['type'];
 	$minAvailBeds = $roomType['num_of_beds'];
@@ -179,10 +219,10 @@ function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType) 
 	}
 
 	$roomType['num_of_beds_avail'] += $minAvailBeds;
-	$roomType['price'] = (getPrice($arriveTS, $nights, $roomData, 1) / $nights);
+	$roomType['price'] = (convertAmount(getPrice($arriveTS, $nights, $roomData, 1),'EUR',$currency, date('Y-m-d')) / $nights);
 	if(isApartment($roomType)) {
 		for($i=2; $i<= $roomType['num_of_beds']; $i++) {
-			$roomType['price_' . $i] = (getPrice($arriveTS, $nights, $roomData, $i) / $nights);
+			$roomType['price_' . $i] = (convertAmount(getPrice($arriveTS, $nights, $roomData, $i),'EUR',$currency, date('Y-m-d')) / $nights);
 		}
 	}
 }
@@ -229,23 +269,44 @@ function checkMissingParameters($paramNames) {
 			echo "'$oneParamName' parameter missing";
 			return false;
 		}
+		if($oneParamName == 'currency' and !checkParameterValue($oneParamName, getCurrencies())) {
+			return false;
+		}
+		if($oneParamName == 'lang' and !checkParameterValue($oneParamName, array_keys(getLanguages()))) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function checkParameterValue($parameterName, $possibleValues) {
+	if(!in_array($_REQUEST[$parameterName], $possibleValues)) {
+		echo "$parameterName parameter is invalid. Valid values: " . implode(',', $possibleValues);
+		return false;
 	}
 	return true;
 }
 
 
-
 function loadServices() {
-	if(!checkMissingParameters(array('location','lang'))) {
+	if(!checkMissingParameters(array('location','lang','currency'))) {
 		return null;
 	}
 
 	logDebug("Loading services");
 	$location = $_REQUEST['location'];
 	$lang = $_REQUEST['lang'];
+	$currency = $_REQUEST['currency'];	
+
 	$link = db_connect($location);
 	
 	$services = loadServicesFromDB($lang, $link);
+	$today = date('Y-m-d');
+	
+	foreach($services as &$oneService) {
+		$oneService['price'] = convertAmount($oneService['price'], $oneService['currency'], $currency, $today);
+		$oneService['currency'] = $currency;
+	}
 
 	logDebug("Services loaded");
 	mysql_close($link);
@@ -296,7 +357,7 @@ function doBooking() {
 	$roomTypesData = loadRoomTypes($link, $lang);
 	$services = loadServicesFromDB($lang, $link);
 
-	$bookingRequest = json_decode($_REQUEST['booking_data']);
+	$bookingRequest = json_decode($_REQUEST['booking_data'], true);
 
 	$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency,booking_ref) VALUES ('$name', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', 'saját', '', '$lang', '$currency', '$bookingRef')";
 	if(!mysql_query($sql, $link)) {
@@ -309,7 +370,7 @@ function doBooking() {
 
 	list($toBook, $roomChanges) = getBookingData($bookingRequest, $arriveDate, $lastNight, $rooms, $roomTypesData);
 	$bookingIds = saveBookings($toBook, $roomChanges, $arriveDate, $lastNight, $rooms, $roomTypesData, $specialOffers, $descriptionId, $link);
-	$bookedServices = json_decode($_REQUEST['services']);
+	$bookedServices = json_decode($_REQUEST['services'], true);
 	foreach($bookedServices as $service) {
 		$id = $service['id'];
 		if(!isset($services[$id])) {
@@ -458,8 +519,8 @@ EOT;
 		$numOfGuests = $oneRoomBooked['numOfGuests'];
 		$numNightsForNumPerson = sprintf(NUM_NIGHTS_FOR_NUM_PERSON, $nights, $numOfGuests);
 		$roomData = getRoomData($rooms, $roomTypeId);
-		$price = convertCurrency($oneRoomBooked['price'], 'EUR', $currency);
-		$dprice = convertCurrency($oneRoomBooked['discountedPrice'], 'EUR', $currency);
+		$price = convertAmount($oneRoomBooked['price'], 'EUR', $currency, date('Y-m-d'));
+		$dprice = convertAmount($oneRoomBooked['discountedPrice'], 'EUR', $currency, date('Y-m-d'));
 		$dtotal += $dprice;
 		$total += $price;
 		if($price != $dprice) {
@@ -503,9 +564,9 @@ EOT;
 		$title = $service['title'];
 		$forNumOfOccasion = sprintf(FOR_NUM_OF_OCCASIONS, $service['occasion']);
 		$serviceCurrency = $service['currency'];
-		$price = convertCurrency($service['price'], $serviceCurrency, 'EUR');
+		$price = convertAmount($service['price'], $serviceCurrency, 'EUR', date('Y-m-d'));
 		$totalServicePrice += $price;
-		$price = formatMoney(convertCurrency($price, 'EUR', $currency), $currency);
+		$price = formatMoney(convertAmount($price, 'EUR', $currency), $currency, date('Y-m-d'));
 		$mailMessage .= <<<EOT
 
                             <tr>
@@ -526,7 +587,7 @@ EOT;
 EOT;
 	}
 
-	$totalServicePrice = convertCurrency($totalServicePrice, 'EUR', $currency);
+	$totalServicePrice = convertAmount($totalServicePrice, 'EUR', $currency, date('Y-m-d'));
 	$total += $totalServicePrice;
 	$dtotal += $totalServicePrice;
 	if($total != $dtotal) {
@@ -800,7 +861,7 @@ EOT;
 		$title = $service['title'];
 		$occasion = $service['occasion'];
 		$serviceCurrency = $service['currency'];
-		$price = convertCurrency($service['price'], $serviceCurrency, 'EUR');
+		$price = convertAmount($service['price'], $serviceCurrency, 'EUR', date('Y-m-d'));
 		$total += $price;
 		$price = formatMoney($price, 'EUR');
 		$recepcioMessage .= "<tr><td>$title</td><td>$occasion</td><td>$price</td></tr>\n";

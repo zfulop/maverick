@@ -21,6 +21,7 @@ $SOURCES = array(
 	'hbe' => 'Hotel Beds',
 	'hrs' => 'HRS',
 	'hw2' => 'hostelworld',
+	'ost' => 'Ostrovok.ru',
 	'rep' => 'Travel Public',
 	'ta' => 'Trip Advisor'
 );

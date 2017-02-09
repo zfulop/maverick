@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 $rooms = null;
 $roomTypes = null;
@@ -86,6 +86,10 @@ class RoomDao {
 			"ORDER BY rt._order";
 
 		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("Cannot load rooms types data. Error: " . mysql_error($link) . " (SQL: $sql)");
+			return null;
+		}
 		$roomTypesData = array();
 		while($row = mysql_fetch_assoc($result)) {
 			$roomTypesData[$row['id']] = $row;
@@ -94,10 +98,57 @@ class RoomDao {
 		return $roomTypesData;
 	}
 
+	/**
+	 * Returns the one room type that is specified in the 1st parameter by the id. The return value is an associative array. For the keys please check the documentation of the
+	 * getRoomTypes function
+	 */
 	public static function getRoomType($roomTypeId, $lang, $link) {
 		$roomTypes = RoomDao::getRoomTypes($lang, $link);
 		return $roomTypes[$roomTypeId];
 	}
+
+	/**
+	 * Gets the room images that are saved in the system. 
+	 * Parameters
+	 *  lang                  can be a single value or an array. If its an array the description attribute of each image will as many elements as this array.
+	 * Returns the room types in an associative array where the key is the room type id and the value is an assoc array with attributes:
+	 *  id                    id of the room images
+	 *  filename              the name of the original file containing the image data
+	 *  medium                the name of the file containing the resized image data (medium size)
+	 *  thumb                 the name of the file containing the resized image data (thumbnail)
+	 *  room_type_id          the id of the room_type that the image is associated with
+	 *  width                 the width of the original image
+	 *  height                the height of the original image
+	 *  default               if the image is the default image for the room type this is 1 otherwise 0. The default image should be displayed 1st for the room type
+	 *  _order                the order of the image for the room type
+	 *  description           array of key-value pairs where the key is the language code and the value is the description for the image in the specified language
+	 *  
+	 */
+	public static function getRoomImages($lang, $link) {
+		if(!is_array($lang)) {
+			$lang = array($lang);
+		}
+		$sql = "SELECT ri.*, lt.value AS description, lt.lang FROM room_images ri LEFT OUTER JOIN lang_text lt ON (lt.table_name='room_images' AND lt.column_name='description' AND lt.row_id=ri.id AND lt.lang IN ('" . implode("','", $lang) . "')) ORDER BY ri._order";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("Cannot load rooms images. Error: " . mysql_error($link) . " (SQL: $sql)");
+			return null;
+		}		
+		$roomImages = array();
+		while($row = mysql_fetch_assoc($result)) {
+			$descr = $row['description'];
+			$lang = $row['lang'];
+			if(!isset($roomImages[$row['id']])) {
+				$roomImages[$row['id']] = $row;
+				$roomImages[$row['id']]['description'] = array();
+			}
+			$roomImages[$row['id']]['description'][$lang] = $descr;
+		}
+
+		return $roomImages;
+	}
+
+	
 
 }
 

@@ -8,6 +8,7 @@ if(!checkLogin(SITE_CLEANER)) {
 
 $roomId = $_REQUEST['room_id'];
 $cleaner = $_SESSION['login_user'];
+$roomPart = $_REQUEST['room_part'];
 
 $link = db_connect();
 
@@ -41,11 +42,10 @@ if(is_null($cleanerEntered)) {
 		trigger_error("Cannot insert clear action. Error: " . mysql_error($link) . " (SQL: $sql)");
 	} else {
 		set_message('Entered room');
-
 	}
 }
 
 
-header("Location: view_room.php?room_id=$roomId");
+header("Location: view_room.php?room_id=$roomId&room_part=$roomPart");
 
 ?>

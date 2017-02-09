@@ -55,6 +55,11 @@ if(isset($_REQUEST['tables'])) {
 	$tablesSelected = $_REQUEST['tables'];
 }
 
+$exportToExcel = false;
+if(isset($_REQUEST['export_to_excel'])) {
+	$exportToExcel = true;
+}
+
 
 $filterTypes = '';
 $sql = "SELECT * FROM cashout_type ORDER BY type";
@@ -219,13 +224,15 @@ $extraHeader = <<<EOT
 EOT;
 
 
+if($exportToExcel) {
+	header('Content-Type: text/csv');
+	header('Content-Disposition: attachment; filename="money_report_export.csv"');
+	echo "Entity,Type,Date,Name,Pay mode,Comment,Amount EUR,Amount HUF,\n";
+} else {
+	html_start("Report", $extraHeader);
+	$fromName = $_SESSION['login_user'];
 
-html_start("Report", $extraHeader);
-
-
-$fromName = $_SESSION['login_user'];
-
-echo <<<EOT
+	echo <<<EOT
 
 <form action="view_money_report.php" method="GET" accept-charset="utf-8">
 <table>
@@ -265,6 +272,10 @@ echo <<<EOT
 		<td><input name="comment" value="$comment"></td>
 	</tr>
 	<tr>
+		<td>Export to excel</td>
+		<td><input name="export_to_excel" type="checkbox" value="yes"></td>
+	</tr>
+	<tr>
 		<td colspan="2" align="center">
 			<input type="submit" value="Generate report">
 		</td>
@@ -280,6 +291,7 @@ echo <<<EOT
 
 EOT;
 
+}
 
 $takeSc = false;
 $takeCo = false;
@@ -412,12 +424,26 @@ while(count($scharges) > $scIdx or count($cashOuts) > $coIdx or count($payments)
 		$name = '&nbsp;';
 	}
 
+	$htmlEurCell = '';
+	$htmlHufCell = '';
 	if(!is_null($bookingDescriptionId)) {
 		$editBookingUrl = RECEPCIO_BASE_URL . "edit_booking.php?description_id=$bookingDescriptionId&login_hotel=" . $_SESSION['login_hotel'];
-		$eurCell = "<a href=\"$editBookingUrl\">$eurCell</a>";
-		$hufCell = "<a href=\"$editBookingUrl\">$hufCell</a>";
+		$htmlEurCell = "<a href=\"$editBookingUrl\">$eurCell</a>";
+		$htmlHufCell = "<a href=\"$editBookingUrl\">$hufCell</a>";
+	} else {
+		$htmlEurCell = "$eurCell";
+		$htmlHufCell = "$hufCell";
 	}
-	echo "	<tr><td>$table</td><td>$type</td><td>$time</td><td>$name</td><td>$paymode</td><td>$comment</td><td class=\"amount\">$eurCell</td><td class=\"amount\">$hufCell</td></tr>";
+	if($exportToExcel) {
+		$comment = str_replace(","," ",$comment);
+		$name = str_replace(","," ",$name);
+		$comment = str_replace("&nbsp;"," ",$comment);
+		$name = str_replace("&nbsp;"," ",$name);
+		$time = str_replace(","," ",$time);
+		echo utf8_decode("$table,$type,$time,$name,$paymode,$comment,$eurCell,$hufCell\n");
+	} else {
+		echo "	<tr><td>$table</td><td>$type</td><td>$time</td><td>$name</td><td>$paymode</td><td>$comment</td><td class=\"amount\">$htmlEurCell</td><td class=\"amount\">$htmlHufCell</td></tr>";
+	}
 }
 
 $amountEur = sprintf('%.2f', $amountEur);

@@ -98,11 +98,11 @@ foreach($assignments as $oneAssignment) {
 	}
 
 	if($roomCleaned) {
-		echo "<!-- a href=\"enter_room.php?room_id=$roomId&room_part$roomPart=\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName $roomPart is clean</a -->\n";
+		echo "<!-- a href=\"enter_room.php?room_id=$roomId&room_part=$roomPart\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName $roomPart is clean</a -->\n";
 	} elseif(!$canCleanRoom) {
 		echo "<a href=\"#\" role=\"button\" class=\"btn btn-default btn-lg btn-block disabled\">$roomName<br>Guest still in room</a>\n";
 	} else {
-		echo "<a href=\"enter_room.php?room_id=$roomId&room_part$roomPart\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName $roomPart<br>$roomStatus</a>\n";
+		echo "<a href=\"enter_room.php?room_id=$roomId&room_part=$roomPart\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName $roomPart<br>$roomStatus</a>\n";
 	}
 }
 

@@ -7,6 +7,7 @@ if(!checkLogin(SITE_RECEPTION)) {
 	return;
 }
 
+$link = db_connect();
 
 
 $type = $_REQUEST['type'];
@@ -17,7 +18,8 @@ $currency = $_REQUEST['currency'];
 $comment = mysql_real_escape_string($_REQUEST['comment'], $link);
 $payMode = $_REQUEST['pay_mode'];
 
-$link = db_connect();
+logDebug("Saving cash in for type=$tye, receiver=$receiver, amount=$amount, comment=$comment, payMode=$payMode");
+
 
 $sql = "INSERT INTO cash_out (type, receiver, time_of_payment, amount, currency, comment, pay_mode) VALUES ('$type', '$receiver', '$timeOfPayment', $amount, '$currency',  '$comment', '$payMode')";
 

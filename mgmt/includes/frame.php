@@ -22,6 +22,7 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 	$texts = ROOT_URL . 'view_site_text.php';
 	$audit = ROOT_URL . 'view_audit.php';
 	$pricing = ROOT_URL . 'view_pricing.php';
+	$schedule = ROOT_URL . 'view_schedule.php';
 
 	$tooltipJs = ROOT_URL . 'js/wz_tooltip.js';
 
@@ -94,8 +95,9 @@ EOT;
 		<div id="employeeMenu" class="submenu" onmouseleave="$(this).hide();">
 			<ul>
 				<li><a href="$users" style="float: left; font-size: 14px; padding-right: 20px;">Users</a></li>
-				<li><a href="$shifts" style="float: left; font-size: 14px; padding-right: 20px;">Work Shifts</a></li>
-				<li><a href="$vacations" style="float: left; font-size: 14px; padding-right: 20px;">Vacations</a></li>
+				<li><a href="$shifts" style="clear: both; float: left; font-size: 14px; padding-right: 20px;">Work Shifts</a></li>
+				<li><a href="$vacations" style="clear: both; float: left; font-size: 14px; padding-right: 20px;">Vacations</a></li>
+				<li><a href="$schedule" style="float: left; font-size: 14px; padding-right: 20px;">Reception / Cleaner schedule</a></li>
 			</ul>
 		</div>
 		<a href="#" style="float: left; font-size: 14px; padding-right: 20px;" id="roomMainMenu" onclick="showMenu('roomMenu', this);return false;">Rooms</a>

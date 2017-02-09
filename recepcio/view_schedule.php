@@ -3,7 +3,7 @@
 require("includes.php");
 
 
-if(!checkLogin(SITE_RECEPTION)) {
+if(!checkLogin(SITE_MGMT)) {
 	return;
 }
 
@@ -50,6 +50,8 @@ if(strlen($currMonth) < 2) {
 	$currMonth = '0' . $currMonth;
 }
 
+$today = date('Y-m-d');
+
 $r_entries = array();
 $sql = "SELECT rs.*, ws.start_time, ws.end_time, ws.duration_hour FROM reception_schedule rs INNER JOIN working_shift ws ON rs.working_shift_id=ws.id WHERE rs.day LIKE '$currYear-$currMonth-%'";
 $result = mysql_query($sql, $link);
@@ -91,103 +93,11 @@ if(!$result) {
 }
 
 
-$receptionistHtmlOptions = '';
-$cleanerHtmlOptions = '';
-$sql = "SELECT * FROM users ORDER BY name";
-$result = mysql_query($sql, $link);
-if(!$result) {
-	trigger_error("Cannot get receptionists Error: " . mysql_error($link) . " (SQL: $sql)");
-	set_error("Error loading receptionists");
-} else {
-	while($row = mysql_fetch_assoc($result)) {
-		if(($row['role'] == 'RECEPTION') or ($row['role'] == 'MANAGER') or ($row['role'] == 'ADMIN')) {
-			$receptionistHtmlOptions .= "\t\t\t<option value=\"" . $row['username'] . "\">" . $row['name'] . "</option>\n";
-		}
-		if($row['role'] == 'CLEANER') {
-			$cleanerHtmlOptions .= "\t\t\t<option value=\"" . $row['username'] . "\">" . $row['name'] . "</option>\n";
-		}
-	}
-}
 
-
-$shiftHtmlOptions = '';
-$shifts = array();
-$sql = "SELECT * FROM working_shift WHERE (valid_to IS NULL OR valid_to>'$currYear-$currMonth-01') AND (valid_from is NULL or valid_from<'$currYear-$currMonth-31')";
-$result = mysql_query($sql, $link);
-if(!$result) {
-	trigger_error("Cannot get shifts Error: " . mysql_error($link) . " (SQL: $sql)");
-	set_error("Error loading shifts");
-} else {
-	while($row = mysql_fetch_assoc($result)) {
-		$shiftHtmlOptions .= "\t\t\t<option value=\"" . $row['id'] . "\">" . $row['start_time'] . ' - ' . $row['end_time'] . "</option>\n";
-		$shifts[] = $row;
-	}
-}
-
-
-$extraHeader =<<<EOT
-
-<script type="text/javascript">
-
-	function addReceptionist(day) {
-		document.getElementById('add_receptionist_schedule_div').style.display = 'block';
-		$('day').setValue(day);
-		$('day_td').update(day);
-	}
-
-	function addCleaner(day) {
-		document.getElementById('add_cleaner_schedule_div').style.display = 'block';
-		$('day_cleaner').setValue(day);
-		$('day_td_cleaner').update(day);
-	}
-
-</script>
-
-EOT;
-
-html_start("Reception/Cleaning Schedule", $extraHeader);
+html_start("Reception/Cleaning Schedule");
 
 
 echo <<<EOT
-
-<div id="add_receptionist_schedule_div" style="display: none; position: absolute; left: 100px; top: 100px; padding: 10px; width: 300px; height: 150px; border: 1px solid black; background: rgb(200, 200, 200);">
-	<form action="add_receptionist_schedule.php" method="POST" accept-charset="utf-8">
-	<input type="hidden" name="day" id="day">
-	<table>
-		<tr><th colspan="2">Add receptionist schedule</th></tr>
-		<tr><td>Day: </td><td id="day_td"></td></tr>
-		<tr><td>Shift: </td><td><select name="shift">
-$shiftHtmlOptions
-		</select></td></tr>
-		<tr><td>Receptionist: </td><td><select name="login">
-$receptionistHtmlOptions
-		</select></td></tr>
-	</table>
-	<input type="submit" value="Add receptionist schedule">&nbsp;
-	<input type="button" value="Cancel" onclick="$('add_receptionist_schedule_div').hide();">
-	</form>
-</div>
-
-
-<div id="add_cleaner_schedule_div" style="display: none; position: absolute; left: 100px; top: 100px; padding: 10px; width: 300px; height: 150px; border: 1px solid black; background: rgb(200, 200, 200);">
-	<form action="add_cleaner_schedule.php" method="POST" accept-charset="utf-8">
-	<input type="hidden" name="day" id="day_cleaner">
-	<table>
-		<tr><th colspan="2">Add cleaner schedule</th></tr>
-		<tr><td>Day: </td><td id="day_td_cleaner"></td></tr>
-		<tr><td>Shift: </td><td><select name="shift">
-$shiftHtmlOptions
-		</select></td></tr>
-		<tr><td>Cleaner: </td><td><select name="login">
-$cleanerHtmlOptions
-		</select></td></tr>
-	</table>
-	<input type="submit" value="Add cleaner schedule">&nbsp;
-	<input type="button" value="Cancel" onclick="$('add_cleaner_schedule_div').hide();">
-	</form>
-</div>
-
-
 
 Current month: $currYear-$currMonth<br>
 <table><tr>
@@ -224,14 +134,13 @@ $numOfDaysInMonth = date('t', $currDate);
 for($i = 0; $i < $numOfDaysInMonth; $i++) {
 	$currDateStr = date('Y-m-d', $currDate);
 	echo "		<td style=\"padding: 4px;\">\n";
-	echo "			<div style=\"text-align: left; float: left;\"><a href=\"#\" onclick=\"addReceptionist('" . date('Y-m-d', $currDate) . "');\">Add</a></div>\n";
 	echo "			<div style=\"text-align: right; float: right; font-weight: bold;\">" . date('j', $currDate) . "</div><div style=\"clear: both;\"></div>\n";
 	echo "			<table class=\"schedule_inner_table\">\n";
 	if(isset($r_entries[$currDateStr])) {
 		$arr = $r_entries[$currDateStr];
 		ksort($arr);
 		foreach($arr as $startTime => $entry) {
-			echo "\t\t\t\t<tr><td>" . $entry['login'] . '</td><td>' . $entry['start_time'] . '-' . $entry['end_time'] . "</td><td><a href=\"delete_receptionist_schedule.php?id=" . $entry['id'] . "\">Delete</a></td></tr>\n";
+			echo "\t\t\t\t<tr><td>" . $entry['login'] . '</td><td>' . $entry['start_time'] . '-' . $entry['end_time'] . "</td></tr>\n";
 		}
 	}
 	echo "			</table>\n";
@@ -285,7 +194,6 @@ $numOfDaysInMonth = date('t', $currDate);
 for($i = 0; $i < $numOfDaysInMonth; $i++) {
 	$currDateStr = date('Y-m-d', $currDate);
 	echo "		<td>\n";
-	echo "			<div style=\"text-align: left; float: left;\"><a href=\"#\" onclick=\"addCleaner('" . date('Y-m-d', $currDate) . "');\">Add</a></div>\n";
 	echo "			<div style=\"text-align: right; float: right; font-weight: bold;\">" . date('j', $currDate) . "</div><div style=\"clear: both;\"></div>\n";
 	echo "			<table class=\"schedule_inner_table\">\n";
 	if(isset($c_entries[$currDateStr])) {
