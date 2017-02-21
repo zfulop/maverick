@@ -20,7 +20,8 @@ if(!isset($_REQUEST['action'])) {
 	return;
 }
 $action = $_REQUEST['action'];
-logDebug("\nAPI action: $action");
+logDebug("BEGIN*****************************************************");
+logDebug("API action: $action");
 
 $retVal = null;
 if($action == 'rooms') {
@@ -44,6 +45,7 @@ if(!is_null($retVal)) {
 	echo json_encode($retVal, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 }
 logDebug("end of API call");
+logDebug("*****************************************************END");
 return;
 
 
@@ -163,8 +165,51 @@ function loadAvailability() {
 		}
 	}
 
+	usort($retVal['rooms'], 'sortAvailabilityRooms');
+	
 	mysql_close($link);
 	return $retVal;
+}
+
+function sortAvailabilityRooms($room1, $room2) {
+	// Available rooms first, then not available rooms
+	if(isAvailable($room1) and !isAvailable($room2)) {
+		return -1;
+	}
+	if(isAvailable($room2) and !isAvailable($room1)) {
+		return 1;
+	}
+	// dorm first, private second, apartment after
+	if(isDorm($room1) and !isDorm($room2)) {
+		return -1;
+	}
+	if(isDorm($room2) and !isDorm($room1)) {
+		return 1;
+	}
+	if(isPrivate($room1) and isApartment($room2)) {
+		return -1;
+	}
+	if(isPrivate($room2) and isApartment($room1)) {
+		return 1;
+	}
+	// finaly sort by price where both are available or bot are not available and both are the same types.
+	if($room1['price'] < $room2['price']) {
+		return -1;
+	}
+	if($room2['price'] < $room1['price']) {
+		return 1;
+	}
+	
+	return 0;
+}
+
+function isAvailable($roomAvailability) {
+	if(isDorm($roomAvailability) and $roomAvailability['num_of_beds_avail'] > 0) {
+		return true;
+	}
+	if(!isDorm($roomAvailability) and $roomAvailability['num_of_rooms_avail'] > 0) {
+		return true;
+	}
 }
 
 function loadRoomImages($lang, $link) {
@@ -178,7 +223,11 @@ function loadRoomImages($lang, $link) {
 		$row['original_img_url'] = ROOMS_IMG_URL . $row['filename'];
 		$row['medium_img_url'] = ROOMS_IMG_URL . (is_null($row['medium']) ? $row['filename'] : $row['medium']);
 		$row['thumb_img_url'] = ROOMS_IMG_URL . (is_null($row['thumb']) ? $row['filename'] : $row['thumb']);
-		$row['description'] = $row['description'][$lang];
+		if(isset($row['description'][$lang])) {
+			$row['description'] = $row['description'][$lang];
+		} else {
+			$row['description'] = '';
+		}
 		$roomImages[$row['room_type_id']][] = $row;
 		$imgCnt += 1;
 	}
@@ -214,8 +263,14 @@ function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType, 
 	if(!isset($roomType['num_of_rooms_avail'])) {
 		$roomType['num_of_rooms_avail'] = 0;
 	}
+	if(!isset($roomType['rooms_providing_availability'])) {
+		$roomType['rooms_providing_availability'] = '';
+	}
 	if($minAvailBeds == $roomData['num_of_beds']) {
 		$roomType['num_of_rooms_avail'] += 1;
+		$roomType['rooms_providing_availability'] .= $roomData['id'] . ',';
+	} elseif($minAvailBeds > 0 and isDorm($roomType)) {
+		$roomType['rooms_providing_availability'] .= $roomData['id'] . ',';
 	}
 
 	$roomType['num_of_beds_avail'] += $minAvailBeds;
@@ -324,6 +379,9 @@ function doBooking() {
 	$lang = $_REQUEST['lang'];
 	$currency = $_REQUEST['currency'];
 
+	$link = db_connect($location);
+	
+	
 	$firstname = $_REQUEST['firstname'];
 	$lastname = $_REQUEST['lastname'];
 
@@ -331,7 +389,7 @@ function doBooking() {
 		return null;
 	}
 	
-	$address = mysql_real_escape_string($$_REQUEST['street'] . ', ' . $_REQUEST['city'] . ', ' . $_REQUEST['zip'] . ', ' . $_REQUEST['country'], $link);
+	$address = mysql_real_escape_string($_REQUEST['street'] . ', ' . $_REQUEST['city'] . ', ' . $_REQUEST['zip'] . ', ' . $_REQUEST['country'], $link);
 	$name = mysql_real_escape_string("$firstname $lastname", $link);
 	$nationality = mysql_real_escape_string($_REQUEST['nationality'], $link);
 	$email = mysql_real_escape_string($_REQUEST['email'], $link);
@@ -339,20 +397,22 @@ function doBooking() {
 	$comment = mysql_real_escape_string($_REQUEST['comment'], $link);
 	$bookingRef = mysql_real_escape_string(gen_booking_ref(), $link);
 
-	verifyBlacklist("$firstname $lastname", $email, constant('CONTACT_EMAIL_' . strtoupper($location)), $link);
+	verifyBlacklist("$firstname $lastname", $email, CONTACT_EMAIL, $link);
 	
 	$arriveDate = $_REQUEST['from_date'];
 	$arriveDateTs = strtotime($_REQUEST['from_date']);
 	$departureDate = $_REQUEST['to_date'];
 	$departureDateTs = strtotime($_REQUEST['to_date']);
-	$nights = round(($departureDateTs - $arriveDateTs) / (60*24));
-	$lastNightTs = strtotime($arriveDateTs + ($nights -1) * (60*24));
+	$nights = round(($departureDateTs - $arriveDateTs) / (60*60*24));
+	$lastNightTs = $arriveDateTs + ($nights-1) * (60*60*24) - ($nights>1?60*60:0); // minus 1 hour because when the daylight saving is turned off then one day is only 23 hours so if we add 24 that would be an extra day.
 	$lastNight = date('Y-m-d', $lastNightTs);
-	
+
+	logDebug("arrive date: $arriveDate, departure date: $departureDate, last night: $lastNight, num of nights: $nights");
 	$link = db_connect($location);
 	mysql_query('START TRANSACTION', $link);
 	
 	$specialOffers = loadSpecialOffers($arriveDate,$lastNight, $link);
+	logDebug("There are " . count($specialOffers) . " special offers valid between $arriveDate and $lastNight");
 	$rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
 	$roomTypesData = loadRoomTypes($link, $lang);
 	$services = loadServicesFromDB($lang, $link);
@@ -368,7 +428,7 @@ function doBooking() {
 	}
 	$descriptionId = mysql_insert_id($link);
 
-	list($toBook, $roomChanges) = getBookingData($bookingRequest, $arriveDate, $lastNight, $rooms, $roomTypesData);
+	list($toBook, $roomChanges) = getBookingData($bookingRequest, $arriveDate, $lastNight, $rooms, $roomTypesData, $specialOffers);
 	$bookingIds = saveBookings($toBook, $roomChanges, $arriveDate, $lastNight, $rooms, $roomTypesData, $specialOffers, $descriptionId, $link);
 	$bookedServices = json_decode($_REQUEST['services'], true);
 	foreach($bookedServices as $service) {
@@ -396,32 +456,39 @@ function doBooking() {
 		}
 	}
 
+	$_SESSION['login_user'] = 'website';
 	audit(AUDIT_CREATE_BOOKING, array('booking_data' => $toBook, 'room_change_data' => $roomChanges), $bookingIds[0], $descriptionId, $link);
 	mysql_query('COMMIT', $link);
 	mysql_close($link);
 
-	sendEmailForBooking($name, $email, $address, $nationality, $arriveDate, $departureDate, $nights, $bookings, $bookedServices);
+	sendEmailForBooking($name, $email, $phone, $address, $nationality, $arriveDate, $departureDate, $nights, $toBook, $bookedServices, $roomTypesData, $services);
+	return array('success'=> true);
 }
 
-function sendEmailForBooking($nameValue, $emailValue, $addressValue, $nationalityValue, $dateOfArriveValue, $dateOfDepartureValue, $numberOfNightsValue, $bookings, $bookedServices) {
-	$nameTitle = NAME;
-	$emailTitle = EMAIL;
-	$addressTitle = ADDRESS_TITLE;
-	$nationalityTitle = NATIONALITY;
-	$dateOfArriveTitle = DATE_OF_ARRIVAL;
-	$dateOfDepartureTitle = DATE_OF_DEPARTURE;
-	$numberOfNightsTitle = NUMBER_OF_NIGHTS;
-	$roomsTitle = ROOMS;
-	$extraServicesTitle = EXTRA_SERVICES;
-	$totalPrice = TOTAL_PRICE;
-	$adviseToTravel = ADVISE_TO_TRAVEL;
-	$fromTrainStation = RAILWAY_STATIONS;
-	$fromTrainStationInstructions = constant('RAILWAY_STATIONS_TO_' . strtoupper($location));
-	$fromAirport = FROM_AIRPORT;
-	$fromAirportInstructions = constant('AIRPORT_TO_' . strtoupper($location));
-	$fromAirportInstructions2 = constant('AIRPORT_TO_' . strtoupper($location) . '_2');
-	$important = IMPORTANT;
-	$importantNotice = constant('IMPORTANT_NOTICE_WHEN_ARRIVE_' . strtoupper($location));
+function sendEmailForBooking($nameValue, $emailValue, $phoneValue, $addressValue, $nationalityValue, $dateOfArriveValue, $dateOfDepartureValue, $numberOfNightsValue, $bookings, $bookedServices, &$roomTypesData, &$services) {
+	$texts = loadWebsiteTexts();
+	$location = $_REQUEST['location'];
+	$lang = $_REQUEST['lang'];
+	$currency = $_REQUEST['currency'];
+	
+	$nameTitle = $texts['NAME'];
+	$emailTitle = $texts['EMAIL'];
+	$addressTitle = $texts['ADDRESS_TITLE'];
+	$nationalityTitle = $texts['NATIONALITY'];
+	$dateOfArriveTitle = $texts['DATE_OF_ARRIVAL'];
+	$dateOfDepartureTitle = $texts['DATE_OF_DEPARTURE'];
+	$numberOfNightsTitle = $texts['NUMBER_OF_NIGHTS'];
+	$roomsTitle = $texts['ROOMS'];
+	$extraServicesTitle = $texts['EXTRA_SERVICES'];
+	$totalPrice = $texts['TOTAL_PRICE'];
+	$adviseToTravel = $texts['ADVISE_TO_TRAVEL'];
+	$fromTrainStation = $texts['RAILWAY_STATIONS'];
+	$fromTrainStationInstructions = $texts['RAILWAY_STATIONS_TO_' . strtoupper($location)];
+	$fromAirport = $texts['FROM_AIRPORT'];
+	$fromAirportInstructions = $texts['AIRPORT_TO_' . strtoupper($location)];
+	$fromAirportInstructions2 = $texts['AIRPORT_TO_' . strtoupper($location) . '_2'];
+	$important = $texts['IMPORTANT'];
+	$importantNotice = $texts['IMPORTANT_NOTICE_WHEN_ARRIVE_' . strtoupper($location)];
 	$importantHtml = '';
 	if(strlen($importantNotice) > 0) {
 		$importantHtml = <<<EOT
@@ -444,14 +511,15 @@ function sendEmailForBooking($nameValue, $emailValue, $addressValue, $nationalit
 
 EOT;
 	}
-	$payment = PAYMENT;
-	$paymentDescription = PAYMENT_DESCRIPTION;
-	$actualExchangeRate = ACTUAL_EXCHANGE_RATE;
-	$policy = POLICY;
+	$payment = $texts['PAYMENT'];
+	$paymentDescription = $texts['PAYMENT_DESCRIPTION'];
+	$actualExchangeRate = $texts['ACTUAL_EXCHANGE_RATE'];
+	$policy = $texts['POLICY'];
+	$belowFindBookingInfo = $texts['BELOW_FIND_BOOKING_INFO'];
 	$mailMessage = <<<EOT
 <html>
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  
 </head>
 <body>
   <table width="100%" cellspacing="0" border="0" cellpadding="0" bgcolor="#ffffff">
@@ -508,23 +576,24 @@ EOT;
 
 	$total = 0;
 	$dtotal = 0;
-	foreach($bookings as $oneRoomBooked) {
-		$roomTypeId = $oneRoomBooked['roomTypeId'];
+
+	foreach($bookings as $roomId => $oneRoomBooked) {
+		$roomTypeId = $oneRoomBooked['room_type_id'];
 		$roomType = $roomTypesData[$roomTypeId];
-		$type = $roomType['type'] == 'DORM' ? BED : ROOM;
+		$type = $roomType['type'] == 'DORM' ? $texts['BED'] : $texts['ROOM'];
 		$name = $roomType['name'];
-		if(isClientFromHU() and $roomType['num_of_beds'] > 4) {
-			$name = str_replace('5', '4', $name);
-		}
-		$numOfGuests = $oneRoomBooked['numOfGuests'];
-		$numNightsForNumPerson = sprintf(NUM_NIGHTS_FOR_NUM_PERSON, $nights, $numOfGuests);
+//		if(isClientFromHU() and $roomType['num_of_beds'] > 4) {
+//			$name = str_replace('5', '4', $name);
+//		}
+		$numOfGuests = $oneRoomBooked['num_of_person'];
+		$numNightsForNumPerson = sprintf($texts['NUM_NIGHTS_FOR_NUM_PERSON'], $numberOfNightsValue, $numOfGuests);
 		$roomData = getRoomData($rooms, $roomTypeId);
 		$price = convertAmount($oneRoomBooked['price'], 'EUR', $currency, date('Y-m-d'));
-		$dprice = convertAmount($oneRoomBooked['discountedPrice'], 'EUR', $currency, date('Y-m-d'));
+		$dprice = convertAmount($oneRoomBooked['discounted_price'], 'EUR', $currency, date('Y-m-d'));
 		$dtotal += $dprice;
 		$total += $price;
 		if($price != $dprice) {
-			$pctOff = sprintf(PERCENT_OFF, (100 - $dprice/($price/100)));
+			$pctOff = sprintf($texts['PERCENT_OFF'], (100 - $dprice/($price/100)));
 			$price = "<span style=\"text-decoration:line-through\">" . formatMoney($price, $currency) . "</span> " . $pctOff . " " . formatMoney($dprice, $currency);
 		} else {
 			$price = formatMoney($dprice, $currency);
@@ -561,10 +630,14 @@ EOT;
 
 	$totalServicePrice = 0;
 	foreach($bookedServices as $service) {
-		$title = $service['title'];
-		$forNumOfOccasion = sprintf(FOR_NUM_OF_OCCASIONS, $service['occasion']);
-		$serviceCurrency = $service['currency'];
-		$price = convertAmount($service['price'], $serviceCurrency, 'EUR', date('Y-m-d'));
+		$id = $service['id'];
+		if(!isset($services[$id])) {
+			logError("The booking contains a service with id: $id tha tis not in the DB. Ignoring.");
+		}		
+		$title = $services[$service['id']]['title'];
+		$forNumOfOccasion = sprintf($texts['FOR_NUM_OF_OCCASIONS'], $service['occasion']);
+		$serviceCurrency = $services[$service['id']]['currency'];
+		$price = convertAmount($services[$service['id']]['price'], $serviceCurrency, 'EUR', date('Y-m-d'));
 		$totalServicePrice += $price;
 		$price = formatMoney(convertAmount($price, 'EUR', $currency), $currency, date('Y-m-d'));
 		$mailMessage .= <<<EOT
@@ -768,8 +841,8 @@ $importantHtml
 
 EOT;
 	$idx = 1;
-	while(defined('POLICY_' . strtoupper($location) . '_' . $idx)) {
-		$policyIdx = constant('POLICY_' . strtoupper($location) . '_' . $idx);
+	while(isset($texts['POLICY_' . strtoupper($location) . '_' . $idx])) {
+		$policyIdx = $texts['POLICY_' . strtoupper($location) . '_' . $idx];
 		$mailMessage .= <<<EOT
                       <tr>
                         <td width="15" valign="top"><img width="5" height="17" src="cid:bullet"></td>
@@ -810,24 +883,26 @@ EOT;
 		'railwaystation' => EMAIL_IMG_DIR . 'railwaystation.jpg'
 	);
 
-	$locationName = constant('LOCATION_NAME_' . strtoupper($location));
-	$subject = str_replace('LOCATION', $locationName, BOOKING_CONFIRMATION_EMAIL_SUBJECT);
-	$result = sendMail('reservation@mavericklodges.com', $locationName, $email, "$lastname, $firstname", $subject, $mailMessage, $inlineAttachments);
+	$locationName = $texts['LOCATION_NAME_' . strtoupper($location)];
+	$subject = str_replace('LOCATION', $locationName, $texts['BOOKING_CONFIRMATION_EMAIL_SUBJECT']);
+	$result = sendMail('reservation@mavericklodges.com', $locationName, $emailValue, "$nameValue", $subject, $mailMessage, $inlineAttachments);
+	if(!is_null($result)) {
+		logError("Cannot send email: $result");
+	}
 
 	$editBookingUrl = "http://recepcio.roomcaptain.com/edit_booking.php?description_id=$descriptionId";
 	$recepcioMessage = <<<EOT
 Booking arrived (<a href="$editBookingUrl">edit</a>)<br>
 
 <table>	
-<tr><td>Name: </td><td>$firstname $lastname</td></tr>
-<tr><td>Emai: </td><td>$email</td></tr>
-<tr><td>Phone: </td><td>$countryCode $phone</td></tr>
-<tr><td>Nationality: </td><td>$nationality</td></tr>
-<tr><td>Address: </td><td>$street, $city, $zip, $country</td></tr>
+<tr><td>Name: </td><td>$nameValue</td></tr>
+<tr><td>Emai: </td><td>$emailValue</td></tr>
+<tr><td>Phone: </td><td>$phoneValue</td></tr>
+<tr><td>Nationality: </td><td>$nationalityValue</td></tr>
+<tr><td>Address: </td><td>$addressValue</td></tr>
 <tr><td>Arrival: </td><td>$dateOfArriveValue</td></tr>
 <tr><td>Departure: </td><td>$dateOfDepartureValue</td></tr>
 <tr><td>Num of nights: </td><td>$numberOfNightsValue</td></tr>
-<tr><td>Comment: </td><td>$comment</td></tr>
 </table>
 
 Rooms:
@@ -836,14 +911,14 @@ Rooms:
 
 EOT;
 	$total = 0;
-	foreach($bookings as $oneRoomBooked) {
+	foreach($bookings as $roomId => $oneRoomBooked) {
 		$roomTypeId = $oneRoomBooked['roomTypeId'];
 		$roomType = $roomTypesData[$roomTypeId];
 		$type = $roomType['type'] == 'DORM' ? "Bed" : "Room";
 		$name = $roomType['name'];
-		$numOfGuests = $oneRoomBooked['numOfGuests'];
+		$numOfGuests = $oneRoomBooked['num_of_person'];
 		$price = $oneRoomBooked['price'];
-		$dprice = $oneRoomBooked['discountedPrice'];
+		$dprice = $oneRoomBooked['discounted_price'];
 		$total += $dprice;
 		if($price != $dprice) {
 			$price = "<span style=\"text-decoration:line-through\">" . formatMoney($price, 'EUR') . "</span> " . formatMoney($dprice, 'EUR');
@@ -858,10 +933,14 @@ EOT;
 		$recepcioMessage .= "<tr><th>Name</th><th>Occasions</th><th>Price(total)</th></tr>\n";
 	}
 	foreach($bookedServices as $service) {
-		$title = $service['title'];
+		$id = $service['id'];
+		if(!isset($services[$id])) {
+			logError("The booking contains a service with id: $id tha tis not in the DB. Ignoring.");
+		}		
+		$title = $services[$service['id']]['title'];
 		$occasion = $service['occasion'];
-		$serviceCurrency = $service['currency'];
-		$price = convertAmount($service['price'], $serviceCurrency, 'EUR', date('Y-m-d'));
+		$serviceCurrency = $services[$service['id']]['currency'];
+		$price = convertAmount($services[$service['id']]['price'], $serviceCurrency, 'EUR', date('Y-m-d'));
 		$total += $price;
 		$price = formatMoney($price, 'EUR');
 		$recepcioMessage .= "<tr><td>$title</td><td>$occasion</td><td>$price</td></tr>\n";
@@ -869,7 +948,10 @@ EOT;
 	$recepcioMessage .= "</table><br>\n";
 	$recepcioMessage .= "Total: $total euro<br>\n";
 
-	$result = sendMail('reservation@mavericklodges.com', $locationName, constant('CONTACT_EMAIL_' . strtoupper($location)), $locationName, "Booking arrived from website", $recepcioMessage);
+	$result = sendMail(CONTACT_EMAIL, $locationName, CONTACT_EMAIL, $locationName, "Booking arrived from website", $recepcioMessage);
+	if(!is_null($result)) {
+		logError("Cannot send email: $result");
+	}
 
 }
 
@@ -893,7 +975,7 @@ function loadWebsiteTexts() {
 	$location = $_REQUEST['location'];
 	$lang = $_REQUEST['lang'];
 	$link = db_connect($location);
-	
+
 	$sql = "SELECT * FROM lang_text WHERE lang='$lang' AND table_name='website'";
 	$result = mysql_query($sql, $link);
 	$dict = array();

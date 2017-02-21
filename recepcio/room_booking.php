@@ -39,6 +39,15 @@ function loadRoomTypesWithAvailableBeds($link, $startDate, $endDate, $lang = 'en
 			$roomTypesData[$row['id']] = $oneRoomType;
 		}
 	}
+	$sql = "SELECT room_type_id, COUNT(*) AS cnt FROM rooms_to_room_types GROUP BY room_type_id";
+	$result = mysql_query($sql, $link);
+	if(!$result) {
+		echo "SQL ERROR: " . mysql_error($link) . " (sql: $sql)<br>\n";
+	} else {
+		while($row = mysql_fetch_assoc($result)) {
+			$roomTypesData[$row['room_type_id']]['available_beds'] += $roomTypesData[$row['num_of_beds']] * $row['cnt'];
+		}
+	}	
 	return $roomTypesData;
 }
 
@@ -82,6 +91,9 @@ function loadSpecialOffers($startDate, $endDate, $link, $lang = 'eng') {
 }
 
 
+function isRoomOfType(&$roomData, $roomTypeId) {
+	return in_array($roomTypeId, array_keys($roomData['room_types']));
+}
 
 function &loadOnlyRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link, $lang = 'eng') {
 	$startMonth = __getNormalizedDate($startMonth);
@@ -590,21 +602,21 @@ function specialOfferApplies(&$specialOffer, &$roomType, $nights, $arriveDate, $
 		return false;
 	}
 
-	logDebug("Checking if special offer applies to arrive date: $arriveDate, nights: $nights, roomType: " . $roomType['name'] . '[' . $roomType['id'] . '], special offer: ' . $specialOffer['name']);
+	// logDebug("Checking if special offer applies to arrive date: $arriveDate, nights: $nights, roomType: " . $roomType['name'] . '[' . $roomType['id'] . '], special offer: ' . $specialOffer['name']);
 	if(!is_null($specialOffer['room_type_ids']) and strpos($specialOffer['room_type_ids'],$roomType['id']) === false) {
-		logDebug("this special ofer is not applicable for this room type");
+		// logDebug("this special ofer is not applicable for this room type");
 		return false;
 	}
 
 	if(!is_null($specialOffer['nights']) and $nights < $specialOffer['nights']) {
-		logDebug("this special ofer is applicable for at least " . $specialOffer['nights'] . " nights only");
+		// logDebug("this special ofer is applicable for at least " . $specialOffer['nights'] . " nights only");
 		return false;
 	}
 
 	if(!is_null($specialOffer['valid_num_of_days_before_arrival'])) {
 		$cutoffDate = date('Y-m-d', strtotime(date('Y-m-d') . ' +' . $specialOffer['valid_num_of_days_before_arrival'] . ' day'));
 		if($arriveDate > $cutoffDate) {
-			logDebug("this special ofer is applicable for atmost  " . $specialOffer['valid_num_of_days_before_arrival'] . " days before arrival");
+			// logDebug("this special ofer is applicable for atmost  " . $specialOffer['valid_num_of_days_before_arrival'] . " days before arrival");
 			return false;
 		}
 	}
@@ -612,13 +624,12 @@ function specialOfferApplies(&$specialOffer, &$roomType, $nights, $arriveDate, $
 	if(!is_null($specialOffer['early_bird_day_count'])) {
 		$cutoffDate = date('Y-m-d', strtotime(date('Y-m-d') . ' +' . $specialOffer['early_bird_day_count'] . ' day'));
 		if($arriveDate < $cutoffDate) {
-			logDebug("this special ofer is applicable for atleast  " . $specialOffer['valid_num_of_days_before_arrival'] . " days before arrival");
+			// logDebug("this special ofer is applicable for atleast  " . $specialOffer['valid_num_of_days_before_arrival'] . " days before arrival");
 			return false;
 		}
 	}
 
-	logDebug("this special offer applies!");
-
+	logDebug("this special offer applies for arrive date: $arriveDate, nights: $nights, roomType: " . $roomType['name'] . '[' . $roomType['id'] . '], special offer: ' . $specialOffer['name']);
 	return true;
 }
 
@@ -662,7 +673,7 @@ function getRoomIds(&$rooms, $roomTypeId) {
 // creates two arrays: 
 // $toBook that contains the roomId as a key and the value contains the number of people and the type (ROOM or BED) of the booking.
 // $roomChanges where the key is a roomId and the value is an array of date => new_room_id
-function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, &$roomTypes) {
+function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, &$roomTypes, &$specialOffers = null) {
 	$startDate = str_replace('/', '-', $startDate);
 	$endDate = str_replace('/', '-', $endDate);
 	list($startYear, $startMonth, $startDay) = explode('-', $startDate);
@@ -673,9 +684,11 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 	$endDay = __getNormalizedDate($endDay);
 	$startDate = "$startYear-$startMonth-$startDay";
 	$endDate = "$endYear-$endMonth-$endDay";
+	$numOfNights = round((strtotime($endDate) - strtotime($startDate)) / (60*60*24)) + 1;
 	$toBook = array();
 	$roomChanges = array(); // contains the rooms where some days has to be spent in another room
 	logDebug("Inside getBookingData()");
+	logDebug("booking interval: $startDate, $endDate, this is $numOfNights nights");
 	logDebug("numOfPersonForRoomType = " .print_r($numOfPersonForRoomType, true));
 	foreach($numOfPersonForRoomType as $oneBooking) {
 		$roomTypeIds = $oneBooking['roomTypeIds'];
@@ -841,6 +854,21 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 			} // end of if(private) elseif(dorm)
 		} // end of foreach(numOf_PersonArray)
 	} // end of numOfPersonPerRoomType
+	
+	foreach($toBook as $roomId => &$bookingData) {
+		$payment = getPrice(strtotime($startDate), $numOfNights, $rooms[$roomId], $bookingData['num_of_person']);
+		if(!is_null($specialOffers)) {
+			list($discount, $selectedSo) = findSpecialOffer($specialOffers, $roomTypes[$bookingData['room_type_id']], $numOfNights, $startDate, $bookingData['num_of_person']);
+			// apply special offer
+			$discountedPayment = $payment;
+			if($discount > 0) {
+				$discountedPayment = $payment * (100 - $discount) / 100;
+			}
+			$bookingData['price'] = $payment;
+			$bookingData['discounted_price'] = $discountedPayment;
+		}
+	}
+	
 	logDebug("getBookingData() - The toBook array's content: " . print_r($toBook, true));
 	logDebug("getBookingData() - The roomChanges array's content: " . print_r($roomChanges, true));
 

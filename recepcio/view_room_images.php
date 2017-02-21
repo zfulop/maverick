@@ -12,13 +12,15 @@ $link = db_connect();
 $images = array();
 $roomTypeOptions = '';
 $roomTypes = RoomDao::getRoomTypes('eng', $link);
-foreach($roomTypes = $row) {
-	$roomTypeOptions .= "	<option value=\"" . $row['id'] . "\">" . $row['name'] . "</option>\n";
+foreach($roomTypes as $roomTypeId => $row) {
+	$roomTypeOptions .= "	<option value=\"$roomTypeId\">" . $row['name'] . "</option>\n";
 	$images[$row['id']] = array();
-	$roomTypes[$row['id']] = $row;
 }
 
 $roomImages = RoomDao::getRoomImages(array_keys(getLanguages()), $link);
+foreach($roomImages as $riId => $roomImage) {
+	$images[$roomImage['room_type_id']][] = $roomImage;
+}
 
 $extraHeader = <<<EOT
 <script src="js/jquery.js" type="text/javascript"></script>

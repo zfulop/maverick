@@ -24,8 +24,11 @@ if(isset($_REQUEST['num_of_days'])) {
 	$numOfDays = intval($_REQUEST['num_of_days']);
 }
 
+$total = array();
+
 $dayToShow = $startDate;
 for($i = 0; $i < $numOfDays; $i++) {
+	$total[$dayToShow] = array('private_rooms' => 0, 'private_beds' => 0, 'dorm_beds' => 0, );
 	// Get rooms from where guests are leaving
 	$leaves = BookingDao::getLeavingBookings($dayToShow, $link);
 	array_walk($leaves, 'applyType', 'departure');
@@ -105,6 +108,12 @@ foreach($roomTypes as $rtid => $roomType) {
 			if($room['room_type_id'] <> $rtid) {
 				continue;
 			}
+			if($roomType['type'] == 'DORM') {
+				$total[$date]['dorm_beds'] += $oneRoomToClean['num_of_person'] + $oneRoomToClean['extra_beds'];
+			} else {
+				$total[$date]['private_beds'] += $oneRoomToClean['num_of_person'] + $oneRoomToClean['extra_beds'];
+				$total[$date]['private_rooms'] += 1;
+			}
 			if(!in_array($room['name'], $roomNames)) {
 				$roomNames[] = $room['name'];
 				$beds[$room['name']] = $oneRoomToClean['num_of_person'] + $oneRoomToClean['extra_beds'];
@@ -126,10 +135,25 @@ foreach($roomTypes as $rtid => $roomType) {
 }
 
 
-echo <<<EOT
-</table>
+echo "	<tr><td colspan=\"" . (count(array_keys($roomsToClean)) + 1) . "\"><hr></tr>\n";
 
-EOT;
+echo "	<tr><th>Total private rooms</th>";
+foreach(array_keys($roomsToClean) as $date) {
+	echo "<td>" . $total[$date]['private_rooms'] . "</td>";
+}
+echo "</tr>\n";
+echo "	<tr><th>Total private beds</th>";
+foreach(array_keys($roomsToClean) as $date) {
+	echo "<td>" . $total[$date]['private_beds'] . "</td>";
+}
+echo "</tr>\n";
+echo "	<tr><th>Total dorm beds</th>";
+foreach(array_keys($roomsToClean) as $date) {
+	echo "<td>" . $total[$date]['dorm_beds'] . "</td>";
+}
+echo "</tr>\n";
+
+echo "</table>\n";
 
 
 html_end();

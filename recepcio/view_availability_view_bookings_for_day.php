@@ -31,7 +31,7 @@ if(!$hasBooking) {
 
 
 echo "				<table border=\"1\" style=\"font-weight: normal; background: rgb(120, 240, 120)\">\n";
-echo "					<tr><th>Name</th><th>1st night</th><th>Last night</th><th>Num. of person</th><th>Room</th><th>Balance</th><th>Status</th><th>Action</th></tr>\n";
+echo "					<tr><th>Name</th><th>1st night</th><th>Last night</th><th>Num. of person</th><th>Num. of extra beds</th><th>Original Room Type</th><th>Room</th><th>Balance</th><th>Status</th><th>Action</th></tr>\n";
 foreach($room['bookings'] as $oneBooking) {
 	if($oneBooking['cancelled'] or ($oneBooking['first_night'] > $currDate) or ($oneBooking['last_night'] < $currDate)) {
 		continue;
@@ -72,7 +72,9 @@ function getTableRow(&$booking, &$room) {
 	}
 	$lnight = $booking['last_night'];
 	$numOfPerson = $booking['num_of_person'];
+	$numOfExtraBeds = $booking['num_of_extra_beds'];
 	$roomName = $room['name'];
+	$roomTypeName = $room['room_type_name'];
 	$balance = $booking['room_payment'];
 	$lastPaymentDate = 0;
 	foreach($booking['payments'] as $payment) {
@@ -96,7 +98,7 @@ function getTableRow(&$booking, &$room) {
 		<tr>
 			<td>$name</td>
 			<td>$fnight</td><td>$lnight</td>
-			<td align="center">$numOfPerson</td><td>$roomName</td>
+			<td align="center">$numOfPerson</td><td align="center">$numOfExtraBeds</td><td>$roomTypeName</td><td>$roomName</td>
 			<td align="right">$balance</td>
 			<td><ul>
 $status

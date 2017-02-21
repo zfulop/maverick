@@ -9,7 +9,7 @@ function getBookings($roomTypeId, &$rooms, $startPeriod, $endPeriod, $startDateB
 	while($oneDay <= $endPeriod) {
 		$oneDaySlash = str_replace('-', '/', $oneDay);
 		foreach($rooms as $roomId => $oneRoom) {
-			if($oneRoom['room_type_id'] != $roomTypeId) {
+			if(!isRoomOfType($oneRoom, $roomTypeId)) {
 				continue;
 			}
 			foreach($oneRoom['bookings'] as $oneBooking) {

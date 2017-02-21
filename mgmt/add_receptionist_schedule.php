@@ -21,7 +21,7 @@ if($type == 'normal') {
 	$ws_id = $_REQUEST['shift'];
 	$login = $_REQUEST['login'];
 	
-	$sql = "DELETE FROM reception_schedule  WHERE day='$day' AND working_shift_id='$ws_id'";
+	$sql = "DELETE FROM reception_schedule  WHERE day='$day' AND working_shift_id='$ws_id' LIMIT 1";
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot delete existing receptionist schedule: " . mysql_error($link) . " (SQL: $sql)");

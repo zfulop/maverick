@@ -289,7 +289,7 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 			$avgNumOfBeds = getAvgNumOfBedsOccupied($bookings, $currDate, $currDate);
 			$occupancy = round($avgNumOfBeds / $roomType['available_beds'] * 100);
 		} else {
-			$numOfRoomsBooked = count($bookings);
+			$numOfRoomsBooked = countIndividualRooms($bookings);
 			if($roomType['num_of_rooms'] < 1) {
 				$occupancy = 0;
 			} else {
@@ -368,5 +368,13 @@ function admin_getRoomPrice($currDate, &$rooms, &$roomType) {
 	return $price;
 
 }
+
+function countIndividualRooms($bookings) {
+	$roomUsed = array();
+	foreach($bookings as $oneBooking) {
+		
+	}
+}
+
 
 ?>

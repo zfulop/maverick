@@ -19,17 +19,6 @@ $currDateSlash = str_replace('-', '/', $currDate);
 
 list($currYear, $currMonth, $currDay) = explode('-', $currDate);
 
-$rooms = loadRooms($currYear, $currMonth, $currDay, $currYear, $currMonth, $currDay, $link);
-
-$roomTypes = loadRoomTypes($link);
-$roomIds = array();
-foreach($rooms as $roomId => $roomData) {
-	if($roomData['room_type_id'] == $roomTypeId) {
-		$roomIds[] = $roomId;
-	}
-}
-$roomIdsList = implode(',', $roomIds);
-
 $sql = <<<EOT
 SELECT pfdh.price_set_date, pfdh.price_unset_date, pfdh.price_per_room, pfdh.price_per_bed, pfdh.occupancy FROM prices_for_date_history pfdh WHERE room_type_id=$roomTypeId AND date='$currDateSlash'
 UNION ALL
@@ -64,7 +53,7 @@ EOT;
 foreach($prices as $priceKey => $priceData) {
 	$bookingAmount = 0;
 	list($from, $to) = explode('|', $priceKey);
-	$sql = "select b.id, b.room_payment, bd.num_of_nights, b.special_offer_id, so.name as so_name from bookings b inner join booking_descriptions bd on b.description_id=bd.id left outer join special_offers so on b.special_offer_id=so.id where b.room_id in ($roomIdsList) and bd.first_night<='$currDateSlash' and bd.last_night>='$currDateSlash' and b.creation_time<='$to'";
+	$sql = "select b.id, b.room_payment, bd.num_of_nights, b.special_offer_id, so.name as so_name from bookings b inner join booking_descriptions bd on b.description_id=bd.id left outer join special_offers so on b.special_offer_id=so.id where b.original_room_type_id=$roomTypeId and bd.first_night<='$currDateSlash' and bd.last_night>='$currDateSlash' and b.creation_time<='$to'";
 	if(strlen($from) > 0) {
 		$sql .= " and b.creation_time>='$from'";
 	}

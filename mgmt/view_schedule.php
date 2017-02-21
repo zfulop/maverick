@@ -51,7 +51,7 @@ if(strlen($currMonth) < 2) {
 }
 
 $today = date('Y-m-d');
-$sql = "SELECT * FROM working_shift WHERE valid_to IS NULL or valid_to>='$today' ORDER BY start_time ";
+$sql = "SELECT * FROM working_shift WHERE valid_to IS NULL or valid_to>'$today' ORDER BY start_time ";
 $result = mysql_query($sql, $link);
 
 $shifts = array();
@@ -243,7 +243,7 @@ echo <<<EOT
 EOT;
 foreach($shifts as $oneShift) {
 	if($oneShift['shift_type'] == 'cleaner' and $oneShift['highlighted'] == 1) {
-		echo "		<tr><td>" . $oneShift['name'] . "</td><td><select name=\"" . $oneShift['id'] . "\">$receptionistHtmlOptions</select></td></tr>\n";
+		echo "		<tr><td>" . $oneShift['name'] . "</td><td><select name=\"" . $oneShift['id'] . "\">$cleanerHtmlOptions</select></td></tr>\n";
 	}
 }
 echo <<<EOT
