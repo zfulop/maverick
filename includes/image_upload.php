@@ -107,8 +107,8 @@
 		imagedestroy($destIm);
 	}
 
-	function createThumbnail($img_file, $maxWidth, $maxHeight) {
-		$thumb_file = dirname($img_file) . '/_thumb_' . basename($img_file);
+	function createThumbnail($prefix, $img_file, $maxWidth, $maxHeight) {
+		$thumb_file = dirname($img_file) . '/' . $prefix . basename($img_file);
 		copy($img_file, $thumb_file);
 		fitImageIntoBox($thumb_file, $maxWidth, $maxHeight);
 		return $thumb_file;

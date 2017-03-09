@@ -9,41 +9,47 @@ if(!checkLogin(SITE_RECEPTION)) {
 
 $link = db_connect();
 
+$location = $_SESSION['login_hotel'];
+
 $images = array();
 $roomTypeOptions = '';
 $roomTypes = RoomDao::getRoomTypes('eng', $link);
 foreach($roomTypes as $roomTypeId => $row) {
-	$roomTypeOptions .= "	<option value=\"$roomTypeId\">" . $row['name'] . "</option>\n";
-	$images[$row['id']] = array();
+	$imagesPerRoomType[$row['id']] = array();
 }
 
 $roomImages = RoomDao::getRoomImages(array_keys(getLanguages()), $link);
-foreach($roomImages as $riId => $roomImage) {
-	$images[$roomImage['room_type_id']][] = $roomImage;
-}
 
 $extraHeader = <<<EOT
-<script src="js/jquery.js" type="text/javascript"></script>
 <script src="js/dropzone.js" type="text/javascript"></script>
 
-<script type="text/javascript">
-	function hideUploadPhotoForm() {
-		document.getElementById('new_photo_button').style.display='block';
-		document.getElementById('save_photo_form').style.display='none';
-	}
+<link rel="stylesheet" href="css/dropzone.css">
 
-	function showUploadPhotoForm() {
-		document.getElementById('new_photo_button').style.display='none';
-		document.getElementById('save_photo_form').style.display='block';
+<script type="text/javascript">
+
+	function editImage(imgId) {
+		new Ajax.Request('edit_room_image.php', {
+			method: 'post',
+			parameters: {'id': imgId},
+			onSuccess: function(transport) {
+				Tip(transport.responseText, STICKY, true, FIX, ['room_image_' + imgId, 0, 0], CLICKCLOSE, false, CLOSEBTN, true);
+			},
+			onFailure: function(transport) {
+				alert('HTTP Error in response. Please try again.');
+			}
+		});
+
+		return false;
 	}
 	
-	Dropzone.options.savePhotoForm = {
-		paramName: "file", // The name that will be used to transfer the file
-		maxFilesize: 4, // MB
-		accept: function(file, done) {},
-		uploadMultiple: false,
-		clickable: true,
-		autoProcessQueue: true
+	function loadImages() {
+		new Ajax.Updater('images', 'get_room_image_list.php', {});
+	}
+
+	Dropzone.options.dropzoneForm = {
+		init: function() {
+			this.on("success", function(file) { loadImages(); });
+		}
 	};
 </script>
 
@@ -53,118 +59,56 @@ html_start("Room images", $extraHeader);
 
 echo <<<EOT
 
-<form id="new_photo_button">
-	<input type="button" value="Upload new photo" onclick="showUploadPhotoForm();">
-</form><br>
-<form class="dropzone" action="save_room_image.php" style="display:none;" id="save_photo_form" enctype="multipart/form-data" method="POST">
-<h2 id="save_photo_title">Upload new room images</h2>
-<fieldset>
-<label>Room Types:</label><select name="room_types[]" size="6" multiple="yes">$roomTypeOptions</select><br>
-<input type="file" name="file" />
-</fieldset>
-<fieldset>
-<input type="button" value="Hide photo upload" onClick="hideUploadPhotoForm()">
-</fieldset>
-</form>
-<br>
+<form action="save_room_image.php" id="dropzone-form" class="dropzone"></form>
 
 <h2>Existing Room images</h2>
+
+
+<div id="images"></div>
+<div style="clear:both;"></div>
+
+<hr>
+
+<h2>Room images per room types</h2>
 
 EOT;
 
 foreach($roomTypes as $rtId => $rtData) {
-	echo "<hr style=\"clear:both;\">\n";
-	echo "<h1>" . $rtData['name'] . "</h1>\n";
-	foreach($images[$rtId] as $file => $img) {
+	echo "<h3>" . $rtData['name'] . "</h3>\n";
+	foreach($roomImages as $riId => $img) {
+		if(!in_array($rtId, $img['room_types'])) {
+			continue;
+		}
 		$id = $img['id'];
-		$imgUrl = ROOMS_IMG_URL . $file;
-		$bgColor='white';
-		if($img['default'] == 1) {
+		$imgUrl = ROOMS_IMG_URL . $location . '/' . $img['thumb'];
+		$bgColor='black';
+		if(in_array($rtId, $img['default_for_room_types'])) {
 			$bgColor='rgb(255, 200, 200)';
-		}
+		}		
 		echo <<<EOT
-<div style="float: left; margin: 10px; text-align: center; border: dotted; position: relative; padding: 10px; background: $bgColor;">
+<div style="float: left; margin: 10px; text-align: center; border: dotted $bgColor; position: relative; padding: 10px;">
+	<a href="set_room_image_default.php?room_type_id=$rtId&room_image_id=$id" title="Set default image">
 	<img src="$imgUrl" height="100"><br>
-	<div style="text-align: left;display: block;" id="view_$id">
-
-EOT;
-		echo $rtData['name'] . ' [' . $file . "]<br>\n";
-		echo "Order: " . $img['_order'] . "<br>\n";
-		foreach(getLanguages() as $langCode => $langName) {
-			echo $langName . ': ' . $img[$langCode] . "<br>\n";
-		}
-		echo <<<EOT
-	</div>
-	<div style="text-align: left;display: none;" id="edit_$id">
-		<form action="save_room_image_data.php" method="POST" accept-charset="utf-8">
-		<input type="hidden" name="rtid" value="$rtId">
-		<input type="hidden" name="id" value="$id">
-		<table>
-
-EOT;
-		echo "			<tr><td>Default:</td><td><input name=\"default\" type=\"checkbox\" value=\"true\"" . ($img['default'] == 1 ? ' checked' : '') . "></td></tr>\n";
-		echo "			<tr><td>Order:</td><td><input name=\"order\" value=\"" . $img['_order'] . "\"></td></tr>\n";
-		foreach(getLanguages() as $langCode => $langName) {
-			echo "			<tr><td>$langName:</td><td><input name=\"$langCode\" value=\"" . $img[$langCode] . "\"></td></tr>\n";
-		}
-		echo <<<EOT
-		<tr><td colspan="2"><input type="submit" value="Save"></td></tr>
-		</table>
-		</form>
-	</div>
-	<br>
-	<div style="position: absolute; bottom: 0px; width: 100%; text-align: center;">
-		<a style="font-size: 12px;" href="delete_room_image.php?id=$id&file=$file">Delete</a>
-		<a style="font-size: 12px;" href="#" onclick="document.getElementById('edit_$id').style.display='block';document.getElementById('view_$id').style.display='none';return false;">Edit</a>
-		<a style="font-size: 12px;" href="#" onclick="document.getElementById('view_$id').style.display='block';document.getElementById('edit_$id').style.display='none';return false;">View</a>
-	</div>
-
+	</a>
+	$defaultTxt
 </div>
-
 
 EOT;
 	}
+	echo "<div style=\"clear:both;\"></div><hr style=\"clear:both;\">\n";
 }
 
+echo <<<EOT
+
+<script type="text/javascript">
+	loadImages();
+</script>
+
+
+EOT;
 
 html_end();
 mysql_close($link);
 
-function js_enc($str) {
-	return str_replace("'", "\\'", $str);
-}
-
-function printImageFormBlock($cntr, $roomTypeOptions) {
-	$trStyle="display:block;";
-	$addRowStyle = "display:none;";
-	if($cntr > 0) {
-		$trStyle="display:none;";
-	}
-	$rtiFormName = "room_type_id_$cntr" . '[]';
-	echo <<<EOT
-<tr class="r_$cntr" style="$trStyle"><td><label>File</label></td><td><input name="photo_$cntr" type="file"></td></tr>
-<tr class="r_$cntr" style="$trStyle"><td><label>Default</label></td><td><input type="checkbox" name="default_img_$cntr"></td></tr>
-<tr class="r_$cntr" style="$trStyle"><td><label>Order</label></td><td><input name="order_$cntr"></td></tr>
-<tr class="r_$cntr" style="$trStyle"><td><label>Room type</label></td><td><select name="$rtiFormName" multiple="yes" style="wdth:200px;height:100px;">
-$roomTypeOptions
-</select></td></tr>
-
-
-EOT;
-	foreach(getLanguages() as $langCode => $langName) {
-		$formName = 'description_' . $langCode . '_' . $cntr;
-		echo <<<EOT
-<tr class="r_$cntr" style="$trStyle"><td><label>Description ($langName)</label></td><td><input style="width: 200px;" name="$formName"></td></tr>
-
-EOT;
-	}
-
-	$nextCntr = $cntr + 1;
-	echo <<<EOT
-<tr class="r_$cntr" id="ar_$cntr" style="$trStyle"><td colspan="2"><a href="#" onclick="$('#ar_$cntr').hide();$('tr.r_$nextCntr').css('display', 'block');return false;">Add more image</a></td></tr>
-
-EOT;
-
-}
 
 ?>

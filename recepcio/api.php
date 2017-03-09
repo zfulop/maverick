@@ -130,7 +130,12 @@ function loadAvailability() {
 
 	logDebug("Loading special offers for period");
 	$retVal = array();
-	$specialOffers = loadSpecialOffers($arriveDate,$lastNight, $link, $lang);
+	$specialOffers = array();
+	foreach(loadSpecialOffers($arriveDate,$lastNight, $link, $lang) as $soId => $so) {
+		if($so['visible'] == 1) {
+			$specialOffers[$soId] = $so;
+		}
+	}
 	$retVal['special_offers'] = $specialOffers;
 	 
 	logDebug("Loading room types");
@@ -431,10 +436,12 @@ function doBooking() {
 	list($toBook, $roomChanges) = getBookingData($bookingRequest, $arriveDate, $lastNight, $rooms, $roomTypesData, $specialOffers);
 	$bookingIds = saveBookings($toBook, $roomChanges, $arriveDate, $lastNight, $rooms, $roomTypesData, $specialOffers, $descriptionId, $link);
 	$bookedServices = json_decode($_REQUEST['services'], true);
+	logDebug("Services to book: " . print_r($bookedServices, true));
 	foreach($bookedServices as $service) {
-		$id = $service['id'];
+		$id = $service['serviceId'];
 		if(!isset($services[$id])) {
-			logError("The booking contains a service with id: $id tha tis not in the DB. Ignoring.");
+			logError("The booking contains a service with id: $id that is not in the DB. Ignoring.");
+			continue;
 		}
 		$title = $services[$id]['name'];
 		$comment = $service['comment'];
@@ -470,6 +477,7 @@ function sendEmailForBooking($nameValue, $emailValue, $phoneValue, $addressValue
 	$location = $_REQUEST['location'];
 	$lang = $_REQUEST['lang'];
 	$currency = $_REQUEST['currency'];
+	$today = date('Y-m-d');
 	
 	$nameTitle = $texts['NAME'];
 	$emailTitle = $texts['EMAIL'];
@@ -588,8 +596,8 @@ EOT;
 		$numOfGuests = $oneRoomBooked['num_of_person'];
 		$numNightsForNumPerson = sprintf($texts['NUM_NIGHTS_FOR_NUM_PERSON'], $numberOfNightsValue, $numOfGuests);
 		$roomData = getRoomData($rooms, $roomTypeId);
-		$price = convertAmount($oneRoomBooked['price'], 'EUR', $currency, date('Y-m-d'));
-		$dprice = convertAmount($oneRoomBooked['discounted_price'], 'EUR', $currency, date('Y-m-d'));
+		$price = convertAmount($oneRoomBooked['price'], 'EUR', $currency, $today);
+		$dprice = convertAmount($oneRoomBooked['discounted_price'], 'EUR', $currency, $today);
 		$dtotal += $dprice;
 		$total += $price;
 		if($price != $dprice) {
@@ -630,16 +638,16 @@ EOT;
 
 	$totalServicePrice = 0;
 	foreach($bookedServices as $service) {
-		$id = $service['id'];
+		$id = $service['serviceId'];
 		if(!isset($services[$id])) {
 			logError("The booking contains a service with id: $id tha tis not in the DB. Ignoring.");
 		}		
 		$title = $services[$service['id']]['title'];
 		$forNumOfOccasion = sprintf($texts['FOR_NUM_OF_OCCASIONS'], $service['occasion']);
 		$serviceCurrency = $services[$service['id']]['currency'];
-		$price = convertAmount($services[$service['id']]['price'], $serviceCurrency, 'EUR', date('Y-m-d'));
+		$price = convertAmount($services[$service['id']]['price'], $serviceCurrency, 'EUR', $today);
 		$totalServicePrice += $price;
-		$price = formatMoney(convertAmount($price, 'EUR', $currency), $currency, date('Y-m-d'));
+		$price = formatMoney(convertAmount($price, 'EUR', $currency, $today), $currency);
 		$mailMessage .= <<<EOT
 
                             <tr>
@@ -660,7 +668,7 @@ EOT;
 EOT;
 	}
 
-	$totalServicePrice = convertAmount($totalServicePrice, 'EUR', $currency, date('Y-m-d'));
+	$totalServicePrice = convertAmount($totalServicePrice, 'EUR', $currency, $today);
 	$total += $totalServicePrice;
 	$dtotal += $totalServicePrice;
 	if($total != $dtotal) {
@@ -883,7 +891,7 @@ EOT;
 		'railwaystation' => EMAIL_IMG_DIR . 'railwaystation.jpg'
 	);
 
-	$locationName = $texts['LOCATION_NAME_' . strtoupper($location)];
+	$locationName = $texts['LOCATION_NAME'];
 	$subject = str_replace('LOCATION', $locationName, $texts['BOOKING_CONFIRMATION_EMAIL_SUBJECT']);
 	$result = sendMail('reservation@mavericklodges.com', $locationName, $emailValue, "$nameValue", $subject, $mailMessage, $inlineAttachments);
 	if(!is_null($result)) {
@@ -933,7 +941,7 @@ EOT;
 		$recepcioMessage .= "<tr><th>Name</th><th>Occasions</th><th>Price(total)</th></tr>\n";
 	}
 	foreach($bookedServices as $service) {
-		$id = $service['id'];
+		$id = $service['serviceId'];
 		if(!isset($services[$id])) {
 			logError("The booking contains a service with id: $id tha tis not in the DB. Ignoring.");
 		}		

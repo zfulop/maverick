@@ -18,7 +18,7 @@ $currency = $_REQUEST['currency'];
 $comment = mysql_real_escape_string($_REQUEST['comment'], $link);
 $payMode = $_REQUEST['pay_mode'];
 
-logDebug("Saving cash in for type=$tye, receiver=$receiver, amount=$amount, comment=$comment, payMode=$payMode");
+logDebug("Saving cash in for type=$type, receiver=$receiver, amount=$amount, currency=$currency, comment=$comment, payMode=$payMode");
 
 
 $sql = "INSERT INTO cash_out (type, receiver, time_of_payment, amount, currency, comment, pay_mode) VALUES ('$type', '$receiver', '$timeOfPayment', $amount, '$currency',  '$comment', '$payMode')";

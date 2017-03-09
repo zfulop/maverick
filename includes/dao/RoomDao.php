@@ -116,7 +116,7 @@ class RoomDao {
 	 *  filename              the name of the original file containing the image data
 	 *  medium                the name of the file containing the resized image data (medium size)
 	 *  thumb                 the name of the file containing the resized image data (thumbnail)
-	 *  room_type_id          the id of the room_type that the image is associated with
+	 *  room_types            the array of ids of the room_type that the image is associated with
 	 *  width                 the width of the original image
 	 *  height                the height of the original image
 	 *  default               if the image is the default image for the room type this is 1 otherwise 0. The default image should be displayed 1st for the room type
@@ -141,8 +141,28 @@ class RoomDao {
 			if(!isset($roomImages[$row['id']])) {
 				$roomImages[$row['id']] = $row;
 				$roomImages[$row['id']]['description'] = array();
+				$roomImages[$row['id']]['room_types'] = array();
+				$roomImages[$row['id']]['default_for_room_types'] = array();
 			}
 			$roomImages[$row['id']]['description'][$lang] = $descr;
+		}
+		logDebug("RoomDao::getRoomImages() - There are " . count($roomImages) . " room images from db.");
+		
+		$sql = "SELECT * FROM room_images_room_types";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("Cannot load rooms images. Error: " . mysql_error($link) . " (SQL: $sql)");
+			return null;
+		}
+		while($row = mysql_fetch_assoc($result)) {
+			if(!isset($roomImages[$row['room_image_id']])) {
+				continue;
+			}
+			$roomImages[$row['room_image_id']]['room_types'][] = $row['room_type_id'];
+			if($row['default_img'] == 1) {
+				logDebug("RoomDao::getRoomImages() - for room type " . $row['room_type_id'] . " the default image is " . $row['room_image_id']);
+				$roomImages[$row['room_image_id']]['default_for_room_types'][] = $row['room_type_id'];
+			}
 		}
 
 		return $roomImages;

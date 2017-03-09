@@ -11,13 +11,13 @@ if(!checkLogin(SITE_RECEPTION)) {
 $link = db_connect();
 
 $sql = array();
-$sql[] = "DELETE FROM lang_text WHERE table_name='website'";
 foreach($_REQUEST as $key => $value) {
 	$value = mysql_real_escape_string($value, $link);	
 	if('WEBSITETEXT_' == substr($key, 0, strlen('WEBSITETEXT_'))) {
 		$textKey = substr($key, strlen('WEBSITETEXT_'), -4);
 		$textLang = substr($key, -3);
 		logDebug("For $textKey ($textLang) the value is $value");
+		$sql[] = "DELETE FROM lang_text WHERE table_name='website' AND column_name='$textKey' AND lang='$textLang'";
 		$sql[] = "INSERT INTO lang_text (table_name, column_name,value,lang,row_id) VALUES ('website','$textKey','$value','$textLang',0)";
 	}
 }

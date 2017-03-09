@@ -32,6 +32,7 @@ if(!$result) {
 
 list($payments, $cashOuts, $gtransfers, $eurCasse, $hufCasse, $eurCasse2, $hufCasse2) = loadCashRegisterData(null, $lastDayCloseTime, $dayCloseEur, $dayCloseHuf, $dayCloseHuf2, $dayCloseEur2, $link);
 
+
 if(intval($hufCasse) != intval($_REQUEST['casseHUF'])) {
 	logError("HUF value changed, please resubmit the day close. submitted: " . $_REQUEST['casseHUF'] . " calculated: $hufCasse lastDayCloseTime=$lastDayCloseTime");
 	set_error("HUF value changed, please resubmit the day close.");
@@ -85,11 +86,14 @@ if(!doLogin($toLogin,$toPwd,$_SESSION['login_hotel'])) {
 
 $sql = "INSERT INTO day_close (`from`, `to`, time_of_day_close, casseHUF, casseEUR, casseHUF2, casseEUR2, comment) VALUES ('$fromLogin', '$toLogin', '$timeOfDayClose', $hufCasse, $eurCasse,  $hufCasse2, $eurCasse2,  '$comment')";
 
+logDebug("Saving dayclose: $sql");
+
 if(!mysql_query($sql, $link)) {
 	trigger_error("Could not save day close: " . mysql_error($link) . " (SQL: $sql)");
 	set_error("Could not save day close");
 	header("Location: view_cash_register.php");
 } else {
+	logDebug("Day close saved.");
 	set_message("Day close entry saved.");
 	$data = array('from' => $fromLogin, 'to' => $toLogin, 'casseHUF' => $hufCasse, 'casseEUR' => $eurCasse, 'commnet' => $comment);
 	audit(AUDIT_SAVE_DAY_CLOSE, $_REQUEST, 0, 0, $link);

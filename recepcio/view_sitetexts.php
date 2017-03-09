@@ -15,13 +15,6 @@ $link = db_connect();
 
 $extraHeader = <<<EOT
 
-<script src="js/datechooser/date-functions.js" type="text/javascript"></script>
-<script src="js/datechooser/datechooser.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" href="js/datechooser/datechooser.css">
-<!--[if lte IE 6.5]>
-<link rel="stylesheet" type="text/css" href="js/datechooser/select-free.css"/>
-<![endif]-->
-
 <style>
 	table tr td {
 		border-bottom: 1px solid black;
@@ -73,21 +66,37 @@ echo <<<EOT
 
 <br><br>
 
+EOT;
+
+$cntr = 0;
+foreach($texts as $key => $values) {
+	if($cntr % 30 < 1) {
+		if($cntr > 0) {
+			echo <<<EOT
+</table>
+<input type="submit" value="Save website texts">
+</form>
+<br><br>
+
+EOT;
+		}
+		echo <<<EOT
 <form action="save_sitetexts.php" method="post" accept-charset="utf-8">
 <table style="border: 1px solid black;">
 	<tr><th>Key</th>
 EOT;
-foreach(getLanguages() as $code => $langName) {
-	echo "<td>$langName</td>";
-}
-echo "</tr>\n";
-foreach($texts as $key => $values) {
+		foreach(getLanguages() as $code => $langName) {
+			echo "<td>$langName</td>";
+		}
+		echo "</tr>\n";
+	}
 	echo "	<tr><td>$key</td>";
 	foreach(getLanguages() as $code => $langName) {
 		$name = 'WEBSITETEXT_' . $key . '_' . $code;
 		echo "<td><input name=\"$name\" value=\"" . (isset($values[$code]) ? $values[$code] : '') . "\"></td>";
 	}
 	echo "</tr>\n";
+	$cntr += 1;
 }
 
 echo <<<EOT
@@ -96,6 +105,7 @@ echo <<<EOT
 </form>
 
 EOT;
+
 
 mysql_close($link);
 
