@@ -80,9 +80,9 @@ class RoomDao {
 			"INNER JOIN lang_text lt1 ON (lt1.table_name='room_types' AND lt1.column_name='name' AND lt1.row_id=rt.id AND lt1.lang='$lang') " . 
 			"INNER JOIN lang_text lt2 ON (lt2.table_name='room_types' AND lt2.column_name='description' AND lt2.row_id=rt.id AND lt2.lang='$lang') " . 
 			"LEFT OUTER JOIN lang_text lt3 ON (lt3.table_name='room_types' AND lt3.column_name='short_description' AND lt3.row_id=rt.id AND lt3.lang='$lang') " .
-			"LEFT OUTER JOIN lang_text lt4 ON (lt3.table_name='room_types' AND lt3.column_name='size' AND lt3.row_id=rt.id AND lt3.lang='$lang') " .
-			"LEFT OUTER JOIN lang_text lt5 ON (lt3.table_name='room_types' AND lt3.column_name='location' AND lt3.row_id=rt.id AND lt3.lang='$lang') " .
-			"LEFT OUTER JOIN lang_text lt6 ON (lt3.table_name='room_types' AND lt3.column_name='bathroom' AND lt3.row_id=rt.id AND lt3.lang='$lang') " .
+			"LEFT OUTER JOIN lang_text lt4 ON (lt4.table_name='room_types' AND lt4.column_name='size' AND lt4.row_id=rt.id AND lt4.lang='$lang') " .
+			"LEFT OUTER JOIN lang_text lt5 ON (lt5.table_name='room_types' AND lt5.column_name='location' AND lt5.row_id=rt.id AND lt5.lang='$lang') " .
+			"LEFT OUTER JOIN lang_text lt6 ON (lt6.table_name='room_types' AND lt6.column_name='bathroom' AND lt6.row_id=rt.id AND lt6.lang='$lang') " .
 			"ORDER BY rt._order";
 
 		$result = mysql_query($sql, $link);

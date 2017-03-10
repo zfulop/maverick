@@ -33,6 +33,7 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 	$logout = ROOT_URL . 'logout.php';
 	$blacklist = ROOT_URL . 'view_blacklist.php';
 	$schedule = ROOT_URL . 'view_schedule.php';
+	$roomImages = ROOT_URL . 'view_room_images.php';
 
 	$tooltipJs = ROOT_URL . 'js/wz_tooltip.js';
 
@@ -132,6 +133,7 @@ EOT;
 				<li><a href="$specialOffers" style="font-size: 14px; padding-right: 20px;">Special Offers</a></li>
 				<li><a href="$services" style="font-size: 14px; padding-right: 20px;">Services</a></li>
 				<li><a href="$siteTexts" style="font-size: 14px; padding-right: 20px;">Website Texts</a></li>
+				<li><a href="$roomImages" style="font-size: 14px; padding-right: 20px;">Website Texts</a></li>
 			</ul>
 		</div>
 		<div style="float: right;padding-right:50px;">

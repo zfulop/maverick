@@ -217,29 +217,48 @@ function isAvailable($roomAvailability) {
 	}
 }
 
+// Returns array wit key: room type id, value: list of image objects
 function loadRoomImages($lang, $link) {
 	logDebug("Loading room images");
+	$location = $_REQUEST['location'];
 	$roomImages = array();
 	$imgCnt = 0;
 	foreach(RoomDao::getRoomImages($lang, $link) as $imgId => $row) {
-		if(!isset($roomImages[$row['room_type_id']])) {
-			$roomImages[$row['room_type_id']] = array();
+		foreach($row['room_types'] as $rtId) {
+			if(!isset($roomImages[$rtId])) {
+				$roomImages[$rtId] = array();
+			}
+			$img = array();
+			$img['original_img_url'] = ROOMS_IMG_URL . $location . '/' . $row['filename'];
+			$img['medium_img_url'] = ROOMS_IMG_URL . $location . '/' . (is_null($row['medium']) ? $row['filename'] : $row['medium']);
+			$img['thumb_img_url'] = ROOMS_IMG_URL . $location . '/' . (is_null($row['thumb']) ? $row['filename'] : $row['thumb']);
+			$img['width'] = $row['width'];
+			$img['height'] = $row['height'];
+			$img['default'] = 0;
+			if(isset($row['description'][$lang])) {
+				$img['description'] = $row['description'][$lang];
+			} else {
+				$img['description'] = '';
+			}
+			if(in_array($rtId, $row['default_for_room_types'])) {
+				$img['default'] = 1;
+			}
+			$roomImages[$rtId][] = $img;
 		}
-		$row['original_img_url'] = ROOMS_IMG_URL . $row['filename'];
-		$row['medium_img_url'] = ROOMS_IMG_URL . (is_null($row['medium']) ? $row['filename'] : $row['medium']);
-		$row['thumb_img_url'] = ROOMS_IMG_URL . (is_null($row['thumb']) ? $row['filename'] : $row['thumb']);
-		if(isset($row['description'][$lang])) {
-			$row['description'] = $row['description'][$lang];
-		} else {
-			$row['description'] = '';
-		}
-		$roomImages[$row['room_type_id']][] = $row;
 		$imgCnt += 1;
+	}
+	foreach($roomImages as $rtId => &$imgs) {
+		usort($imgs, 'sortByDefaultDesc');
 	}
 	logDebug("There are $imgCnt room images loaded for " . count($roomImages) . " room types");
 	return $roomImages;
 }
 
+function sortByDefaultDesc($img1, $img2) {
+	if($img1['default'] == 1) return -1;
+	if($img2['default'] == 1) return 1;
+	return 0;
+}
 
 function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType, $currency) {
 	$oneDayTS = $arriveTS;

@@ -13,6 +13,7 @@ if(!checkLogin(SITE_RECEPTION)) {
 $link = db_connect();
 
 
+
 $extraHeader = <<<EOT
 
 <style>
@@ -25,7 +26,10 @@ $extraHeader = <<<EOT
 	}
 </style>
 
+
 EOT;
+
+
 
 
 html_start("Website texts", $extraHeader);
@@ -103,6 +107,10 @@ echo <<<EOT
 </table>
 <input type="submit" value="Save website texts">
 </form>
+
+<script type="text/javascript">
+	window.open("http://dev.mavericklodges.com/?refreshTrans");
+</script>
 
 EOT;
 
