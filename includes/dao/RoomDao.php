@@ -99,6 +99,24 @@ class RoomDao {
 	}
 
 	/**
+	 * Returns only the room types that have rooms associated with it.
+	 */
+	public static function getRoomTypesWithRooms($lang, $link) {
+		$roomTypes = RoomDao::getRoomTypes($lang, $link);
+		$today = date('Y/m/d');
+		$sql = "SELECT id FROM room_types WHERE id NOT IN (SELECT DISTINCT room_type_id FROM lodge.rooms r WHERE r.valid_from<='$today' AND r.valid_to>='$today' UNION SELECT DISTINCT room_type_id FROM lodge.rooms_to_room_types)";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("Cannot load rooms types that has not rooms. Error: " . mysql_error($link) . " (SQL: $sql)");
+			return null;
+		}
+		while($row = mysql_fetch_assoc($result)) {
+			unset($roomTypes[$row['id']]);
+		}
+		return $roomTypes;
+	}
+	
+	/**
 	 * Returns the one room type that is specified in the 1st parameter by the id. The return value is an associative array. For the keys please check the documentation of the
 	 * getRoomTypes function
 	 */

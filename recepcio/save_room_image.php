@@ -19,8 +19,8 @@ if(!$fullpath) {
 	set_message("Image uploaded ($imgFile)");
 }
 
-$thumb = createThumbnail('thumb_', $fullpath, 200, 200);
-$mid = createThumbnail('mid_', $fullpath, 600, 600);
+$thumb = createThumbnail('thumb_', $fullpath, 375, 375);
+$mid = createThumbnail('mid_', $fullpath, 700, 700);
 $thumb = basename($thumb);
 $mid = basename($mid);
 list($width, $height, $type, $attr) = getimagesize($fullpath);

@@ -15,8 +15,6 @@ $link = db_connect();
 $descrId = intval($_REQUEST['description_id']);
 
 
-require(LANG_DIR . 'eng.php');
-
 $locationName = constant('LOCATION_NAME_' . strtoupper(LOCATION));
 
 $bookingDescription = null;

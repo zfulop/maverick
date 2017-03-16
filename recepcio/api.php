@@ -60,7 +60,7 @@ function _loadRooms() {
 	$currency = $_REQUEST['currency'];
 	$link = db_connect($location);
 	
-	$roomTypesData = RoomDao::getRoomTypes($lang, $link);
+	$roomTypesData = RoomDao::getRoomTypesWithRooms($lang, $link);
 	foreach(loadRoomImages($lang, $link) as $rtId => $imgs) {
 		if(!isset($roomTypesData[$rtId])) {
 			continue;
@@ -136,10 +136,11 @@ function loadAvailability() {
 			$specialOffers[$soId] = $so;
 		}
 	}
+	usort($specialOffers, 'sortOffersByPercent');
 	$retVal['special_offers'] = $specialOffers;
 	 
 	logDebug("Loading room types");
-	$roomTypesData = RoomDao::getRoomTypes($lang, $link);
+	$roomTypesData = RoomDao::getRoomTypesWithRooms($lang, $link);
 	foreach(loadRoomImages($lang, $link) as $rtId => $imgs) {
 		if(!isset($roomTypesData[$rtId])) {
 			continue;
@@ -174,6 +175,16 @@ function loadAvailability() {
 	
 	mysql_close($link);
 	return $retVal;
+}
+
+function sortOffersByPercent($so1, $so2) {
+	if($so1['discount_pct'] < $so2['discount_pct']) {
+		return -1;
+	}
+	if($so2['discount_pct'] < $so1['discount_pct']) {
+		return 1;
+	}
+	return 0;
 }
 
 function sortAvailabilityRooms($room1, $room2) {
@@ -442,8 +453,8 @@ function doBooking() {
 	$services = loadServicesFromDB($lang, $link);
 
 	$bookingRequest = json_decode($_REQUEST['booking_data'], true);
-
-	$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency,booking_ref) VALUES ('$name', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', 'saját', '', '$lang', '$currency', '$bookingRef')";
+	$source = 'saját';
+	$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency,booking_ref) VALUES ('$name', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', '$source', '', '$lang', '$currency', '$bookingRef')";
 	if(!mysql_query($sql, $link)) {
 		trigger_error("Cannot save booking: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 		mysql_query('ROLLBACK', $link);
@@ -910,7 +921,7 @@ EOT;
 		'railwaystation' => EMAIL_IMG_DIR . 'railwaystation.jpg'
 	);
 
-	$locationName = $texts['LOCATION_NAME'];
+	$locationName = $texts['LOCATION_NAME_' . strtoupper($location)];
 	$subject = str_replace('LOCATION', $locationName, $texts['BOOKING_CONFIRMATION_EMAIL_SUBJECT']);
 	$result = sendMail('reservation@mavericklodges.com', $locationName, $emailValue, "$nameValue", $subject, $mailMessage, $inlineAttachments);
 	if(!is_null($result)) {
@@ -1068,7 +1079,7 @@ function loadRoomCalendarAvailability() {
 
 function loadServicesFromDB($lang, $link) {
 	$services = array();
-	$sql = "SELECT s.id,s.price,s.currency,s.img, s.free_service, t.value AS title, d.value AS description , u.value AS unit_name FROM services s INNER JOIN lang_text t ON (s.id=t.row_id AND t.table_name='services' AND t.column_name='title' AND t.lang='$lang') INNER JOIN lang_text d ON (s.id=d.row_id AND d.table_name='services' AND d.column_name='description' AND d.lang='$lang') LEFT OUTER JOIN lang_text u ON (s.id=u.row_id AND u.table_name='services' AND u.column_name='unit_name' AND u.lang='$lang') ORDER BY s._order";
+	$sql = "SELECT s.id,s.price,s.currency,s.img, s.name,s.service_charge_type,s.free_service, t.value AS title, d.value AS description , u.value AS unit_name FROM services s INNER JOIN lang_text t ON (s.id=t.row_id AND t.table_name='services' AND t.column_name='title' AND t.lang='$lang') INNER JOIN lang_text d ON (s.id=d.row_id AND d.table_name='services' AND d.column_name='description' AND d.lang='$lang') LEFT OUTER JOIN lang_text u ON (s.id=u.row_id AND u.table_name='services' AND u.column_name='unit_name' AND u.lang='$lang') ORDER BY s._order";
 	$result = mysql_query($sql, $link);
 	while($row = mysql_fetch_assoc($result)) {
 		if(strlen($row['img']) > 0) {

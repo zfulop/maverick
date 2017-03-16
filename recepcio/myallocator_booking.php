@@ -104,9 +104,10 @@ require('../includes/config/' . $location . '.php');
 logDebug("included " . '../includes/config/' . $location . '.php');
 
 $lang = 'eng';
-require(LANG_DIR . $lang . '.php');
+//require(LANG_DIR . $lang . '.php');
+//logDebug("included " . LANG_DIR . $lang . '.php');
+
 $_SESSION['login_user'] = 'myallocator';
-logDebug("included " . LANG_DIR . $lang . '.php');
 
 set_debug($bookingJson);
 set_debug(print_r($bookingData,true));

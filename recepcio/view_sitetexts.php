@@ -34,6 +34,22 @@ EOT;
 
 html_start("Website texts", $extraHeader);
 
+if(isset($_SESSION['notify_sitetext_update'])) {
+	unset($_SESSION['notify_sitetext_update']);
+	echo <<<EOT
+
+<script type="text/javascript">
+	new Ajax.Request("http://dev.mavericklodges.com/?refreshTrans", {
+		onSuccess: function(response) {
+			alert("Translations refreshed on the website");
+		}
+	});
+</script>
+
+EOT;
+
+}
+
 $today = date('Y-m-d');
 
 $texts = array();
@@ -107,10 +123,6 @@ echo <<<EOT
 </table>
 <input type="submit" value="Save website texts">
 </form>
-
-<script type="text/javascript">
-	window.open("http://dev.mavericklodges.com/?refreshTrans");
-</script>
 
 EOT;
 

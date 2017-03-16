@@ -83,7 +83,7 @@ foreach($roomTypes as $rtId => $rtData) {
 		$imgUrl = ROOMS_IMG_URL . $location . '/' . $img['thumb'];
 		$bgColor='black';
 		if(in_array($rtId, $img['default_for_room_types'])) {
-			$bgColor='rgb(255, 200, 200)';
+			$bgColor='red';
 		}		
 		echo <<<EOT
 <div style="float: left; margin: 10px; text-align: center; border: dotted $bgColor; position: relative; padding: 10px;">

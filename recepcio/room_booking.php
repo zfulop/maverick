@@ -45,7 +45,8 @@ function loadRoomTypesWithAvailableBeds($link, $startDate, $endDate, $lang = 'en
 		echo "SQL ERROR: " . mysql_error($link) . " (sql: $sql)<br>\n";
 	} else {
 		while($row = mysql_fetch_assoc($result)) {
-			$roomTypesData[$row['room_type_id']]['available_beds'] += $roomTypesData[$row['num_of_beds']] * $row['cnt'];
+			$roomTypesData[$row['room_type_id']]['available_beds'] += $roomTypesData[$row['room_type_id']]['num_of_beds'] * $row['cnt'];
+			$roomTypesData[$row['room_type_id']]['num_of_rooms'] += $row['cnt'];
 		}
 	}	
 	return $roomTypesData;

@@ -26,6 +26,7 @@ foreach($roomTypes as $rtId => $rt) {
 echo <<<EOT
 
 <img src="$src"><br>
+<a href="delete_room_image.php?room_image_id=$id" style="font-size:130%;">Delete Image</a><br>
 <form action="save_room_image_data.php">
 <input type="hidden" name="room_image_id" value="$id">
 <table>

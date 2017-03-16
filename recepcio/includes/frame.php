@@ -133,7 +133,7 @@ EOT;
 				<li><a href="$specialOffers" style="font-size: 14px; padding-right: 20px;">Special Offers</a></li>
 				<li><a href="$services" style="font-size: 14px; padding-right: 20px;">Services</a></li>
 				<li><a href="$siteTexts" style="font-size: 14px; padding-right: 20px;">Website Texts</a></li>
-				<li><a href="$roomImages" style="font-size: 14px; padding-right: 20px;">Website Texts</a></li>
+				<li><a href="$roomImages" style="font-size: 14px; padding-right: 20px;">Room Images</a></li>
 			</ul>
 		</div>
 		<div style="float: right;padding-right:50px;">

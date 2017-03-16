@@ -166,7 +166,9 @@ $sunChecked = in_array(7, $_SESSION['room_price_days']) ? 'checked' : '';
 
 $roomTypesHtmlOptions = '';
 foreach($roomTypes as $roomTypeId => $oneRoomType) {
-	$roomTypesHtmlOptions .= '		<option value="' . $oneRoomType['id'] . '"' . (in_array($oneRoomType['id'], $rpRoomTypeIds) ? ' selected' : '') . '>' . $oneRoomType['name'] . "</option>\n";
+	if($oneRoomType['available_beds'] > 0) {
+		$roomTypesHtmlOptions .= '		<option value="' . $oneRoomType['id'] . '"' . (in_array($oneRoomType['id'], $rpRoomTypeIds) ? ' selected' : '') . '>' . $oneRoomType['name'] . "</option>\n";
+	}
 }
 
 
@@ -272,6 +274,9 @@ while($currDateTs <= $endDateTs) {
 echo "\t</tr>\n";
 
 foreach($roomTypes as $roomTypeId => $roomType) {
+	if($roomType['available_beds'] < 1) {
+		continue;
+	}
 	echo "\t<tr><th>" . $roomType['name'] . "</th><td>" . $roomType['available_beds'] . "</td>";
 	$currDateTs = strtotime($startDate);
 	$cssClass = 'odd';
@@ -285,7 +290,7 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 		$currDate = date('Y-m-d', $currDateTs);
 		list($currYear, $currMonth, $currDay) = explode('-', $currDate);
 		$bookings = getBookings($roomTypeId, $rooms, $currDate, $currDate);
-		if($roomType['type'] == 'DORM') {
+		if(isDorm($roomType)) {
 			$avgNumOfBeds = getAvgNumOfBedsOccupied($bookings, $currDate, $currDate);
 			$occupancy = round($avgNumOfBeds / $roomType['available_beds'] * 100);
 		} else {
@@ -371,9 +376,14 @@ function admin_getRoomPrice($currDate, &$rooms, &$roomType) {
 
 function countIndividualRooms($bookings) {
 	$roomUsed = array();
+	$cntr = 0;
 	foreach($bookings as $oneBooking) {
-		
+		if(!in_array($oneBooking['original_room_type'])) {
+			$roomUsed[] = $oneBooking['original_room_type'];
+			$cntr += 1;
+		}
 	}
+	return $cntr;
 }
 
 

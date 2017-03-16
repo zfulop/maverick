@@ -35,6 +35,7 @@ if($error > 0) {
 	set_error("There were $error errors when saving the texts");
 } else {
 	set_message("All the texts (" . count($sql) . ") were saved");
+	$_SESSION['notify_sitetext_update'] = true;
 }
 
 mysql_close($link);

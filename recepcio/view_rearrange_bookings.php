@@ -77,7 +77,7 @@ $tableWidth = (1 + (count($dates)+1) * 101) . 'px';
 
 
 
-
+$errorText = null;
 $js = "		var div = null;\n";
 foreach($bookings as $oneBooking) {
 	foreach($dates as $currDate) {
@@ -88,11 +88,17 @@ foreach($bookings as $oneBooking) {
 
 		$divId = $oneBooking['id'] . '_' . $oneBooking['description_id'] . '_' . $currDate;
 		$tdId = $oneBooking['room_id'] . '_' . $currDate;
+		$roomId = $oneBooking['room_id'];
 		foreach($oneBooking['room_changes'] as $rc) {
 			if(str_replace('/', '-', $rc['date_of_room_change']) == $currDate) {
 				$tdId = $rc['new_room_id'] . '_' . $currDate;
+				$roomId = $rc['new_room_id'];
 				break;
 			}
+		}
+		if(!isset($rooms[$roomId])) {
+			$errorText .= "Booking: " . $oneBooking['name'] . '(id:' . $oneBooking['id'] . ") is made for roomId: $roomId, but this room is not valid in that period. Please check that the room\'s validity is ok for this date: $currDate<br>\n";
+			continue;
 		}
 		$name = str_replace('\'', "\\'", $oneBooking['name'].' '.$oneBooking['name_ext']) . ' <i>' . $oneBooking['source'] . '</i>';
 		$title = /*$rooms[$oneBooking['room_id']]['name'] . ' ' . */$oneBooking['first_night'] . ' - ' . $oneBooking['last_night'] . ' ' . $roomTypeNames[$oneBooking['original_room_type_id']];
@@ -107,6 +113,9 @@ foreach($bookings as $oneBooking) {
 
 $js = "	function initBookings() {\n$js\n\t}\n";
 
+if(strlen($errorText) > 0) {
+	set_error($errorText);
+}
 
 $extraHeader = <<<EOT
 
