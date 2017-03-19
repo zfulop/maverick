@@ -75,7 +75,7 @@ class RoomDao {
 	 *  bathroom              Language specific bathroom information of the room
 	 */
 	public static function getRoomTypes($lang, $link) {
-		$sql = "SELECT rt.id, rt.price_per_bed, rt.price_per_room, rt.surcharge_per_bed, rt.type, rt.num_of_beds, lt1.value AS name, lt2.value AS description, " .
+		$sql = "SELECT rt.id, rt.name AS rt_name, rt.price_per_bed, rt.price_per_room, rt.surcharge_per_bed, rt.type, rt.num_of_beds, lt1.value AS name, lt2.value AS description, " .
 			"lt3.value AS short_description, lt4.value AS size, lt5.value AS location, lt6.value AS bathroom, rt._order, 0 AS num_of_beds_avail FROM room_types rt " . 
 			"INNER JOIN lang_text lt1 ON (lt1.table_name='room_types' AND lt1.column_name='name' AND lt1.row_id=rt.id AND lt1.lang='$lang') " . 
 			"INNER JOIN lang_text lt2 ON (lt2.table_name='room_types' AND lt2.column_name='description' AND lt2.row_id=rt.id AND lt2.lang='$lang') " . 
@@ -104,7 +104,7 @@ class RoomDao {
 	public static function getRoomTypesWithRooms($lang, $link) {
 		$roomTypes = RoomDao::getRoomTypes($lang, $link);
 		$today = date('Y/m/d');
-		$sql = "SELECT id FROM room_types WHERE id NOT IN (SELECT DISTINCT room_type_id FROM lodge.rooms r WHERE r.valid_from<='$today' AND r.valid_to>='$today' UNION SELECT DISTINCT room_type_id FROM lodge.rooms_to_room_types)";
+		$sql = "SELECT id FROM room_types rt WHERE rt.id NOT IN (SELECT DISTINCT r.room_type_id FROM rooms r WHERE r.valid_from<='$today' AND r.valid_to>='$today' UNION SELECT DISTINCT rtrt.room_type_id FROM rooms_to_room_types rtrt)";
 		$result = mysql_query($sql, $link);
 		if(!$result) {
 			trigger_error("Cannot load rooms types that has not rooms. Error: " . mysql_error($link) . " (SQL: $sql)");

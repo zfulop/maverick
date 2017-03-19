@@ -1,25 +1,25 @@
 <?php
 
-if(!isset($_REQUEST['location'])) {
+if(!hasParameter('location')) {
 	echo "location parameter missing";
 	return;
 }
 
-$configFile = '../includes/config/' . $_REQUEST['location'] . '.php';
+$configFile = '../includes/config/' . getParameter('location') . '.php';
 if(!file_exists($configFile)) {
 	echo "invalid location parameter";
 	return;
 }
 require($configFile);
-
+require('../includes/country_alias.php');
 require('includes.php');
 require('room_booking.php');
 
-if(!isset($_REQUEST['action'])) {
+if(!hasParameter('action')) {
 	echo "'action' parameter missing";
 	return;
 }
-$action = $_REQUEST['action'];
+$action = getParameter('action');
 logDebug("BEGIN*****************************************************");
 logDebug("API action: $action");
 
@@ -55,9 +55,9 @@ function _loadRooms() {
 	}
 
 	logDebug("Loading rooms");
-	$location = $_REQUEST['location'];
-	$lang = $_REQUEST['lang'];
-	$currency = $_REQUEST['currency'];
+	$location = getParameter('location');
+	$lang = getParameter('lang');
+	$currency = getParameter('currency');
 	$link = db_connect($location);
 	
 	$roomTypesData = RoomDao::getRoomTypesWithRooms($lang, $link);
@@ -69,7 +69,7 @@ function _loadRooms() {
 	}
 
 	$today = date('Y-m-d');
-	foreach($roomTypesData as &$roomType) {
+	foreach($roomTypesData as $rtId => &$roomType) {
 		$roomType['price_per_bed'] = convertAmount($roomType['price_per_bed'], 'EUR', $currency, $today);
 		$roomType['price_per_room'] = convertAmount($roomType['price_per_room'], 'EUR', $currency, $today);
 	}
@@ -84,17 +84,17 @@ function loadAvailability() {
 		return null;
 	}
 
-	$location = $_REQUEST['location'];
-	$lang = $_REQUEST['lang'];
-	$currency = $_REQUEST['currency'];	
+	$location = getParameter('location');
+	$lang = getParameter('lang');
+	$currency = getParameter('currency');
 
-	$fromDate = $_REQUEST['from'];
-	$toDate = $_REQUEST['to'];
+	$fromDate = getParameter('from');
+	$toDate = getParameter('to');
 	$nights = round((strtotime($toDate) - strtotime($fromDate)) / (60*60*24));
 
 	$filterRoomIds = null;
-	if(isset($_REQUEST['filter_room_types'])) {
-		$filterRoomIds = explode(',', $_REQUEST['filter_room_types']);
+	if(hasParameter('filter_room_types')) {
+		$filterRoomIds = explode(',', getParameter('filter_room_types'));
 		logDebug("Filtering for room type ids: " . print_r($filterRoomIds, true));
 	}
 	
@@ -113,7 +113,7 @@ function loadAvailability() {
 	$link = db_connect($location);
 
 	$minMax = getMinMaxStay($fromDate, $toDate, $link);
-	if(!is_null($minMax) and $minMax['min_stay'] > $_SESSION['nights']) {
+	if(!is_null($minMax) and $minMax['min_stay'] > $nights) {
 		mysql_close($link);
 		return array('error' => 'FOR_SELECTED_DATE_MIN_STAY ' . $minMax['min_stay']);
 	}
@@ -148,7 +148,7 @@ function loadAvailability() {
 		$roomTypesData[$rtId]['images'] = $imgs;
 	}
 	$today = date('Y-m-d');
-	foreach($roomTypesData as &$roomType) {
+	foreach($roomTypesData as $rtId => &$roomType) {
 		$roomType['price_per_bed'] = convertAmount($roomType['price_per_bed'], 'EUR', $currency, $today);
 		$roomType['price_per_room'] = convertAmount($roomType['price_per_room'], 'EUR', $currency, $today);
 	}	
@@ -231,7 +231,7 @@ function isAvailable($roomAvailability) {
 // Returns array wit key: room type id, value: list of image objects
 function loadRoomImages($lang, $link) {
 	logDebug("Loading room images");
-	$location = $_REQUEST['location'];
+	$location = getParameter('location');
 	$roomImages = array();
 	$imgCnt = 0;
 	foreach(RoomDao::getRoomImages($lang, $link) as $imgId => $row) {
@@ -355,7 +355,7 @@ function getMinMaxStay($fromDate, $toDate, $link) {
 
 function checkMissingParameters($paramNames) {
 	foreach($paramNames as $oneParamName) {
-		if(!isset($_REQUEST[$oneParamName])) {
+		if(!hasParameter($oneParamName)) {
 			echo "'$oneParamName' parameter missing";
 			return false;
 		}
@@ -370,11 +370,40 @@ function checkMissingParameters($paramNames) {
 }
 
 function checkParameterValue($parameterName, $possibleValues) {
-	if(!in_array($_REQUEST[$parameterName], $possibleValues)) {
+	if(!in_array(getParameter($parameterName), $possibleValues)) {
 		echo "$parameterName parameter is invalid. Valid values: " . implode(',', $possibleValues);
 		return false;
 	}
 	return true;
+}
+
+function getParameter($parameterName) {
+	if(isset($_SERVER["argv"])) {
+		$argv = $_SERVER["argv"];
+		for($i = 1; $i < (count($argv)-1); $i++) {
+			if($argv[$i] == ('-' . $parameterName)) {
+				return $argv[$i+1];
+			}
+		}
+		return null;
+	} else {
+		return $_REQUEST[$parameterName];		
+	}
+}
+
+function hasParameter($parameterName) {
+	if(isset($_SERVER["argv"])) {
+		$argv = $_SERVER["argv"];
+		$parameterName = '-' . $parameterName;
+		for($i = 1; $i < (count($argv)-1); $i++) {
+			if($argv[$i] == $parameterName) {
+				return true;
+			}
+		}
+		return false;
+	} else {
+		return isset($_REQUEST[$parameterName]);
+	}
 }
 
 
@@ -384,9 +413,9 @@ function loadServices() {
 	}
 
 	logDebug("Loading services");
-	$location = $_REQUEST['location'];
-	$lang = $_REQUEST['lang'];
-	$currency = $_REQUEST['currency'];	
+	$location = getParameter('location');
+	$lang = getParameter('lang');
+	$currency = getParameter('currency');
 
 	$link = db_connect($location);
 	
@@ -406,38 +435,46 @@ function loadServices() {
 
 
 function doBooking() {
+	global $COUNTRY_ALIASES;
+
 	if(!checkMissingParameters(array('firstname','lastname','email','phone','nationality','street','city','zip','country','currency','comment','booking_data','from_date','to_date'))) {
 		return null;
 	}
 
-	$location = $_REQUEST['location'];
-	$lang = $_REQUEST['lang'];
-	$currency = $_REQUEST['currency'];
+	$location = getParameter('location');
+	$lang = getParameter('lang');
+	$currency = getParameter('currency');
 
 	$link = db_connect($location);
 	
 	
-	$firstname = $_REQUEST['firstname'];
-	$lastname = $_REQUEST['lastname'];
+	$firstname = getParameter('firstname');
+	$lastname = getParameter('lastname');
 
 	if(trim($firstname)=='1' or trim($lastname)=='1') {
 		return null;
 	}
 	
-	$address = mysql_real_escape_string($_REQUEST['street'] . ', ' . $_REQUEST['city'] . ', ' . $_REQUEST['zip'] . ', ' . $_REQUEST['country'], $link);
+	$address = mysql_real_escape_string(getParameter('street') . ', ' . getParameter('city') . ', ' . getParameter('zip') . ', ' . getParameter('country'), $link);
 	$name = mysql_real_escape_string("$firstname $lastname", $link);
-	$nationality = mysql_real_escape_string($_REQUEST['nationality'], $link);
-	$email = mysql_real_escape_string($_REQUEST['email'], $link);
-	$phone = mysql_real_escape_string($_REQUEST['phone'], $link);
-	$comment = mysql_real_escape_string($_REQUEST['comment'], $link);
+	$nationality = getParameter('nationality');
+	if(isset($COUNTRY_ALIASES[strtolower($nationality)])) {
+		$nationality = mysql_real_escape_string($COUNTRY_ALIASES[strtolower($nationality)], $link);
+	} else {
+		$nationality = mysql_real_escape_string($nationality, $link);
+	}
+
+	$email = mysql_real_escape_string(getParameter('email'), $link);
+	$phone = mysql_real_escape_string(getParameter('phone'), $link);
+	$comment = mysql_real_escape_string(getParameter('comment'), $link);
 	$bookingRef = mysql_real_escape_string(gen_booking_ref(), $link);
 
 	verifyBlacklist("$firstname $lastname", $email, CONTACT_EMAIL, $link);
 	
-	$arriveDate = $_REQUEST['from_date'];
-	$arriveDateTs = strtotime($_REQUEST['from_date']);
-	$departureDate = $_REQUEST['to_date'];
-	$departureDateTs = strtotime($_REQUEST['to_date']);
+	$arriveDate = getParameter('from_date');
+	$arriveDateTs = strtotime(getParameter('from_date'));
+	$departureDate = getParameter('to_date');
+	$departureDateTs = strtotime(getParameter('to_date'));
 	$nights = round(($departureDateTs - $arriveDateTs) / (60*60*24));
 	$lastNightTs = $arriveDateTs + ($nights-1) * (60*60*24) - ($nights>1?60*60:0); // minus 1 hour because when the daylight saving is turned off then one day is only 23 hours so if we add 24 that would be an extra day.
 	$lastNight = date('Y-m-d', $lastNightTs);
@@ -452,8 +489,8 @@ function doBooking() {
 	$roomTypesData = loadRoomTypes($link, $lang);
 	$services = loadServicesFromDB($lang, $link);
 
-	$bookingRequest = json_decode($_REQUEST['booking_data'], true);
-	$source = 'saját';
+	$bookingRequest = json_decode(getParameter('booking_data'), true);
+	$source = mysql_real_escape_string('saját', $link);
 	$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency,booking_ref) VALUES ('$name', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', '$source', '', '$lang', '$currency', '$bookingRef')";
 	if(!mysql_query($sql, $link)) {
 		trigger_error("Cannot save booking: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -465,7 +502,7 @@ function doBooking() {
 
 	list($toBook, $roomChanges) = getBookingData($bookingRequest, $arriveDate, $lastNight, $rooms, $roomTypesData, $specialOffers);
 	$bookingIds = saveBookings($toBook, $roomChanges, $arriveDate, $lastNight, $rooms, $roomTypesData, $specialOffers, $descriptionId, $link);
-	$bookedServices = json_decode($_REQUEST['services'], true);
+	$bookedServices = json_decode(getParameter('services'), true);
 	logDebug("Services to book: " . print_r($bookedServices, true));
 	foreach($bookedServices as $service) {
 		$id = $service['serviceId'];
@@ -496,17 +533,18 @@ function doBooking() {
 	$_SESSION['login_user'] = 'website';
 	audit(AUDIT_CREATE_BOOKING, array('booking_data' => $toBook, 'room_change_data' => $roomChanges), $bookingIds[0], $descriptionId, $link);
 	mysql_query('COMMIT', $link);
+	
 	mysql_close($link);
 
-	sendEmailForBooking($name, $email, $phone, $address, $nationality, $arriveDate, $departureDate, $nights, $toBook, $bookedServices, $roomTypesData, $services);
+	sendEmailForBooking($name, $email, $phone, $address, $nationality, $arriveDate, $departureDate, $nights, $toBook, $bookedServices, $roomTypesData, $services, $descriptionId);
 	return array('success'=> true);
 }
 
-function sendEmailForBooking($nameValue, $emailValue, $phoneValue, $addressValue, $nationalityValue, $dateOfArriveValue, $dateOfDepartureValue, $numberOfNightsValue, $bookings, $bookedServices, &$roomTypesData, &$services) {
+function sendEmailForBooking($nameValue, $emailValue, $phoneValue, $addressValue, $nationalityValue, $dateOfArriveValue, $dateOfDepartureValue, $numberOfNightsValue, $bookings, $bookedServices, &$roomTypesData, &$services, $descriptionId) {
 	$texts = loadWebsiteTexts();
-	$location = $_REQUEST['location'];
-	$lang = $_REQUEST['lang'];
-	$currency = $_REQUEST['currency'];
+	$location = getParameter('location');
+	$lang = getParameter('lang');
+	$currency = getParameter('currency');
 	$today = date('Y-m-d');
 	
 	$nameTitle = $texts['NAME'];
@@ -516,7 +554,7 @@ function sendEmailForBooking($nameValue, $emailValue, $phoneValue, $addressValue
 	$dateOfArriveTitle = $texts['DATE_OF_ARRIVAL'];
 	$dateOfDepartureTitle = $texts['DATE_OF_DEPARTURE'];
 	$numberOfNightsTitle = $texts['NUMBER_OF_NIGHTS'];
-	$roomsTitle = $texts['ROOMS'];
+	$roomsTitle = $texts['rooms'];
 	$extraServicesTitle = $texts['EXTRA_SERVICES'];
 	$totalPrice = $texts['TOTAL_PRICE'];
 	$adviseToTravel = $texts['ADVISE_TO_TRAVEL'];
@@ -625,7 +663,6 @@ EOT;
 //		}
 		$numOfGuests = $oneRoomBooked['num_of_person'];
 		$numNightsForNumPerson = sprintf($texts['NUM_NIGHTS_FOR_NUM_PERSON'], $numberOfNightsValue, $numOfGuests);
-		$roomData = getRoomData($rooms, $roomTypeId);
 		$price = convertAmount($oneRoomBooked['price'], 'EUR', $currency, $today);
 		$dprice = convertAmount($oneRoomBooked['discounted_price'], 'EUR', $currency, $today);
 		$dtotal += $dprice;
@@ -672,10 +709,10 @@ EOT;
 		if(!isset($services[$id])) {
 			logError("The booking contains a service with id: $id tha tis not in the DB. Ignoring.");
 		}		
-		$title = $services[$service['id']]['title'];
-		$forNumOfOccasion = sprintf($texts['FOR_NUM_OF_OCCASIONS'], $service['occasion']);
-		$serviceCurrency = $services[$service['id']]['currency'];
-		$price = convertAmount($services[$service['id']]['price'], $serviceCurrency, 'EUR', $today);
+		$title = $services[$id]['title'];
+		$forNumOfOccasion = sprintf($texts['FOR_NUM_OF_OCCASIONS'], $service['occasion'], $services[$id]['unit_name']);
+		$serviceCurrency = $services[$id]['currency'];
+		$price = convertAmount($services[$id]['price'], $serviceCurrency, 'EUR', $today) * $service['occasion'];
 		$totalServicePrice += $price;
 		$price = formatMoney(convertAmount($price, 'EUR', $currency, $today), $currency);
 		$mailMessage .= <<<EOT
@@ -953,7 +990,7 @@ EOT;
 		$roomTypeId = $oneRoomBooked['roomTypeId'];
 		$roomType = $roomTypesData[$roomTypeId];
 		$type = $roomType['type'] == 'DORM' ? "Bed" : "Room";
-		$name = $roomType['name'];
+		$name = $roomType['rt_name'];
 		$numOfGuests = $oneRoomBooked['num_of_person'];
 		$price = $oneRoomBooked['price'];
 		$dprice = $oneRoomBooked['discounted_price'];
@@ -1010,8 +1047,8 @@ function loadWebsiteTexts() {
 	if(!checkMissingParameters(array('location','lang'))) {
 		return null;
 	}
-	$location = $_REQUEST['location'];
-	$lang = $_REQUEST['lang'];
+	$location = getParameter('location');
+	$lang = getParameter('lang');
 	$link = db_connect($location);
 
 	$sql = "SELECT * FROM lang_text WHERE lang='$lang' AND table_name='website'";
@@ -1028,10 +1065,10 @@ function loadRoomCalendarAvailability() {
 	if(!checkMissingParameters(array('location','lang','from','to','room_type_id'))) {
 		return null;
 	}
-	$location = $_REQUEST['location'];
-	$lang = $_REQUEST['lang'];
-	$startDate = $_REQUEST['from'];
-	$endDate = $_REQUEST['to'];
+	$location = getParameter('location');
+	$lang = getParameter('lang');
+	$startDate = getParameter('from');
+	$endDate = getParameter('to');
 	$startTs = strtotime($startDate);
 	$endTs = strtotime($endDate);
 
@@ -1041,7 +1078,7 @@ function loadRoomCalendarAvailability() {
 
 	$link = db_connect($location);
 
-	$roomTypeId = $_REQUEST['room_type_id'];
+	$roomTypeId = getParameter('room_type_id');
 
 	$roomTypesData = loadRoomTypes($link, $lang);
 	$roomType = $roomTypesData[$roomTypeId];
