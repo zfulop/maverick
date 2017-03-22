@@ -39,7 +39,7 @@ if(isset($_SESSION['notify_sitetext_update'])) {
 	echo <<<EOT
 
 <script type="text/javascript">
-	new Ajax.Request("http://dev.mavericklodges.com/?refreshTrans", {
+	new Ajax.Request("http://www.mavericklodges.com/?refreshTrans", {
 		onSuccess: function(response) {
 			alert("Translations refreshed on the website");
 		}

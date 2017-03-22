@@ -53,9 +53,9 @@ if(is_null($theAssignment)) {
 
 $toCleanHtml = '';
 if($roomTypeData['type'] != 'DORM') {
-	$toCleanHtml = 'Clean the whole room';
+	$toCleanHtml = 'Szoba takarítása';
 } else {
-	$toCleanHtml = "Clean beds: $beds";
+	$toCleanHtml = "Ezeket az ágyakat kell takarítani: $beds";
 }
 
 
@@ -70,7 +70,7 @@ foreach($actions as $oneAction) {
 
 $notesHtml = '';
 if(count($notes) > 0) {
-	$notesHtml = "<div class=\"panel panel-default\"><div class=\"panel-heading\">Existing Notes</div><div class=\"panel-body\"><ul>\n";
+	$notesHtml = "<div class=\"panel panel-default\"><div class=\"panel-heading\">Feljegyzések</div><div class=\"panel-body\"><ul>\n";
 	foreach($notes as $n) {
 		$notesHtml .= "<li>" . $n['comment'] . " (" . $n['cleaner'] . ")</li>\n";
 	}
@@ -85,9 +85,10 @@ foreach(ListsDao::getCleanerItemTypes($link) as $item) {
 html_start($roomData['name'] . ' - ' . $roomTypeData['name']);
 
 echo "<h2>" . $roomData['name'] . ' - ' . $roomTypeData['name'] . "</h2>\n";
+$roomPartTran = CleanerUtils::translate($roomPart);
 echo <<<EOT
-<a href="finish_room.php?room_id=$roomId&room_part=$roomPart" role="button" class="btn btn-default btn-lg btn-block">Finish $roomPart</a>
-<a href="leave_room.php?room_id=$roomId&room_part=$roomPart" role="button" class="btn btn-default btn-lg btn-block">Leave $roomPart (without finish)</a>
+<a href="finish_room.php?room_id=$roomId&room_part=$roomPart" role="button" class="btn btn-default btn-lg btn-block">$roomPartTran kész</a>
+<a href="leave_room.php?room_id=$roomId&room_part=$roomPart" role="button" class="btn btn-default btn-lg btn-block">$roomPartTran elhagyása (nem fejeztem be a takarítást itt)</a>
 <div class="panel panel-default"><div class="panel-body">$toCleanHtml</div></div>
 $assignmentNotesHtml
 <div class="panel panel-default"><div class="panel-body">
@@ -95,12 +96,12 @@ $assignmentNotesHtml
 	<input type="hidden" name="room_id" value="$roomId">
 	<input type="hidden" name="room_part" value="$roomPart">
 	<div class="form-group">
-		<label for="note">Note: </label>
+		<label for="note">feljegyzés: </label>
 		<select class="form-control" id="note" name="note">
 $noteOptions
 		</select>
 	</div>
-	<button type="submit" class="btn btn-default">Add Note</button>
+	<button type="submit" class="btn btn-default">Feljegyzés hozzáadása</button>
 </form>
 </div></div>
 $notesHtml

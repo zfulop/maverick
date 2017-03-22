@@ -12,6 +12,8 @@ $link = db_connect();
 // Load room data
 $rooms = RoomDao::getRooms($link);
 
+$roomTypes = RoomDao::getRoomTypes('eng', $link);
+
 $dayToShow = date('Y-m-d');
 $today = date('Y/m/d', strtotime($dayToShow));
 $yesterday = date('Y/m/d', strtotime($dayToShow . ' -1 day'));
@@ -29,30 +31,13 @@ $assignments = CleanerDao::getCleanerAssignments($dayToShow, $link);
 $actions = CleanerDao::getCleanerActions($dayToShow, $link);
 
 // Get the available cleaners
-$cleaners = UserDao::getUsersForRole('CLEANER', $link);
+$cleaners = UserDao::getUsersForRole(array('CLEANER', 'CLEANER_SUPERVISOR'), $link);
 
 
 html_start("Assign rooms to cleaners");
 
 logDebug("leaves for $dayToShow: " . count($leaves));
 logDebug("room changes for $dayToShow: " . count($roomChanges));
-
-echo <<<EOT
-
-<form action="assign_cleaners.php" method="POST" accept-charset="utf-8">
-<table class="table form-inline">
-	<tr>
-		<th>Room name</th>
-		<th># of beds to clean</th>
-		<th>Room cleaner</th>
-		<th>Room notes</th>
-		<th>Room Status</th>
-		<th>Bathroom cleaner</th>
-		<th>Bathroom notes</th>
-		<th>Bathroom Status</th>
-	</tr>
-
-EOT;
 
 $lastActionForRoom = array();
 $lastActionForBathroom = array();
@@ -73,7 +58,7 @@ foreach($actions as $oneAction) {
 }
 
 
-
+$roomsToClean = array();
 foreach($rooms as $roomId => $roomData) {
 	$roomName = $roomData['name'];
 	$numOfBeds = 0;
@@ -93,47 +78,93 @@ foreach($rooms as $roomId => $roomData) {
 		}
 	}
 	
-	
 	if($numOfBeds > 0) {
-		$roomAssignment = getAssignment($assignments, 'ROOM', $roomId);
-		$bathroomAssignment = getAssignment($assignments, 'BATHROOM', $roomId);
-		$roomNotes = is_null($roomAssignment) ? '' : $roomAssignment['comment'];
-		$bathroomNotes = is_null($bathroomAssignment) ? '' : $bathroomAssignment['comment'];
-		
-		$rcleanerOptions = "<option value=\"\"></option>";
-		$brcleanerOptions = "<option value=\"\"></option>";
-		foreach($cleaners as $oneCleaner) {
-			$rselected = (!is_null($roomAssignment) and ($roomAssignment['cleaner'] == $oneCleaner['username']));
-			$brselected = (!is_null($bathroomAssignment) and ($bathroomAssignment['cleaner'] == $oneCleaner['username']));
-			$rcleanerOptions .= "<option value=\"" . $oneCleaner['username'] . "\"" . ($rselected ? ' selected' : '') . ">" . $oneCleaner['name'] . "</option>";
-			$brcleanerOptions .= "<option value=\"" . $oneCleaner['username'] . "\"" . ($brselected ? ' selected' : '') . ">" . $oneCleaner['name'] . "</option>";
-		}
-		$roomStatus = getRoomStatus($actions, $roomId);
-		$bathroomStatus = getBathRoomStatus($actions, $roomId);
 		$bookingIds = implode(',', $bookingIds);
-		echo <<<EOT
+		$roomsToClean[] = array(
+			'name' => $roomName, 
+			'numOfBeds' => $numOfBeds, 
+			'roomId' => $roomId, 
+			'bookingIds' => $bookingIds);
+	}
+}
+
+usort($roomsToClean, 'sortRoomsToClean');
+
+logDebug("There are " . count($roomsToClean) . " rooms to clean in total");
+
+echo <<<EOT
+
+<form action="assign_cleaners.php" method="POST" accept-charset="utf-8">
+<table class="table form-inline">
+	<tr>
+		<th>Room name</th>
+		<th># of beds to clean</th>
+		<th>Room cleaner</th>
+		<th>Room notes</th>
+		<th>Room Status</th>
+		<th>Bathroom cleaner</th>
+		<th>Bathroom notes</th>
+		<th>Bathroom Status</th>
+	</tr>
+
+EOT;
+
+foreach($roomsToClean as $roomToClean) {
+	$roomName = $roomToClean['name']; 
+	$numOfBeds = $roomToClean['numOfBeds'];
+	$roomId = $roomToClean['roomId'];
+	$bookingIds = $roomToClean['bookingIds'];
+	$roomType = $roomTypes[$rooms[$roomId]['room_type_id']];
+	
+	$roomAssignment = getAssignment($assignments, 'ROOM', $roomId);
+	$bathroomAssignment = getAssignment($assignments, 'BATHROOM', $roomId);
+	$roomNotes = is_null($roomAssignment) ? '' : $roomAssignment['comment'];
+	$bathroomNotes = is_null($bathroomAssignment) ? '' : $bathroomAssignment['comment'];
+
+	$rcleanerOptions = "<option value=\"\"></option>";
+	$brcleanerOptions = "<option value=\"\"></option>";
+	foreach($cleaners as $oneCleaner) {
+		$rselected = (!is_null($roomAssignment) and ($roomAssignment['cleaner'] == $oneCleaner['username']));
+		$brselected = (!is_null($bathroomAssignment) and ($bathroomAssignment['cleaner'] == $oneCleaner['username']));
+		$rcleanerOptions .= "<option value=\"" . $oneCleaner['username'] . "\"" . ($rselected ? ' selected' : '') . ">" . $oneCleaner['name'] . "</option>";
+		$brcleanerOptions .= "<option value=\"" . $oneCleaner['username'] . "\"" . ($brselected ? ' selected' : '') . ">" . $oneCleaner['name'] . "</option>";
+	}
+	$roomStatus = getRoomStatus($actions, $roomId);
+
+	$brCleanerSelect = '';
+	$brNotesCell = '';
+	$bathroomStatus = '';
+	$bathroomButtons = '';
+	if($roomType['type'] != 'DORM') {
+		if(!CleanerUtils::canCleanRoom($roomId, $leaves, $roomChanges)) {
+			logDebug("Private or apartment and not yet left the room, so will not show");
+			continue;
+		}
+		$bathroomStatus = getBathRoomStatus($actions, $roomId);
+		$brCleanerSelect = "<select name=\"bathroom_cleaner_$roomId\">$brcleanerOptions</select>";
+		$brNotesCell = "<input name=\"bathroom_note_$roomId\" value=\"$bathroomNotes\">";
+		$bathroomStatus = $roomToClean['bathroomStatus'];
+		$bathroomButtons = "<a href=\"confirm_finish_room.php?room_part=BATHROOM&room_id=$roomId\" style=\"width:150px;\" class=\"btn btn-success\">Confirm bathroom</a> <a href=\"reject_finish_room.php?room_part=BATHROOM&room_id=$roomId\" style=\"width:150px;\" class=\"btn btn-danger\">Reject bathroom</a>";
+	}
+	echo <<<EOT
 	<input type="hidden" name="booking_ids_$roomId" value="$bookingIds">
 	<tr>
 		<td>$roomName</td><td>$numOfBeds</td>
 		<td><select name="room_cleaner_$roomId">$rcleanerOptions</select></td>
 		<td><input name="room_note_$roomId" value="$roomNotes"></td>
 		<td>$roomStatus</td>
-		<td><select name="bathroom_cleaner_$roomId">$brcleanerOptions</select></td>
-		<td><input name="bathroom_note_$roomId" value="$bathroomNotes"></td>
+		<td>$brCleanerSelect</td>
+		<td>$brNotesCell</td>
 		<td>$bathroomStatus</td>
 		<td>
-			<a href="#" onclick="room_id=$roomId" class="btn btn-success">Confirm bathroom</a>
-			<a href="#" onclick="room_id=$roomId" class="btn btn-danger">Reject bathroom</a>
-			<a href="#" onclick="room_id=$roomId" class="btn btn-success">Confirm room</a>
-			<a href="#" onclick="room_id=$roomId" class="btn btn-danger">Reject room</a>
+			$bathroomButtons
+			<a href="confirm_finish_room.php?room_part=ROOM&room_id=$roomId" style="width:150px;" class="btn btn-success">Confirm room</a>
+			<a href="reject_finish_room.php?room_part=ROOM&room_id=$roomId" style="width:150px;" class="btn btn-danger">Reject room</a>
 		</td>
 	</tr>
 
 EOT;
-
-	}
 }
-
 
 echo <<<EOT
 </table>
@@ -178,5 +209,14 @@ function getStatus($actions, $roomId, $possibleActionTypes) {
 	return $status;
 }
 
+function sortRoomsToClean($r1, $r2) {
+	if($r1 < $r2) {
+		return -1;
+	}
+	if($r2 < $r1) {
+		return 1;
+	}
+	return 0;
+}
 
 ?>

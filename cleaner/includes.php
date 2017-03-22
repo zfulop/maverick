@@ -16,6 +16,7 @@ require(ROOT_DIR . '../includes/mail.php');
 require(ROOT_DIR . '../includes/login.php');
 require(ROOT_DIR . '../includes/logger.php');
 require(ROOT_DIR . '../includes/dao.php');
+require(ROOT_DIR . 'includes/CleanerUtils.php');
 
 
 

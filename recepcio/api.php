@@ -476,7 +476,10 @@ function doBooking() {
 	$departureDate = getParameter('to_date');
 	$departureDateTs = strtotime(getParameter('to_date'));
 	$nights = round(($departureDateTs - $arriveDateTs) / (60*60*24));
-	$lastNightTs = $arriveDateTs + ($nights-1) * (60*60*24) - ($nights>1?60*60:0); // minus 1 hour because when the daylight saving is turned off then one day is only 23 hours so if we add 24 that would be an extra day.
+	$lastNightTs = $arriveDateTs;
+	if($nights > 1) {
+		$lastNightTs = strtotime($arriveDate . " +" . ($nights-1) . " days");
+	}
 	$lastNight = date('Y-m-d', $lastNightTs);
 
 	logDebug("arrive date: $arriveDate, departure date: $departureDate, last night: $lastNight, num of nights: $nights");
@@ -536,11 +539,11 @@ function doBooking() {
 	
 	mysql_close($link);
 
-	sendEmailForBooking($name, $email, $phone, $address, $nationality, $arriveDate, $departureDate, $nights, $toBook, $bookedServices, $roomTypesData, $services, $descriptionId);
+	sendEmailForBooking($name, $email, $phone, $address, $nationality, $arriveDate, $departureDate, $nights, $comment, $toBook, $bookedServices, $roomTypesData, $services, $descriptionId);
 	return array('success'=> true);
 }
 
-function sendEmailForBooking($nameValue, $emailValue, $phoneValue, $addressValue, $nationalityValue, $dateOfArriveValue, $dateOfDepartureValue, $numberOfNightsValue, $bookings, $bookedServices, &$roomTypesData, &$services, $descriptionId) {
+function sendEmailForBooking($nameValue, $emailValue, $phoneValue, $addressValue, $nationalityValue, $dateOfArriveValue, $dateOfDepartureValue, $numberOfNightsValue, $commentValue, $bookings, $bookedServices, &$roomTypesData, &$services, $descriptionId) {
 	$texts = loadWebsiteTexts();
 	$location = getParameter('location');
 	$lang = getParameter('lang');
@@ -554,6 +557,7 @@ function sendEmailForBooking($nameValue, $emailValue, $phoneValue, $addressValue
 	$dateOfArriveTitle = $texts['DATE_OF_ARRIVAL'];
 	$dateOfDepartureTitle = $texts['DATE_OF_DEPARTURE'];
 	$numberOfNightsTitle = $texts['NUMBER_OF_NIGHTS'];
+	$commentTitle = $texts['comment'];
 	$roomsTitle = $texts['rooms'];
 	$extraServicesTitle = $texts['EXTRA_SERVICES'];
 	$totalPrice = $texts['TOTAL_PRICE'];
@@ -641,6 +645,7 @@ EOT;
 	$mailMessage .= getEmailRow("$dateOfArriveTitle:", $dateOfArriveValue);
 	$mailMessage .= getEmailRow("$dateOfDepartureTitle:", $dateOfDepartureValue);
 	$mailMessage .= getEmailRow("$numberOfNightsTitle:", $numberOfNightsValue);
+	$mailMessage .= getEmailRow("$commentTitle:", $commentValue);
 
 	$mailMessage .= <<<EOT
                             <tr>
@@ -978,6 +983,7 @@ Booking arrived (<a href="$editBookingUrl">edit</a>)<br>
 <tr><td>Arrival: </td><td>$dateOfArriveValue</td></tr>
 <tr><td>Departure: </td><td>$dateOfDepartureValue</td></tr>
 <tr><td>Num of nights: </td><td>$numberOfNightsValue</td></tr>
+<tr><td>Comment: </td><td>$commentValue</td></tr>
 </table>
 
 Rooms:
@@ -985,9 +991,10 @@ Rooms:
 <tr><th>Name</th><th>Type</th><th>Number of guests</th><th>Price</th></tr>
 
 EOT;
+
 	$total = 0;
 	foreach($bookings as $roomId => $oneRoomBooked) {
-		$roomTypeId = $oneRoomBooked['roomTypeId'];
+		$roomTypeId = $oneRoomBooked['room_type_id'];
 		$roomType = $roomTypesData[$roomTypeId];
 		$type = $roomType['type'] == 'DORM' ? "Bed" : "Room";
 		$name = $roomType['rt_name'];
@@ -1015,7 +1022,7 @@ EOT;
 		$title = $services[$service['id']]['title'];
 		$occasion = $service['occasion'];
 		$serviceCurrency = $services[$service['id']]['currency'];
-		$price = convertAmount($services[$service['id']]['price'], $serviceCurrency, 'EUR', date('Y-m-d'));
+		$price = convertAmount($services[$service['id']]['price'], $serviceCurrency, 'EUR', $today);
 		$total += $price;
 		$price = formatMoney($price, 'EUR');
 		$recepcioMessage .= "<tr><td>$title</td><td>$occasion</td><td>$price</td></tr>\n";

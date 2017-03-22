@@ -67,8 +67,17 @@ foreach($lastActionForBathroom as $roomId => $actionType) {
 	}
 }
 
+$extraHeader = <<<EOT
 
-html_start("Rooms to clean");
+<script type="text/javascript">
+	function refresh() {
+		window.location.reload(true);
+	}
+</script>
+
+EOT;
+
+html_start("Rooms to clean", $extraHeader, 'setTimeout(refresh, 60000);');
 
 echo "<div class=\"row\"><div class=\"col-md-offset-4 col-md-4\">\n";
 foreach($assignments as $oneAssignment) {
@@ -85,7 +94,7 @@ foreach($assignments as $oneAssignment) {
 		$roomStatus = $lastActionForBathroom[$roomId];
 		$roomCleaned = ($lastActionForBathoom[$roomId] == 'CONFIRM_FINISH_BATHROOM');
 	}
-	$canCleanRoom = canCleanRoom($roomId, $leaves, $roomChanges);
+	$canCleanRoom = CleanerUtils::canCleanRoom($roomId, $leaves, $roomChanges);
 	if(isset($actions[$roomId])) {
 		foreach($actions[$roomId] as $oneAction) {
 			if($oneAction['type'] == 'ENTER_ROOM') {
@@ -100,9 +109,11 @@ foreach($assignments as $oneAssignment) {
 	if($roomCleaned) {
 		echo "<!-- a href=\"enter_room.php?room_id=$roomId&room_part=$roomPart\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName $roomPart is clean</a -->\n";
 	} elseif(!$canCleanRoom) {
-		echo "<a href=\"#\" role=\"button\" class=\"btn btn-default btn-lg btn-block disabled\">$roomName<br>Guest still in room</a>\n";
+		echo "<a href=\"#\" role=\"button\" class=\"btn btn-default btn-lg btn-block disabled\">$roomName<br>A vendég még nem hagyta el a szobát</a>\n";
 	} else {
-		echo "<a href=\"enter_room.php?room_id=$roomId&room_part=$roomPart\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName $roomPart<br>$roomStatus</a>\n";
+		$roomPartTran = CleanerUtils::translate($roomPart);
+		$roomStatus = CleanerUtils::translate($roomStatus);
+		echo "<a href=\"enter_room.php?room_id=$roomId&room_part=$roomPart\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName $roomPartTran<br>$roomStatus</a>\n";
 	}
 }
 
@@ -116,34 +127,5 @@ EOT;
 
 
 html_end();
-
-function canCleanRoom($roomId, $leaves, $roomChanges) {
-	logDebug("Checking if we can clean room: $roomId");
-	$leavesCnt = 0;
-	$rcCnt = 0;
-	foreach($leaves as $oneLeave) {
-		$leftRoomId = (is_null($oneLeave['new_room_id']) ? $oneLeave['room_id'] : $oneLeave['new_room_id']);	
-		if($leftRoomId == $roomId and $oneLeave['checked_in'] == 1) {
-			logDebug("The leaving booking: " . $oneLeave['bid'] . " is still checked in. Cannot clean it yet.");
-			return false;
-		}
-		if($leftRoomId  == $roomId) { $leavesCnt += 1; }
-	}
-	logDebug("All the $leavesCnt leavers are already checked out");
-	foreach($roomChanges as $oneChange) {
-		$changedRoomId = (is_null($oneRc['yesterday_new_room_id']) ? $oneRc['room_id'] : $oneRc['yesterday_new_room_id']);
-		if($changedRoomId  == $roomId and !is_null($oneChange['today_new_room_id']) and is_null($oneChange['enter_room_time'])) {
-			logDebug("The room change goes to the 'changed room' but has not yet entered it (still in the normal room)");
-			return false;
-		}
-		if($changedRoomId  == $roomId and !is_null($oneChange['yesterday_new_room_id']) and is_null($oneChange['left_room_time'])) {
-			logDebug("The room change goes to the 'normal room' but has not yet left the changed room");
-			return false;
-		}
-		if($changedRoomId  == $roomId) { $rcCnt += 1; }
-	}
-	logDebug("All the $rcCnt room changers changed already");
-	return true;
-}
 
 ?>
