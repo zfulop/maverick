@@ -26,17 +26,17 @@ if(!$result) {
 $cleanerEntered = null;
 $cleanerLeft = null;
 while($row = mysql_fetch_assoc($result)) {
-	if($row['type'] == 'ENTER_ROOM') {
+	if($row['type'] == 'ENTER_' . $roomPart) {
 		$cleanerEntered = $row;
 	}
-	if($row['type'] == 'FINISH_ROOM') {
+	if($row['type'] == 'FINISH_' . $roomPart) {
 		$cleanerEntered = null;
 	}
 }
 
 $now = date('Y-m-d H:i:s');
 if(is_null($cleanerEntered)) {
-	$sql = "INSERT INTO cleaner_action (cleaner, room_id, time_of_event, type) VALUES ('$cleaner',$roomId, '$now', 'ENTER_ROOM')";
+	$sql = "INSERT INTO cleaner_action (cleaner, room_id, time_of_event, type) VALUES ('$cleaner',$roomId, '$now', 'ENTER_$roomPart')";
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot insert clear action. Error: " . mysql_error($link) . " (SQL: $sql)");

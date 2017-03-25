@@ -78,6 +78,8 @@ while($row = mysql_fetch_assoc($result)) {
 	$roomTypes[$row['room_type_id']]['rooms'][] = $row;
 }
 
+
+
 $roomsToRoomTypes = array();
 $sql = "SELECT * FROM rooms_to_room_types";
 $result = mysql_query($sql, $link);
@@ -91,7 +93,7 @@ while($row = mysql_fetch_assoc($result)) {
 	if(!isset($roomsToRoomTypes[$row['room_id']])) {
 		$roomsToRoomTypes[$row['room_id']] = array();
 	}
-	$roomsToRoomTypes[$row['room_id']][] = $row['room_type_id'];
+	$roomsToRoomTypes[$row['room_id']][] = $roomTypes[$row['room_type_id']]['name'];
 }
 
 
@@ -107,35 +109,64 @@ $extraHeader = <<<EOT
 <link rel="stylesheet" type="text/css" href="js/datechooser/select-free.css"/>
 <![endif]-->
 <script type="text/javascript">
-function submitPriceForm() {
-	$('price_form').submit();
-	if($('sync').checked) {
-		setTimeout(function(){ location.reload(); }, 5000);
-	}	
+	function submitPriceForm() {
+		$('price_form').submit();
+		if($('sync').checked) {
+			setTimeout(function(){ location.reload(); }, 5000);
+		}	
+	}
 
 
-}
+	function includesArr(arr, searchElement) {
+		var len = parseInt(arr.length);
+		if (len === 0) {
+			return false;
+		}
+		var i = 0;
+		var currentElement;
+		while (i < len) {
+			currentElement = arr[i];
+			if (searchElement === currentElement) {
+				return true;
+			}
+			i++;
+		}
+		return false;
+	}
 
 
-function includesArr(arr, searchElement) {
-    var len = parseInt(arr.length);
-    if (len === 0) {
-      return false;
-    }
-    var i = 0;
-    var currentElement;
-    while (i < len) {
-      currentElement = arr[i];
-      if (searchElement === currentElement) {
-	return true;
-      }
-      i++;
-    }
-    return false;
-}
+	function editRoomType(id) {
+		new Ajax.Request('view_rooms_edit_room_type.php', {
+			method: 'post',
+			parameters: {'room_type_id': id},
+			onSuccess: function(transport) {
+				Tip(transport.responseText, STICKY, true, FIX, ['room_type_' + id, 0, 0], CLICKCLOSE, false, CLOSEBTN, true);
+			},
+			onFailure: function(transport) {
+				alert('HTTP Error in response. Please try again.');
+			}
+		});
 
+		return false;
+	}
 
+	function editRoom(id) {
+		new Ajax.Request('view_rooms_edit_room.php', {
+			method: 'post',
+			parameters: {'room_id': id},
+			onSuccess: function(transport) {
+				Tip(transport.responseText, STICKY, true, FIX, ['room_' + id, 0, 0], CLICKCLOSE, false, CLOSEBTN, true);
+			},
+			onFailure: function(transport) {
+				alert('HTTP Error in response. Please try again.');
+			}
+		});
+
+		return false;
+	}
+	
 </script>
+
 
 EOT;
 
@@ -145,80 +176,15 @@ html_start("Rooms ", $extraHeader);
 
 echo <<<EOT
 
-<form id="create_type_btn">
-<input type="button" onclick="document.getElementById('room_type_form').reset();document.getElementById('room_type_form').style.display='block'; document.getElementById('create_type_btn').style.display='none'; return false;" value="Register new room type">
+<form>
+<div id="room_type_0">
+<input type="button" onclick="editRoomType(0); return false;" value="Register new room type">
+</div>
+<div id="room_0">
+<input type="button" onclick="editRoom(0); return false;" value="Register new room">
+</div>
 </form>
 <br>
-
-<form id="room_type_form" style="display: none;" action="save_room_type.php" accept-charset="utf-8" method="POST">
-<h3>Edit Room Type</h3>
-<fieldset>
-<input type="hidden" id="id" name="id" value="">
-<table>
-	<tr><td><label>Name</label></td><td><input name="name" id="room_type_name" style="width: 200px;"></td></tr>
-	<tr><td><label>Type</label></td><td><select name="type" id="type" style="width: 200px; font-size: 11px;">
-		<option value="DORM">Dormitory</option>
-		<option value="PRIVATE">Private</option>
-		<option value="APARTMENT">Apartment</option>
-	</select></td></tr>
-	<tr><td><label>Number of beds</label></td><td><input name="num_of_beds" id="num_of_beds" style="width: 40px;"></td></tr>
-	<tr><td><label>Number of extra beds</label></td><td><input name="num_of_extra_beds" id="num_of_extra_beds" style="width: 40px;"></td></tr>
-	<tr><td><label>Price per room</label></td><td><input name="price_per_room" id="price_per_room" style="width: 40px;"> <span>Euro</span></td></tr>
-	<tr><td><label>Price per bed</label></td><td><input name="price_per_bed" id="price_per_bed" style="width: 40px;"> <span>Euro</span></td></tr>
-	<tr><td><label>Surcharge per bed (for apartments)</label></td><td><input name="surcharge_per_bed" id="surcharge_per_bed" style="width: 40px;"><span>%</span></td></tr>
-	<tr><td><label>Order</label></td><td><input name="order" id="order" style="width: 40px;"></td></tr>
-
-EOT;
-foreach(getLanguages() as $langCode => $langName) {
-	echo <<<EOT
-	<tr><td><label>Name ($langName)</label></td><td><input name="name_$langCode" id="name_$langCode" style="width: 200px"></td></tr>
-	<tr><td><label>Short description ($langName) (eg. dbl room)</label></td><td><input style="width: 600px;" name="short_description_$langCode" id="short_description_$langCode"></td></tr>
-	<tr><td><label>Description ($langName)</label></td><td><textarea style="width: 600px; height=400px;" name="description_$langCode" id="description_$langCode"></textarea></td></tr>
-	<tr><td><label>Size ($langName)</label></td><td><textarea style="width: 600px; height=400px;" name="size_$langCode" id="size_$langCode"></textarea></td></tr>
-	<tr><td><label>Location ($langName)</label></td><td><textarea style="width: 600px; height=400px;" name="location_$langCode" id="location_$langCode"></textarea></td></tr>
-	<tr><td><label>Bathroom ($langName)</label></td><td><textarea style="width: 600px; height=400px;" name="bathroom_$langCode" id="bathroom_$langCode"></textarea></td></tr>
-
-EOT;
-}
-echo <<<EOT
-</table>
-</fieldset>
-<fieldset>
-<input type="submit" value="Save room type">
-<input type="button" onclick="document.getElementById('room_type_form').style.display='none'; document.getElementById('create_type_btn').style.display='block'; return false;" value="Cancel">
-
-</fieldset>
-</form>
-<br>
-
-
-<form id="create_btn">
-<input type="button" onclick="document.getElementById('room_form').reset();document.getElementById('room_form').style.display='block'; document.getElementById('create_btn').style.display='none'; return false;" value="Register new room">
-</form>
-<br>
-
-<form id="room_form" style="display: none;" action="save_room.php" accept-charset="utf-8" method="POST">
-<fieldset>
-<h3>Edit Room</h3>
-<input type="hidden" id="room_id" name="id" value="">
-<table>
-	<tr><td><label>Name</label></td><td><input name="name" id="room_name" style="width: 200px;"></td></tr>
-	<tr><td><label>Type</label></td><td><select name="type" id="room_type" style="width: 200px; font-size: 11px;">
-$roomTypesHtmlOptions
-	</select></td></tr>
-	<tr><td><label>Additional room types</label></td><td><select name="additional_types[]" multiple="multiple" id="additional_room_types" style="width: 200px; height: 100px; font-size: 11px;">
-$roomTypesHtmlOptions
-	</select></td></tr>
-	<tr><td><label>Valid from</label></td><td><input name="valid_from" id="valid_from" style="width: 80px;"> <span> (YYYY/MM/DD) - inclusive</span></td></tr>
-	<tr><td><label>Valid to</label></td><td><input name="valid_to" id="valid_to" style="width: 80px;"> <span> (YYYY/MM/DD) - inclusive</span></td></tr>
-</table>
-</fieldset>
-<fieldset>
-<input type="submit" value="Save room">
-<input type="button" onclick="document.getElementById('room_form').style.display='none'; document.getElementById('create_btn').style.display='block'; return false;" value="Cancel">
-
-</fieldset>
-</form>
 <br>
 
 
@@ -226,8 +192,6 @@ $roomTypesHtmlOptions
 <input type="button" onclick="document.getElementById('price_form').reset();document.getElementById('price_form').style.display='block'; document.getElementById('price_btn').style.display='none'; return false;" value="Set price for a room type">
 </form>
 <br>
-
-
 
 
 <form action="save_room_prices.php" target="_blank" method="POST" style="display: none;" id="price_form">
@@ -280,42 +244,9 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 		$record[$row['lang']][$row['column_name']] = $row['value'];
 	}
 
-	echo "<script type=\"text/javascript\">\n";
-	echo "	function editType" . $roomTypeId . "() {\n";
-	echo "		document.getElementById('room_type_form').reset();\n";
-	echo "		document.getElementById('room_type_form').style.display='block';\n";
-	echo "		document.getElementById('create_type_btn').style.display='none';\n";
-	echo "		document.getElementById('id').value='" . $roomTypeId . "';\n";
-	echo "		document.getElementById('room_type_name').value='" . $roomType['name'] . "';\n";
-	echo "		document.getElementById('price_per_room').value='" . $roomType['price_per_room'] . "';\n";
-	echo "		document.getElementById('price_per_bed').value='" . $roomType['price_per_bed'] . "';\n";
-	echo "		document.getElementById('surcharge_per_bed').value='" . $roomType['surcharge_per_bed'] . "';\n";
-	echo "		document.getElementById('num_of_beds').value='" . $roomType['num_of_beds'] . "';\n";
-	echo "		document.getElementById('num_of_extra_beds').value='" . $roomType['num_of_extra_beds'] . "';\n";
-	echo "		document.getElementById('type').selectedIndex=" . $TYPES[$roomType['type']] . ";\n";
-	echo "		document.getElementById('order').value='" . $roomType['_order'] . "';\n";
-	foreach($record as $lang => $cols) {
-		echo "		document.getElementById('name_$lang').value='" . js_escape($cols['name']) . "';\n";
-		echo "		document.getElementById('description_$lang').value='" . js_escape($cols['description']) . "';\n";
-		if(isset($cols['short_description'])) {
-			echo "		document.getElementById('short_description_$lang').value='" . js_escape($cols['short_description']) . "';\n";
-		}
-		if(isset($cols['location'])) {
-			echo "		document.getElementById('location_$lang').value='" . js_escape($cols['location']) . "';\n";
-		}
-		if(isset($cols['size'])) {
-			echo "		document.getElementById('size_$lang').value='" . js_escape($cols['size']) . "';\n";
-		}
-		if(isset($cols['bathroom'])) {
-			echo "		document.getElementById('bathroom_$lang').value='" . js_escape($cols['bathroom']) . "';\n";
-		}
-	}
-	echo "	}\n";
-	echo "</script>\n";
-
 	echo "	<tr>";
 	echo "<td><table><tr><td rowspan=\"2\">" . $roomType['_order'] . ".</td><td><input type=\"button\" value=\"Move up\" onclick=\"window.location='change_order.php?direction=up&table=room_types&id=" . $roomType['id'] . "&order=" . $roomType['_order'] . "';\"></td></tr><tr><td><input type=\"button\" value=\"Move down\" onclick=\"window.location='change_order.php?direction=down&table=room_types&id=" . $roomType['id'] . "&order=" . $roomType['_order'] . "';\"></td></tr></table></td>";
-	echo "<td><strong>" . $roomType['name'] . "</strong></td>";
+	echo "<td id=\"room_type_" . $roomType['id'] . "\"><strong>" . $roomType['name'] . "</strong></td>";
 	echo "<td>" . $roomType['type'] . "</td>";
 	echo "<td>" . $roomType['price_per_bed'] . "</td>";
 	echo "<td>" . $roomType['price_per_room'] . "</td>";
@@ -324,7 +255,7 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 	echo "<td>" . $roomType['num_of_extra_beds'] . "</td>";
 	echo "<td>\n";
 	echo "	<ul>\n";
-	echo "	<li><a href=\"#\" onclick=\"editType" . $roomType['id'] . "();\">Edit</a></li>\n";
+	echo "	<li><a href=\"#\" onclick=\"editRoomType(" . $roomType['id'] . ");return false;\">Edit</a></li>\n";
 	if(count($roomType['rooms']) < 1) {
 		echo "	<li><a href=\"delete_room_type.php?id=" . $roomType['id'] . "\">Delete</a></li>\n";
 	}
@@ -333,9 +264,10 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 	echo "</td>";
 	echo "</tr>\n";
 	echo "<tr>\n";
-	echo "	<td colspan=\"2\">&nbsp;</td>\n";
-	echo "	<td colspan=\"7\">\n";
+	echo "	<td>&nbsp;</td>\n";
+	echo "	<td colspan=\"8\">\n";
 	echo "		<table>\n";
+	echo "			<tr><th>Name</th><th>Valid</th><th>Additional room types</th></tr>\n";
 	foreach($roomType['rooms'] as $room) {
 		$roomId = $room['id'];
 		$roomName = $room['name'];
@@ -347,28 +279,8 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 			$roomTypesArr = implode(",", $roomsToRoomTypes[$roomId]);
 		}
 		echo <<<EOT
-<script type="text/javascript">
-	function edit$roomId() {
-		var roomTypesArr = [$roomTypesArr];
-		document.getElementById('room_form').reset();
-		document.getElementById('room_form').style.display='block';
-		document.getElementById('create_btn').style.display='none';
-		document.getElementById('room_name').value='$roomName';
-		document.getElementById('room_id').value='$roomId';
-		document.getElementById('valid_from').value='$roomValidFrom';
-		document.getElementById('valid_to').value='$roomValidTo';
-		document.getElementById('room_type').selectedIndex=$rtSelectedIdx;
-		var select = document.getElementById('additional_room_types');
-		l=select.options.length;
-		for(var i=0; i < l; i++ ) {
-			o = select.options[i];
-			if(includesArr(roomTypesArr, parseInt(o.value))) { o.selected = true; }
-		}
-	}
-</script>
-
-			<tr><td>$roomName</td><td>$roomValidFrom - $roomValidTo</td>
-			    <td><a href="#" onclick="edit$roomId();">Edit</a><br>
+			<tr><td>$roomName</td><td>$roomValidFrom - $roomValidTo</td><td>$roomTypesArr</td>
+			    <td><a id="room_$roomId" href="#" onclick="editRoom($roomId);return false;">Edit</a><br>
 			        <a href="delete_room.php?id=$roomId">Delete</a><br>
 			    </td>
 			</tr>
@@ -390,11 +302,5 @@ mysql_close($link);
 
 html_end();
 
-function js_escape($text) {
-	$text = str_replace("\n", " ", $text);
-	$text = str_replace("\r", " ", $text);
-	$text = str_replace('\'', '\\\'', $text);
-	return $text;
-}
 
 ?>

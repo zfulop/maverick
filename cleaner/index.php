@@ -35,18 +35,16 @@ $roomChanges = BookingDao::getRoomChangeBookings($dayToShow, $link);
 
 $lastActionForRoom = array();
 $lastActionForBathroom = array();
+$lastCommentForRoom = array();
+$lastCommentForBathroom = array();
 foreach($actions as $oneAction) {
-	if(in_array($oneAction['type'], array('REJECT_FINISH_ROOM','REJECT_FINISH_BATHROOM'))) {
-		if($oneAction['type'] == 'REJECT_FINISH_ROOM') {
-			$lastActionForRoom[$oneAction['room_id']] = $oneAction['type'] . ' ' . $oneAction['comment'];
-		} else {
-			$lastActionForBathroom[$oneAction['room_id']] = $oneAction['type'] . ' ' . $oneAction['comment'];
-		}
-	} elseif($oneAction['type'] != 'NOTE') {
-		if(strpos($oneAction['room_id'], 'BATH') > 0) {
+	if($oneAction['type'] != 'NOTE') {
+		if(strpos($oneAction['type'], 'BATH') > 0) {
 			$lastActionForBathroom[$oneAction['room_id']] = $oneAction['type'];
+			$lastCommentForBathroom[$oneAction['room_id']] = $oneAction['comment'];
 		} else {
 			$lastActionForRoom[$oneAction['room_id']] = $oneAction['type'];
+			$lastCommentForRoom[$oneAction['room_id']] = $oneAction['comment'];
 		}
 	}
 }
@@ -106,6 +104,8 @@ foreach($assignments as $oneAssignment) {
 		}
 	}
 
+	$statusShrt = substr($roomStatus,0,6);
+	logDebug("$roomName $roomPart is $roomStatus. Is clean: $roomCleaned. first 6 char of status: " . $statusShrt);
 	if($roomCleaned) {
 		echo "<!-- a href=\"enter_room.php?room_id=$roomId&room_part=$roomPart\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName $roomPart is clean</a -->\n";
 	} elseif(!$canCleanRoom) {
@@ -113,7 +113,13 @@ foreach($assignments as $oneAssignment) {
 	} else {
 		$roomPartTran = CleanerUtils::translate($roomPart);
 		$roomStatus = CleanerUtils::translate($roomStatus);
-		echo "<a href=\"enter_room.php?room_id=$roomId&room_part=$roomPart\" role=\"button\" class=\"btn btn-default btn-lg btn-block\">$roomName $roomPartTran<br>$roomStatus</a>\n";
+		$btnClass = 'btn-default';
+		if($statusShrt == 'REJECT') {
+			$btnClass = 'btn-danger';
+		} elseif($statusShrt == 'FINISH') {
+			$btnClass = 'btn-success';
+		}
+		echo "<a href=\"enter_room.php?room_id=$roomId&room_part=$roomPart\" role=\"button\" class=\"btn $btnClass btn-lg btn-block\">$roomName $roomPartTran<br>$roomStatus</a>\n";
 	}
 }
 

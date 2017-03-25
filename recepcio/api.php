@@ -493,7 +493,7 @@ function doBooking() {
 	$services = loadServicesFromDB($lang, $link);
 
 	$bookingRequest = json_decode(getParameter('booking_data'), true);
-	$source = mysql_real_escape_string('saj·t', $link);
+	$source = mysql_real_escape_string('saj√°t', $link);
 	$sql = "INSERT INTO booking_descriptions (name, gender, address, nationality, email, telephone, first_night, last_night, num_of_nights, cancelled, confirmed, paid, checked_in, comment, source, arrival_time, language, currency,booking_ref) VALUES ('$name', NULL, '$address', '$nationality', '$email', '$phone', '" . str_replace("-", "/", $arriveDate) . "', '" . str_replace("-", "/", $lastNight) . "', $nights, 0, 0, 0, 0, '$comment', '$source', '', '$lang', '$currency', '$bookingRef')";
 	if(!mysql_query($sql, $link)) {
 		trigger_error("Cannot save booking: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -514,7 +514,7 @@ function doBooking() {
 			continue;
 		}
 		$title = $services[$id]['name'];
-		$comment = $service['comment'];
+		$serviceComment = $service['comment'];
 		$occasion =  $service['occasion'];
 		if($occasion < 1) {
 			logError("The service: $title [$id] has occasion: $occasion. It has to be greater than 0. Ignoring.");
@@ -523,8 +523,8 @@ function doBooking() {
 		$serviceCurrency = $services[$id]['currency'];
 		$now = date('Y-m-d H:i:s');
 		$type = $services[$id]['service_charge_type'];
-		$comment = mysql_real_escape_string("$title for $occasion occasions. $comment", $link);
-		$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($descriptionId, $price, '$serviceCurrency', '$now', '$comment', '$type')";
+		$serviceComment = mysql_real_escape_string("$title for $occasion occasions. $serviceComment", $link);
+		$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($descriptionId, $price, '$serviceCurrency', '$now', '$serviceComment', '$type')";
 		if(!mysql_query($sql, $link)) {
 			trigger_error("Cannot save service charge: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 			mysql_query('ROLLBACK', $link);
@@ -997,7 +997,7 @@ EOT;
 		$roomTypeId = $oneRoomBooked['room_type_id'];
 		$roomType = $roomTypesData[$roomTypeId];
 		$type = $roomType['type'] == 'DORM' ? "Bed" : "Room";
-		$name = $roomType['rt_name'];
+		$name = $roomType['name'];
 		$numOfGuests = $oneRoomBooked['num_of_person'];
 		$price = $oneRoomBooked['price'];
 		$dprice = $oneRoomBooked['discounted_price'];
@@ -1019,10 +1019,10 @@ EOT;
 		if(!isset($services[$id])) {
 			logError("The booking contains a service with id: $id tha tis not in the DB. Ignoring.");
 		}		
-		$title = $services[$service['id']]['title'];
+		$title = $services[$id]['title'];
 		$occasion = $service['occasion'];
-		$serviceCurrency = $services[$service['id']]['currency'];
-		$price = convertAmount($services[$service['id']]['price'], $serviceCurrency, 'EUR', $today);
+		$serviceCurrency = $services[$id]['currency'];
+		$price = convertAmount($services[$id]['price'], $serviceCurrency, 'EUR', $today);
 		$total += $price;
 		$price = formatMoney($price, 'EUR');
 		$recepcioMessage .= "<tr><td>$title</td><td>$occasion</td><td>$price</td></tr>\n";

@@ -2,7 +2,7 @@
 
 class CleanerUtils {
 
-	function canCleanRoom($roomId, $leaves, $roomChanges) {
+	public static function canCleanRoom($roomId, $leaves, $roomChanges) {
 		logDebug("Checking if we can clean room: $roomId");
 		$leavesCnt = 0;
 		$rcCnt = 0;
@@ -32,19 +32,19 @@ class CleanerUtils {
 	}
 
 	
-	function translate($text) {
+	public static function translate($text) {
 		if($text == 'ROOM') return 'szoba';
 		if($text == 'BATHROOM') return 'fürdöszoba';
 		if($text == 'FINISH_ROOM') return 'Szoba kész';
-		if($text == 'ENETER_ROOM') return 'Szobában van';
 		if($text == 'ENTER_BATHROOM') return 'Fürdöszobában van';
-		if($text == 'LEAVE_ROOM') return 'Szoba takarítható';
+		if($text == 'ENTER_ROOM') return 'Szobában van';
 		if($text == 'LEAVE_BATHROOM') return 'Fürdöszoba takarítható';
+		if($text == 'LEAVE_ROOM') return 'Szoba takarítható';
 		if($text == 'FINISH_BATHROOM') return 'Fürdöszoba kész';
-		if($text == 'CONFIRM_FINISH_ROOM') return 'Szoba jováhagyva';
 		if($text == 'CONFIRM_FINISH_BATHROOM') return 'Fürdöszoba jováhagyva';
-		if($text == 'REJECT_FINISH_ROOM') return 'Szoba elutasítva';
+		if($text == 'CONFIRM_FINISH_ROOM') return 'Szoba jováhagyva';
 		if($text == 'REJECT_FINISH_BATHROOM') return 'Fürdöszoba elutasítva';
+		if($text == 'REJECT_FINISH_ROOM') return 'Szoba elutasítva';
 	}
 	
 }

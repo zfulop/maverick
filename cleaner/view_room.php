@@ -50,10 +50,12 @@ if(is_null($theAssignment)) {
 	}
 }
 
+$roomPartTran = CleanerUtils::translate($roomPart);
+
 
 $toCleanHtml = '';
 if($roomTypeData['type'] != 'DORM') {
-	$toCleanHtml = 'Szoba takarítása';
+	$toCleanHtml = $roomPartTran . ' takarítása';
 } else {
 	$toCleanHtml = "Ezeket az ágyakat kell takarítani: $beds";
 }
@@ -84,8 +86,7 @@ foreach(ListsDao::getCleanerItemTypes($link) as $item) {
 
 html_start($roomData['name'] . ' - ' . $roomTypeData['name']);
 
-echo "<h2>" . $roomData['name'] . ' - ' . $roomTypeData['name'] . "</h2>\n";
-$roomPartTran = CleanerUtils::translate($roomPart);
+echo "<h2>" . $roomData['name'] . ' - ' . $roomTypeData['name'] . ' - ' . $roomPartTran . "</h2>\n";
 echo <<<EOT
 <a href="finish_room.php?room_id=$roomId&room_part=$roomPart" role="button" class="btn btn-default btn-lg btn-block">$roomPartTran kész</a>
 <a href="leave_room.php?room_id=$roomId&room_part=$roomPart" role="button" class="btn btn-default btn-lg btn-block">$roomPartTran elhagyása (nem fejeztem be a takarítást itt)</a>

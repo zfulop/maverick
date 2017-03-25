@@ -136,14 +136,15 @@ foreach($roomsToClean as $roomToClean) {
 	$bathroomStatus = '';
 	$bathroomButtons = '';
 	if($roomType['type'] != 'DORM') {
+		/*
 		if(!CleanerUtils::canCleanRoom($roomId, $leaves, $roomChanges)) {
 			logDebug("Private or apartment and not yet left the room, so will not show");
 			continue;
 		}
+		*/
 		$bathroomStatus = getBathRoomStatus($actions, $roomId);
 		$brCleanerSelect = "<select name=\"bathroom_cleaner_$roomId\">$brcleanerOptions</select>";
 		$brNotesCell = "<input name=\"bathroom_note_$roomId\" value=\"$bathroomNotes\">";
-		$bathroomStatus = $roomToClean['bathroomStatus'];
 		$bathroomButtons = "<a href=\"confirm_finish_room.php?room_part=BATHROOM&room_id=$roomId\" style=\"width:150px;\" class=\"btn btn-success\">Confirm bathroom</a> <a href=\"reject_finish_room.php?room_part=BATHROOM&room_id=$roomId\" style=\"width:150px;\" class=\"btn btn-danger\">Reject bathroom</a>";
 	}
 	echo <<<EOT
@@ -192,14 +193,13 @@ function getRoomStatus($actions, $roomId) {
 	return $status;
 }
 
-function getBathRoomStatus($actions, $roomId) {
-	$athroomActionTypes = array('ENTER_BATHROOM','LEAVE_BATHROOM','FINISH_BATHROOM','CONFIRM_FINISH_BATHROOM', 'REJECT_FINISH_BATHROOM');
-	$status = getStatus($actions, $roomId, $athroomActionTypes);
+function getBathroomStatus($actions, $roomId) {
+	$bathroomActionTypes = array('ENTER_BATHROOM','LEAVE_BATHROOM','FINISH_BATHROOM','CONFIRM_FINISH_BATHROOM', 'REJECT_FINISH_BATHROOM');
+	$status = getStatus($actions, $roomId, $bathroomActionTypes);
 	return $status;	
 }
 
 function getStatus($actions, $roomId, $possibleActionTypes) {
-	$roomActionTypes = array('ENTER_ROOM','LEAVE_ROOM','FINISH_ROOM','CONFIRM_FINISH_ROOM', 'REJECT_FINISH_ROOM');
 	$status = '';
 	foreach($actions as $oneAction) {
 		if($oneAction['room_id'] == $roomId and in_array($oneAction['type'], $possibleActionTypes)) {

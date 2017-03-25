@@ -51,12 +51,16 @@ if(!$result) {
 	mysql_close($link);
 	return;
 }
-if(count($additionalRoomTypes) > 0) {
-	$sql = "INSERT INTO rooms_to_room_types (room_id, room_type_id) VALUES ";
-	foreach($additionalRoomTypes as $rt) {
+
+$sql = '';
+foreach($additionalRoomTypes as $rt) {
+	if($rt != $type) {
 		$sql .= "($id, $rt),";
 	}
-	$sql = substr($sql, 0, -1);
+}
+
+if(strlen($sql) > 0) {
+	$sql = "INSERT INTO rooms_to_room_types (room_id, room_type_id) VALUES " . substr($sql, 0, -1);
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot create room in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
