@@ -36,6 +36,10 @@ $cleaners = UserDao::getUsersForRole(array('CLEANER', 'CLEANER_SUPERVISOR'), $li
 
 html_start("Assign rooms to cleaners");
 
+echo "<h2>Assign rooms to cleaners[" . $_SESSION['login_hotel'] . "]</h2>\n";
+
+echo "<a class=\"btn btn-default\" href=\"switch_between_cleaner_supervisor.php?target=CLEANER\">Switch to cleaner view</a><br>\n";
+
 logDebug("leaves for $dayToShow: " . count($leaves));
 logDebug("room changes for $dayToShow: " . count($roomChanges));
 

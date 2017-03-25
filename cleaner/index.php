@@ -6,7 +6,12 @@ if(!checkLogin(SITE_CLEANER)) {
 	return;
 }
 
-if($_SESSION['login_role'] != 'CLEANER') {
+$role = $_SESSION['login_role'];
+if(isset($_SESSION['login_role_override'])) {
+	$role = $_SESSION['login_role_override'];
+}
+
+if($role != 'CLEANER') {
 	header('Location: view_cleaner_assignments.php');
 	return;
 }
@@ -76,6 +81,15 @@ $extraHeader = <<<EOT
 EOT;
 
 html_start("Rooms to clean", $extraHeader, 'setTimeout(refresh, 60000);');
+
+echo "<h2>Rooms to clean [" . $_SESSION['login_hotel'] . "]</h2>\n";
+
+
+if($_SESSION['login_role'] != 'CLEANER') {
+	// supervisor who switched to CLEANER MODE
+	echo "<a class=\"btn btn-default\" href=\"switch_between_cleaner_supervisor.php?target=" . $_SESSION['login_role'] . "\">Switch to supervisor view</a><br>\n";
+}
+
 
 echo "<div class=\"row\"><div class=\"col-md-offset-4 col-md-4\">\n";
 foreach($assignments as $oneAssignment) {
