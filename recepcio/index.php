@@ -149,20 +149,13 @@ if(!$result) {
 	}
 }
 
-$roomNames = array();
-$sql = "SELECT * FROM rooms";
-$result = mysql_query($sql, $link);
-if(!$result) {
-	trigger_error("Cannot room names: " . mysql_error($link) . " (SQL: $sql)");
-	set_error("Cannot get room names");
-} else {
-	while($row = mysql_fetch_assoc($result)) {
-		$roomNames[$row['id']] = $row['name'];
-	}
-}
+$rooms = RoomDao::getRooms($link);
 
-$cleanedRooms = array();
-$sql = "SELECT * FROM cleaner_action WHERE type='FINISH_ROOM' AND time_of_event>'$todayDash' AND time_of_event<'$tomorrowDash'";
+$roomTypes = RoomDao::getRoomTypes('eng', $link);
+
+$roomsStatus = array();
+$bathroomsStatus = array();
+$sql = "SELECT * FROM cleaner_action WHERE time_of_event>'$todayDash' AND time_of_event<'$tomorrowDash' ORDER BY time_of_event";
 $result = mysql_query($sql, $link);
 $initSendBcr = '';
 if(!$result) {
@@ -170,10 +163,22 @@ if(!$result) {
 	set_error("Cannot get cleaned rooms");
 } else {
 	while($row = mysql_fetch_assoc($result)) {
-		$cleanedRooms[$row['room_id']] = $row;
+		if($row['type'] == 'CONFIRM_FINISH_ROOM' or $row['type'] == 'REJECT_FINISH_ROOM') {
+			$roomsStatus[$row['room_id']] = $row['type'];
+		} elseif($row['type'] == 'CONFIRM_FINISH_BATHROOM' or $row['type'] == 'REJECT_FINISH_BATHROOM') {
+			$bathroomsStatus[$row['room_id']] = $row['type'];
+		}
 	}
 }
 
+$cleanedRooms = array();
+foreach($rooms as $room) {
+	$roomType = $roomTypes[$room['room_type_id']];
+	if(isset($roomsStatus[$room['id']]) and $roomsStatus[$room['id']] == 'CONFIRM_FINISH_ROOM' and 
+			((isset($bathroomsStatus[$room['id']]) and $bathroomsStatus[$room['id']] == 'CONFIRM_FINISH_BATHROOM') or $roomType['type'] == 'DORM')) {
+		$cleanedRooms[$room['id']] = true;
+	}
+}
 
 
 $extraHeader =<<<EOT
@@ -254,27 +259,27 @@ EOT;
 		$aTime = $bookingDescr['arrival_time'];
 		if(isset($bookings[$descrId])) {
 			$roomAccounted = array();
-			$rooms = '';
+			$roomNames = '';
 			$roomsCleaned = '';
 			foreach($bookings[$descrId] as $oneBooking) {
-				$roomName = $roomNames[$oneBooking['room_id']];
+				$roomName = $rooms[$oneBooking['room_id']]['name'];
 				$roomId = $oneBooking['room_id'];
 				foreach($roomChanges as $bookingId => $changes) {
 					foreach($changes as $oneRoomChange) {
 						if($oneRoomChange['booking_id'] == $oneBooking['id'] and $oneRoomChange['date_of_room_change'] == $today) {
-							$roomName = $roomNames[$oneRoomChange['new_room_id']];
+							$roomName = $rooms[$oneRoomChange['new_room_id']]['name'];
 							$roomId = $oneRoomChange['new_room_id'];
 						}
 					}
 				}
-				$rooms .= $roomName . ' (' . $oneBooking['num_of_person'] . ')<br>';
-				$roomsCleaned .= isset($cleanedRooms[$roomId]) ? 'Cleaned<br>' : 'Not Ready<br>';
+				$roomNames .= $roomName . ' (' . $oneBooking['num_of_person'] . ')<br>';
+				$roomsCleaned .= isset($cleanedRooms[$roomId]) ? '<span style="font-size:80%;">Cleaned</span><br>' : '<span style="font-size:80%;">Not Ready</span><br>';
 				if($_SESSION['arriving_order'] == 'room') {
-					$dataArr[] = array($name, $roomName . ' (' . $oneBooking['num_of_person'] . ')', $aTime, $descrId, isset($cleanedRooms[$roomId]) ? 'Cleaned<br>' : 'Not Ready<br>');
+					$dataArr[] = array($name, $roomName . ' (' . $oneBooking['num_of_person'] . ')', $aTime, $descrId, $roomsCleaned);
 				}
 			}
 			if($_SESSION['arriving_order'] != 'room') {
-				$dataArr[] = array($name, $rooms, $aTime, $descrId, $roomsCleaned);
+				$dataArr[] = array($name, $roomNames, $aTime, $descrId, $roomsCleaned);
 			}
 		}
 	}
@@ -294,7 +299,7 @@ EOT;
 		$aTime = $row[2];
 		$descrId = $row[3];
 		$roomCleaned = $row[4];
-		echo "	<tr><td><a href=\"edit_booking.php?description_id=$descrId\">$name</a></td><td>$room</td><td>$aTime</td><td style=\"font-size: 60%;\">$roomCleaned</td></tr>\n";
+		echo "	<tr><td><a href=\"edit_booking.php?description_id=$descrId\">$name</a></td><td>$room</td><td>$aTime</td><td>$roomCleaned</td></tr>\n";
 	}
 
 
@@ -326,20 +331,20 @@ EOT;
 	foreach($leavingToday as $bookingDescr) {
 		$descrId = $bookingDescr['id'];
 		$name = $bookingDescr['name_ext'] . ' ' . $bookingDescr['name'];
-		$rooms = '';
+		$roomNames = '';
 		$roomTotal = 0;
 		if(isset($bookings[$descrId])) {
 			foreach($bookings[$descrId] as $oneBooking) {
 				$roomTotal += $oneBooking['room_payment'];
-				$roomName = $roomNames[$oneBooking['room_id']];
+				$roomName = $rooms[$oneBooking['room_id']]['name'];
 				foreach($roomChanges as $bookingId => $changes) {
 					foreach($changes as $oneRoomChange) {
 						if($oneRoomChange['booking_id'] == $oneBooking['id'] and $oneRoomChange['date_of_room_change'] == $yesterday) {
-							$roomName = $roomNames[$oneRoomChange['new_room_id']];
+							$roomName = $rooms[$oneRoomChange['new_room_id']]['name'];
 						}
 					}
 				}
-				$rooms .= $roomName . ' (' . $oneBooking['num_of_person'] . ')<br>';
+				$roomNames .= $roomName . ' (' . $oneBooking['num_of_person'] . ')<br>';
 			}
 		}
 		$serviceChargeTotal = 0;
@@ -357,7 +362,7 @@ EOT;
 
 		$balance = sprintf('%.2f', $roomTotal + $serviceChargeTotal - $paymentTotal);
 
-		echo "	<tr><td><a href=\"edit_booking.php?description_id=$descrId\">$name</a></td><td>$rooms</td><td>$balance EUR</td></tr>\n";
+		echo "	<tr><td><a href=\"edit_booking.php?description_id=$descrId\">$name</a></td><td>$roomNames</td><td>$balance EUR</td></tr>\n";
 	}
 
 	echo <<<EOT
@@ -401,8 +406,8 @@ EOT;
 		$enterAction = '';
 		if(!is_null($changeToday)) {
 			if(!is_null($changeYesterday) && isDiffRoomChange($changeYesterday, $changeToday)) {
-				$toRoom = $roomNames[$changeToday['new_room_id']];
-				$fromRoom = $roomNames[$changeYesterday['new_room_id']];
+				$toRoom = $rooms[$changeToday['new_room_id']]['name'];
+				$fromRoom = $rooms[$changeYesterday['new_room_id']]['name'];
 				if(is_null($changeYesterday['leave_new_room_time'])) {
 					$leaveAction = 'save_booking_room_change.php?today=' . urlencode($today) . '&leave_room_brc=' . $changeYesterday['id'];
 				}
@@ -410,8 +415,8 @@ EOT;
 					$enterAction = 'save_booking_room_change.php?today=' . urlencode($today) . '&enter_room_brc=' . $changeToday['id'];
 				}
 			} else if(is_null($changeYesterday)) {
-				$toRoom = $roomNames[$changeToday['new_room_id']];
-				$fromRoom = $roomNames[$changeToday['room_id']];
+				$toRoom = $rooms[$changeToday['new_room_id']]['name'];
+				$fromRoom = $rooms[$changeToday['room_id']]['name'];
 				if(is_null($changeToday['enter_new_room_time'])) {
 					$enterAction = 'save_booking_room_change.php?today=' . urlencode($today) . '&enter_room_brc=' . $changeToday['id'];
 				}
@@ -421,8 +426,8 @@ EOT;
 				$guest = $changeToday['bd_name'];
 			}
 		} else if(!is_null($changeYesterday)) {
-			$toRoom = $roomNames[$changeYesterday['room_id']];
-			$fromRoom = $roomNames[$changeYesterday['new_room_id']];
+			$toRoom = $rooms[$changeYesterday['room_id']]['name'];
+			$fromRoom = $rooms[$changeYesterday['new_room_id']]['name'];
 			if(is_null($changeYesterday['leave_new_room_time'])) {
 				$leaveAction = 'save_booking_room_change.php?today=' . urlencode($today) . '&leave_room_brc=' . $changeYesterday['id'];
 			}
@@ -525,16 +530,16 @@ foreach($checkedin as $bookingDescr) {
 	if(isset($guestData[$id])) {
 		foreach($guestData[$id] as $oneGD) {
 			if($currentGuestOrder == 'room' or $currentGuestOrder == 'guest_name' or $currentGuestOrder == 'guest_deposit') {
-				if(isset($roomNames[$oneGD['room_id']])) {
-					$gdRoom = $roomNames[$oneGD['room_id']];
+				if(isset($rooms[$oneGD['room_id']]['name'])) {
+					$gdRoom = $rooms[$oneGD['room_id']]['name'];
 				} else {
 					$gdRoom = '-';
 				}
 				$dataArr[] = array($id, $name, $fnight, $lnight, $gdRoom, $oneGD['name'], $oneGD['deposit'], $style);
 			} else {
 				$gdName .= str_replace(' ', '&nbsp;', $oneGD['name']) . '<br>';
-				if(isset($roomNames[$oneGD['room_id']])) {
-					$gdRoom .= str_replace(' ', '&nbsp;', $roomNames[$oneGD['room_id']]) . '<br>';
+				if(isset($rooms[$oneGD['room_id']]['name'])) {
+					$gdRoom .= str_replace(' ', '&nbsp;', $rooms[$oneGD['room_id']]['name']) . '<br>';
 				} else {
 					$gdRoom .= ' - <br>';
 				}
@@ -548,11 +553,11 @@ foreach($checkedin as $bookingDescr) {
 		$roomCol = '';
 		foreach($bookings[$id] as $oneBooking) {
 			$roomName = '';
-			$roomName = $roomNames[$oneBooking['room_id']];
+			$roomName = $rooms[$oneBooking['room_id']]['name'];
 			foreach($roomChanges as $bookingId => $changes) {
 				foreach($changes as $oneRoomChange) {
 					if($oneRoomChange['booking_id'] == $oneBooking['id'] and $oneRoomChange['date_of_room_change'] == $yesterday) {
-						$roomName = $roomNames[$oneRoomChange['new_room_id']] . '(RC)';
+						$roomName = $rooms[$oneRoomChange['new_room_id']]['name'] . '(RC)';
 					}
 				}
 			}
