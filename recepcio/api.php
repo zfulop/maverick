@@ -36,6 +36,8 @@ if($action == 'rooms') {
 	$retVal = loadWebsiteTexts();
 } elseif($action == 'room_avalability') {
 	$retVal = loadRoomCalendarAvailability();
+} elseif($action == 'room_highlights') {
+	$retVal = loadRoomHighlights();
 } else {
 	echo "invalid action parameter value";
 }
@@ -47,6 +49,9 @@ if(!is_null($retVal)) {
 logDebug("end of API call");
 logDebug("*****************************************************END");
 return;
+
+
+
 
 
 function _loadRooms() {
@@ -353,59 +358,6 @@ function getMinMaxStay($fromDate, $toDate, $link) {
 	return null;
 }
 
-function checkMissingParameters($paramNames) {
-	foreach($paramNames as $oneParamName) {
-		if(!hasParameter($oneParamName)) {
-			echo "'$oneParamName' parameter missing";
-			return false;
-		}
-		if($oneParamName == 'currency' and !checkParameterValue($oneParamName, getCurrencies())) {
-			return false;
-		}
-		if($oneParamName == 'lang' and !checkParameterValue($oneParamName, array_keys(getLanguages()))) {
-			return false;
-		}
-	}
-	return true;
-}
-
-function checkParameterValue($parameterName, $possibleValues) {
-	if(!in_array(getParameter($parameterName), $possibleValues)) {
-		echo "$parameterName parameter is invalid. Valid values: " . implode(',', $possibleValues);
-		return false;
-	}
-	return true;
-}
-
-function getParameter($parameterName) {
-	if(isset($_SERVER["argv"])) {
-		$argv = $_SERVER["argv"];
-		for($i = 1; $i < (count($argv)-1); $i++) {
-			if($argv[$i] == ('-' . $parameterName)) {
-				return $argv[$i+1];
-			}
-		}
-		return null;
-	} else {
-		return $_REQUEST[$parameterName];		
-	}
-}
-
-function hasParameter($parameterName) {
-	if(isset($_SERVER["argv"])) {
-		$argv = $_SERVER["argv"];
-		$parameterName = '-' . $parameterName;
-		for($i = 1; $i < (count($argv)-1); $i++) {
-			if($argv[$i] == $parameterName) {
-				return true;
-			}
-		}
-		return false;
-	} else {
-		return isset($_REQUEST[$parameterName]);
-	}
-}
-
 
 function loadServices() {
 	if(!checkMissingParameters(array('location','lang','currency'))) {
@@ -431,6 +383,45 @@ function loadServices() {
 	mysql_close($link);
 	return $services;
 }
+
+
+
+function loadRoomHighlights() {
+	if(!checkMissingParameters(array('location','lang','currency'))) {
+		return null;
+	}
+
+	logDebug("Loading room highlights");
+	$location = getParameter('location');
+	$lang = getParameter('lang');
+	$currency = getParameter('currency');
+	$link = db_connect($location);
+
+	$roomTypesData = RoomDao::getRoomTypesWithRooms($lang, $link);
+	foreach(loadRoomImages($lang, $link) as $rtId => $imgs) {
+		if(!isset($roomTypesData[$rtId])) {
+			continue;
+		}
+		$roomTypesData[$rtId]['images'] = $imgs;
+	}
+
+	$today = date('Y-m-d');
+	foreach($roomTypesData as $rtId => &$roomType) {
+		$roomType['price_per_bed'] = convertAmount($roomType['price_per_bed'], 'EUR', $currency, $today);
+		$roomType['price_per_room'] = convertAmount($roomType['price_per_room'], 'EUR', $currency, $today);
+	}
+
+	$roomHighlights = RoomDao::getRoomHighlights($link);
+	$retVal = array();
+	foreach($roomHighlights as $rtId) {
+		$retVal[] = $roomTypesData[$rtId];
+	}
+
+	logDebug("Room highlights loaded. There are " . count($retVal) . " room highlights");
+	mysql_close($link);
+	return $retVal;
+}
+
 
 
 
@@ -1133,6 +1124,61 @@ function loadServicesFromDB($lang, $link) {
 	}
 
 	return $services;
+}
+
+
+
+function checkMissingParameters($paramNames) {
+	foreach($paramNames as $oneParamName) {
+		if(!hasParameter($oneParamName)) {
+			echo "'$oneParamName' parameter missing";
+			return false;
+		}
+		if($oneParamName == 'currency' and !checkParameterValue($oneParamName, getCurrencies())) {
+			return false;
+		}
+		if($oneParamName == 'lang' and !checkParameterValue($oneParamName, array_keys(getLanguages()))) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function checkParameterValue($parameterName, $possibleValues) {
+	if(!in_array(getParameter($parameterName), $possibleValues)) {
+		echo "$parameterName parameter is invalid. Valid values: " . implode(',', $possibleValues);
+		return false;
+	}
+	return true;
+}
+
+function getParameter($parameterName) {
+	if(isset($_SERVER["argv"])) {
+		$argv = $_SERVER["argv"];
+		for($i = 1; $i < (count($argv)-1); $i++) {
+			if($argv[$i] == ('-' . $parameterName)) {
+				return $argv[$i+1];
+			}
+		}
+		return null;
+	} else {
+		return $_REQUEST[$parameterName];		
+	}
+}
+
+function hasParameter($parameterName) {
+	if(isset($_SERVER["argv"])) {
+		$argv = $_SERVER["argv"];
+		$parameterName = '-' . $parameterName;
+		for($i = 1; $i < (count($argv)-1); $i++) {
+			if($argv[$i] == $parameterName) {
+				return true;
+			}
+		}
+		return false;
+	} else {
+		return isset($_REQUEST[$parameterName]);
+	}
 }
 
 

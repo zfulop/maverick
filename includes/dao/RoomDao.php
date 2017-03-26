@@ -186,6 +186,41 @@ class RoomDao {
 		return $roomImages;
 	}
 
+	/**
+	 * Returns an array of room type ids that are the selected highlighted room types
+	 */
+	public static function getRoomHighlights($link) {
+		$sql = "SELECT room_type_id FROM room_type_highlight";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("Cannot load room highlights. Error: " . mysql_error($link) . " (SQL: $sql)");
+			return null;
+		}
+		$retVal = array();
+		for($i = 0; $i < mysql_num_rows($result); $i++) {
+			$retVal[] = mysql_result($result, $i);
+		}
+		return $retVal;
+	}
+	
+
+	public static function saveRoomHighlights($roomTypeIds, $link) {
+		$sql = "DELETE FROM room_type_highlight";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("Cannot delete room highlights. Error: " . mysql_error($link) . " (SQL: $sql)");
+			return null;
+		}
+		if(count($roomTypeIds) > 0) {
+			$sql = "INSERT INTO room_type_highlight (room_type_id) VALUES (" . implode("),(", $roomTypeIds) . ")";
+			$result = mysql_query($sql, $link);
+			if(!$result) {
+				trigger_error("Cannot create new room highlights. Error: " . mysql_error($link) . " (SQL: $sql)");
+				return null;
+			}
+		}
+		return true;
+	}
 	
 
 }

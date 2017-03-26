@@ -34,6 +34,7 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 	$blacklist = ROOT_URL . 'view_blacklist.php';
 	$schedule = ROOT_URL . 'view_schedule.php';
 	$roomImages = ROOT_URL . 'view_room_images.php';
+	$roomHighlights = ROOT_URL . 'view_room_highlights.php';
 
 	$tooltipJs = ROOT_URL . 'js/wz_tooltip.js';
 
@@ -134,6 +135,7 @@ EOT;
 				<li><a href="$services" style="font-size: 14px; padding-right: 20px;">Services</a></li>
 				<li><a href="$siteTexts" style="font-size: 14px; padding-right: 20px;">Website Texts</a></li>
 				<li><a href="$roomImages" style="font-size: 14px; padding-right: 20px;">Room Images</a></li>
+				<li><a href="$roomHighlights" style="font-size: 14px; padding-right: 20px;">Room Highlights</a></li>
 			</ul>
 		</div>
 		<div style="float: right;padding-right:50px;">
