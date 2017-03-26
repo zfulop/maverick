@@ -221,7 +221,22 @@ class RoomDao {
 		}
 		return true;
 	}
-	
+
+	public static function getRoomPricesForDate($date, $link) {
+		$date = str_replace('-', '/', $date);
+		$sql = "SELECT * FROM prices_for_date WHERE date='$date'";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("Cannot delete room highlights. Error: " . mysql_error($link) . " (SQL: $sql)");
+			return null;
+		}
+		$prices = array();
+		while($row = mysql_fetch_assoc($result)) {
+			$prices[$row['room_type_id']] = $row;
+		}
+		
+		return $prices;
+	}
 
 }
 

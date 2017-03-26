@@ -66,6 +66,15 @@ function _loadRooms() {
 	$link = db_connect($location);
 	
 	$roomTypesData = RoomDao::getRoomTypesWithRooms($lang, $link);
+	
+	enrichWithImageAndPrice($roomTypesData, $lang, $currency, $link);
+
+	logDebug("Rooms loaded. There are " . count($roomTypesData) . " room types");
+	mysql_close($link);
+	return $roomTypesData;
+}
+
+function enrichWithImageAndPrice(&$roomTypesData, $lang, $currency, $link) {
 	foreach(loadRoomImages($lang, $link) as $rtId => $imgs) {
 		if(!isset($roomTypesData[$rtId])) {
 			continue;
@@ -74,14 +83,25 @@ function _loadRooms() {
 	}
 
 	$today = date('Y-m-d');
+	$todayDash = date('Y/m/d');
+	logDebug("getting prices for date: " . $todayDash);
+	$prices = RoomDao::getRoomPricesForDate($todayDash, $link);
 	foreach($roomTypesData as $rtId => &$roomType) {
-		$roomType['price_per_bed'] = convertAmount($roomType['price_per_bed'], 'EUR', $currency, $today);
-		$roomType['price_per_room'] = convertAmount($roomType['price_per_room'], 'EUR', $currency, $today);
-	}
+		$pricePerBed = $roomType['price_per_bed'];
+		$pricePerRoom = $roomType['price_per_room'];
+		$surchargePerBed = $roomType['surcharge_per_bed'];
 
-	logDebug("Rooms loaded. There are " . count($roomTypesData) . " room types");
-	mysql_close($link);
-	return $roomTypesData;
+		if(isset($prices[$rtId])) {
+			logDebug("   for room type: " . $roomType['name'] . " the special price for bed: " . $prices[$rtId]['price_per_bed'] . " and for room: " . $prices[$rtId]['price_per_room']);
+			$pricePerBed = $prices[$rtId]['price_per_bed'];
+			$pricePerRoom = $prices[$rtId]['price_per_room'];
+			$surchargePerBed = $prices[$rtId]['surcharge_per_bed'];
+		}
+		
+		$roomType['price_per_bed'] = convertAmount($pricePerBed, 'EUR', $currency, $today);
+		$roomType['price_per_room'] = convertAmount($pricePerRoom, 'EUR', $currency, $today);
+		$roomType['surcharge_per_bed'] = $surchargePerBed;
+	}
 }
 
 function loadAvailability() {
@@ -146,18 +166,10 @@ function loadAvailability() {
 	 
 	logDebug("Loading room types");
 	$roomTypesData = RoomDao::getRoomTypesWithRooms($lang, $link);
-	foreach(loadRoomImages($lang, $link) as $rtId => $imgs) {
-		if(!isset($roomTypesData[$rtId])) {
-			continue;
-		}
-		$roomTypesData[$rtId]['images'] = $imgs;
-	}
-	$today = date('Y-m-d');
-	foreach($roomTypesData as $rtId => &$roomType) {
-		$roomType['price_per_bed'] = convertAmount($roomType['price_per_bed'], 'EUR', $currency, $today);
-		$roomType['price_per_room'] = convertAmount($roomType['price_per_room'], 'EUR', $currency, $today);
-	}	
 
+	enrichWithImageAndPrice($roomTypesData, $lang, $currency, $link);
+
+	
 	logDebug("Loading rooms and their bookings for the selected period");
 	$rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
 	foreach($rooms as $roomId => $roomData) {
@@ -398,18 +410,7 @@ function loadRoomHighlights() {
 	$link = db_connect($location);
 
 	$roomTypesData = RoomDao::getRoomTypesWithRooms($lang, $link);
-	foreach(loadRoomImages($lang, $link) as $rtId => $imgs) {
-		if(!isset($roomTypesData[$rtId])) {
-			continue;
-		}
-		$roomTypesData[$rtId]['images'] = $imgs;
-	}
-
-	$today = date('Y-m-d');
-	foreach($roomTypesData as $rtId => &$roomType) {
-		$roomType['price_per_bed'] = convertAmount($roomType['price_per_bed'], 'EUR', $currency, $today);
-		$roomType['price_per_room'] = convertAmount($roomType['price_per_room'], 'EUR', $currency, $today);
-	}
+	enrichWithImageAndPrice($roomTypesData, $lang, $currency, $link);
 
 	$roomHighlights = RoomDao::getRoomHighlights($link);
 	$retVal = array();
