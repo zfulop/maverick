@@ -44,16 +44,6 @@ $MESSAGES = array(
 	'57' => 'invalid property id'
 );
 
-require('./includes.php');
-logDebug ("Start processing incoming booking request");
-logDebug ("=========================================");
-logDebug("included " . './includes.php');
-require('../includes/country_alias.php');
-logDebug("included " . '../includes/country_alias.php');
-require('./room_booking.php');
-logDebug("included " . './room_booking.php');
-
-
 if(php_sapi_name() === 'cli') {
 	$bookingJson = file_get_contents($argv[1]);
 	for ($i = 0; $i <= 31; ++$i) { 
@@ -64,7 +54,7 @@ if(php_sapi_name() === 'cli') {
 		$bookingJson = substr($bookingJson, 3);
 	}
 	
-	logDebug("File content encoding: " . mb_detect_encoding($bookingJson, mb_detect_order(), true));
+	echo "File content encoding: " . mb_detect_encoding($bookingJson, mb_detect_order(), true) . "\n";
 } else {
 	$bookingJson = $_REQUEST['booking'];
 	$pwd = $_REQUEST['password'];
@@ -75,11 +65,10 @@ if(php_sapi_name() === 'cli') {
 	$bookingJson = stripslashes($bookingJson);
 }
 
-logDebug("JSON START>>>" . $bookingJson . "<<<JSON END");
 $bookingData = json_decode($bookingJson, true, 512, JSON_UNESCAPED_UNICODE);
 $err = json_last_error();
 if($err) {
-	logDebug("Error parsing json: $err");
+	echo "Error parsing json: $err";
 	respond('21', false, "Error parsing json: $err");
 	return;
 }
@@ -94,14 +83,26 @@ if(!isset($bookingData['PropertyId'])) {
 	$propertyId = $bookingData['PropertyId'];
 }
 
-
 require('../includes/config/myallocator.php');
 $location = $myallocatorPropertyMap[$propertyId];
  
-logDebug("Location: $location ($propertyId)");
-
 require('../includes/config/' . $location . '.php');
+require('./includes.php');
+
+logDebug ("Start processing incoming booking request");
+logDebug ("=========================================");
+logDebug("Location: $location ($propertyId)");
 logDebug("included " . '../includes/config/' . $location . '.php');
+logDebug("included " . './includes.php');
+require('../includes/country_alias.php');
+logDebug("included " . '../includes/country_alias.php');
+require('./room_booking.php');
+logDebug("included " . './room_booking.php');
+
+
+logDebug("JSON START>>>" . $bookingJson . "<<<JSON END");
+
+
 
 $lang = 'eng';
 //require(LANG_DIR . $lang . '.php');
@@ -360,7 +361,18 @@ function createBooking($bookingData, $link) {
 	$roomPrice = calcRoomPrice($bookingDescriptions);
 	logDebug("After adjustment total room price: $roomPrice");
 
-	$ifa = $roomPrice * 0.034;
+	$ifaMultiplier = 0.034;
+	$ifaComment = 'IFA ';
+	if($bookingData['Channel'] == 'ago') {
+		logDebug("Using agoda ifa multiplier");
+		$ifaMultiplier = 1/(1-0.15)/1.18*0.04;
+	} elseif($bookingData['Channel'] == 'exp') {
+		logDebug("Using expedia ifa multiplier");
+		$ifaMultiplier = 1/(1-0.23)/1.18*0.04;
+	}
+	logDebug("Using IFA multiplier of $ifaMultiplier");
+	$ifa = $roomPrice * $ifaMultiplier;
+	$ifaComment = 'IFA multiplier: ' . $ifaMultiplier;
 	$extraServices[] = array('amount' => $ifa, 'comment' => 'IFA', 'type' => 'IFA / City Tax', 'currency' => $bookingData['TotalCurrency']);
 
 	// Now compare with DB data
