@@ -156,7 +156,7 @@ function loadAvailability() {
 	logDebug("Loading special offers for period");
 	$retVal = array();
 	$specialOffers = array();
-	foreach(loadSpecialOffers($arriveDate,$lastNight, $link, $lang) as $soId => $so) {
+	foreach(loadSpecialOffers(null, $lastNight, $link, $lang) as $soId => $so) {
 		if($so['visible'] == 1) {
 			$specialOffers[$soId] = $so;
 		}
@@ -175,7 +175,7 @@ function loadAvailability() {
 	foreach($rooms as $roomId => $roomData) {
 		foreach($roomData['room_types']	as $roomTypeId => $roomTypeName) {
 			if(is_null($filterRoomIds) or in_array($roomTypeId, $filterRoomIds)) {
-				fillInPriceAndAvailability($arriveDateTs, $nights, $roomData, $roomTypesData[$roomTypeId], $currency);
+				fillInPriceAndAvailability($arriveDateTs, $nights, $roomData, $roomTypesData[$roomTypeId], $specialOffers, $currency);
 			}
 		}
 	}
@@ -288,7 +288,7 @@ function sortByDefaultDesc($img1, $img2) {
 	return 0;
 }
 
-function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType, $currency) {
+function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType, &$specialOffers, $currency) {
 	$oneDayTS = $arriveTS;
 	$type = $roomData['type'];
 	$minAvailBeds = $roomType['num_of_beds'];
@@ -326,12 +326,24 @@ function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType, 
 	}
 
 	$roomType['num_of_beds_avail'] += $minAvailBeds;
-	$roomType['price'] = (convertAmount(getPrice($arriveTS, $nights, $roomData, 1),'EUR',$currency, date('Y-m-d')) / $nights);
+	$roomType['price'] = number_format(convertAmount(getPrice($arriveTS, $nights, $roomData, 1),'EUR',$currency, date('Y-m-d')) / $nights, 2);
 	if(isApartment($roomType)) {
 		for($i=2; $i<= $roomType['num_of_beds']; $i++) {
-			$roomType['price_' . $i] = (convertAmount(getPrice($arriveTS, $nights, $roomData, $i),'EUR',$currency, date('Y-m-d')) / $nights);
+			$roomType['price_' . $i] = number_format(convertAmount(getPrice($arriveTS, $nights, $roomData, $i),'EUR',$currency, date('Y-m-d')) / $nights, 2);
 		}
 	}
+
+	if(!is_null($specialOffers)) {
+		list($discount, $selectedSo) = findSpecialOffer($specialOffers, $roomType, $nights, date('Y-m-d', $arriveTs), 1);
+		// apply special offer
+		$discountedPayment = $roomType['price'];
+		if($discount > 0) {
+			$discountedPayment = $discountedPayment * (100 - $discount) / 100;
+			$roomType['price_without_discount'] = number_format($roomType['price'], 2);
+			$roomType['price'] = number_format($discountedPayment, 2);
+		}
+	}
+
 }
 
 
@@ -478,7 +490,7 @@ function doBooking() {
 	$link = db_connect($location);
 	mysql_query('START TRANSACTION', $link);
 	
-	$specialOffers = loadSpecialOffers($arriveDate,$lastNight, $link);
+	$specialOffers = loadSpecialOffers(null,$lastNight, $link, $lang);
 	logDebug("There are " . count($specialOffers) . " special offers valid between $arriveDate and $lastNight");
 	$rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
 	$roomTypesData = loadRoomTypes($link, $lang);
