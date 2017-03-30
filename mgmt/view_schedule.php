@@ -115,7 +115,7 @@ if(!$result) {
 		if(($row['role'] == 'RECEPTION') or ($row['role'] == 'MANAGER') or ($row['role'] == 'ADMIN')) {
 			$receptionistHtmlOptions .= "\t\t\t<option value=\"" . $row['username'] . "\">" . $row['name'] . "</option>\n";
 		}
-		if($row['role'] == 'CLEANER') {
+		if(($row['role'] == 'CLEANER') or ($row['role'] == 'CLEANER_SUPERVISOR')) {
 			$cleanerHtmlOptions .= "\t\t\t<option value=\"" . $row['username'] . "\">" . $row['name'] . "</option>\n";
 		}
 	}
