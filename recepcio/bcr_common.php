@@ -1,6 +1,6 @@
 <?php
 
-function getBcrMessage($bookingDescr, $bcrMessage, $link) {
+function getBcrMessage($bookingDescr, $bcrMessage, $link, &$dict, $location) {
 	$descrId = $bookingDescr['id'];
 	$name = $bookingDescr['name'];
 	$email = $bookingDescr['email'];
@@ -8,7 +8,7 @@ function getBcrMessage($bookingDescr, $bcrMessage, $link) {
 	if(is_null($lang) or strlen(trim($lang)) < 3) {
 		$lang = 'eng';
 	}
-	$currency = $row['currency'];
+	$currency = $bookingDescr['currency'];
 	if(is_null($currency) or strlen(trim($currency)) < 3) {
 		$currency = 'EUR';
 	}
@@ -31,14 +31,14 @@ function getBcrMessage($bookingDescr, $bcrMessage, $link) {
 		return;
 	}
 
-	$rooms = '<table cellpadding="5"><tr><th>' . NAME . '</th><th>' . TYPE . '</th><th>' . NUMBER_OF_PERSON . '</th>' . /*'<th>' . PRICE . '</th>' . */'</tr>';
+	$rooms = '<table cellpadding="5"><tr><th>' . $dict[$bookingDescr['language']]['NAME'] . '</th><th>' . $dict[$bookingDescr['language']]['TYPE'] . '</th><th>' . $dict[$bookingDescr['language']]['NUMBER_OF_PERSON'] . '</th>' . /*'<th>' . PRICE . '</th>' . */'</tr>';
 	while($row = mysql_fetch_assoc($result)) {
 		$payment = intval(convertAmount($row['room_payment'], 'EUR', $currency, substr($row['creation_time'], 0, 10)));
 		$numOfPerson = $row['num_of_person'];
 		if($row['room_type'] == 'APARTMENT') {
 			$numOfPerson = '';
 		}
-		$rooms .= '<tr><td>' . $row['room_name'] . '</td><td>' . constant(strtoupper($row['booking_type'])) . '</td><td align="center">' . $numOfPerson . '</td>' . /*'<td align="right">' . $payment . $currency . '</td>' . */ '</tr>';
+		$rooms .= '<tr><td>' . $row['room_name'] . '</td><td>' . $dict[$bookingDescr['language']][strtoupper($row['booking_type'])] . '</td><td align="center">' . $numOfPerson . '</td>' . /*'<td align="right">' . $payment . $currency . '</td>' . */ '</tr>';
 		$total += $payment;
 	}
 	$rooms .= '</table>';
@@ -52,7 +52,7 @@ function getBcrMessage($bookingDescr, $bcrMessage, $link) {
 		return;
 	}
 	$hasServices = (mysql_num_rows($result) > 0);
-	$services = '<table cellpadding="5"><tr><th>' . NAME . '</th><th>' . OCCASION . '</th><th>' . PRICE . '</th></tr>';
+	$services = '<table cellpadding="5"><tr><th>' . $dict[$bookingDescr['language']]['NAME'] . '</th><th>' . $dict[$bookingDescr['language']]['OCCASION'] . '</th><th>' . $dict[$bookingDescr['language']]['PRICE'] . '</th></tr>';
 	while($row = mysql_fetch_assoc($result)) {
 		$amount = intval(convertAmount($row['amount'], $row['currency'], 'EUR', substr($row['time_of_service'], 0, 10)));
 		$prc = intval(convertAmount($row['price'], $row['svcCurr'], 'EUR', substr($row['time_of_service'], 0, 10)));
@@ -73,7 +73,7 @@ function getBcrMessage($bookingDescr, $bcrMessage, $link) {
 		return;
 	}
 	$hasPayments = (mysql_num_rows($result) > 0);
-	$payments = '<table cellpadding="5"><tr><th>' . NAME . '</th><th>' . PRICE . '</th></tr>';
+	$payments = '<table cellpadding="5"><tr><th>' . $dict[$bookingDescr['language']]['NAME'] . '</th><th>' . $dict[$bookingDescr['language']]['PRICE'] . '</th></tr>';
 	while($row = mysql_fetch_assoc($result)) {
 		$amount = intval(convertAmount($row['amount'], $row['currency'], 'EUR', substr($row['time_of_payment'], 0, 10)));
 		$amount = intval(convertAmount($amount, 'EUR', $currency, substr($row['time_of_payment'], 0, 10)));
@@ -84,37 +84,36 @@ function getBcrMessage($bookingDescr, $bcrMessage, $link) {
 	$payments .= '</table>';
 
 
-	$location = LOCATION;
-	$locationName = constant('LOCATION_NAME_' . strtoupper($location));
+	$locationName = $dict[$bookingDescr['language']]['LOCATION_NAME_' . strtoupper($location)];
 	$bcrMessage = str_replace('RECIPIENT', $name, $bcrMessage);
 	$bcrMessage = str_replace('LOCATION', $locationName, $bcrMessage);
 	$confirmBookingMsg = str_replace('CONFIRM_URL', $confirmBookingUrl, $bcrMessage);
-	$belowFindBookingInfo = BELOW_FIND_BOOKING_INFO;
-	$nameTitle = NAME;
+	$belowFindBookingInfo = $dict[$bookingDescr['language']]['BELOW_FIND_BOOKING_INFO'];
+	$nameTitle = $dict[$bookingDescr['language']]['NAME'];
 	$nameValue = $name;
-	$emailTitle = EMAIL;
+	$emailTitle = $dict[$bookingDescr['language']]['EMAIL'];
 	$emailValue = $bookingDescr['email'];
-	$phoneTitle = PHONE;
+	$phoneTitle = $dict[$bookingDescr['language']]['PHONE'];
 	$phoneValue = $bookingDescr['telephone'];
-	$dateOfArriveTitle = DATE_OF_ARRIVAL;
+	$dateOfArriveTitle = $dict[$bookingDescr['language']]['DATE_OF_ARRIVAL'];
 	$dateOfArriveValue = $fnight;
-	$dateOfDepartureTitle = DATE_OF_DEPARTURE;
+	$dateOfDepartureTitle = $dict[$bookingDescr['language']]['DATE_OF_DEPARTURE'];
 	$nights = $bookingDescr['num_of_nights'];
 	$dateOfDepartureValue = date('Y-m-d', strtotime($lnight . " +1 day"));
-	$numberOfNightsTitle = NUMBER_OF_NIGHTS;
+	$numberOfNightsTitle = $dict[$bookingDescr['language']]['NUMBER_OF_NIGHTS'];
 	$numberOfNightsValue = $nights;
-	$roomsTitle = ROOMS;
-	$servicesTitle = EXTRA_SERVICES;
-	$paymentsTitle = PAYMENT;
-	$balance = BALANCE;
-	$adviseToTravel = ADVISE_TO_TRAVEL;
-	$fromTrainStation = RAILWAY_STATIONS;
-	$fromTrainStationInstructions = constant('RAILWAY_STATIONS_TO_' . strtoupper($location));
-	$fromAirport = FROM_AIRPORT;
-	$fromAirportInstructions = constant('AIRPORT_TO_' . strtoupper($location));
-	$fromAirportInstructions2 = constant('AIRPORT_TO_' . strtoupper($location) . '_2');
-	$important = IMPORTANT;
-	$importantNotice = constant('IMPORTANT_NOTICE_WHEN_ARRIVE_' . strtoupper($location));
+	$roomsTitle = $dict[$bookingDescr['language']]['ROOMS'];
+	$servicesTitle = $dict[$bookingDescr['language']]['EXTRA_SERVICES'];
+	$paymentsTitle = $dict[$bookingDescr['language']]['PAYMENT'];
+	$balance = $dict[$bookingDescr['language']]['BALANCE'];
+	$adviseToTravel = $dict[$bookingDescr['language']]['ADVISE_TO_TRAVEL'];
+	$fromTrainStation = $dict[$bookingDescr['language']]['RAILWAY_STATIONS'];
+	$fromTrainStationInstructions = $dict[$bookingDescr['language']]['RAILWAY_STATIONS_TO_' . strtoupper($location)];
+	$fromAirport = $dict[$bookingDescr['language']]['FROM_AIRPORT'];
+	$fromAirportInstructions = $dict[$bookingDescr['language']]['AIRPORT_TO_' . strtoupper($location)];
+	$fromAirportInstructions2 = $dict[$bookingDescr['language']]['AIRPORT_TO_' . strtoupper($location) . '_2'];
+	$important = $dict[$bookingDescr['language']]['IMPORTANT'];
+	$importantNotice = $dict[$bookingDescr['language']]['IMPORTANT_NOTICE_WHEN_ARRIVE_' . strtoupper($location)];
 	$importantHtml = '';
 	if(strlen($importantNotice) > 0) {
 		$importantHtml = <<<EOT
@@ -138,10 +137,10 @@ function getBcrMessage($bookingDescr, $bcrMessage, $link) {
 EOT;
 	}
 
-	$payment = PAYMENT;
-	$paymentDescription = PAYMENT_DESCRIPTION;
-	$actualExchangeRate = ACTUAL_EXCHANGE_RATE;
-	$policy = POLICY;
+	$payment = $dict[$bookingDescr['language']]['PAYMENT'];
+	$paymentDescription = $dict[$bookingDescr['language']]['PAYMENT_DESCRIPTION'];
+	$actualExchangeRate = $dict[$bookingDescr['language']]['ACTUAL_EXCHANGE_RATE'];
+	$policy = $dict[$bookingDescr['language']]['POLICY'];
 
 
 	$mailMessage = <<<EOT
@@ -350,8 +349,8 @@ EOT;
 
 EOT;
 	$idx = 1;
-	while(defined('POLICY_' . strtoupper($location) . '_' . $idx)) {
-		$policyIdx = constant('POLICY_' . strtoupper($location) . '_' . $idx);
+	while(isset($dict[$bookingDescr['language']]['POLICY_' . strtoupper($location) . '_' . $idx])) {
+		$policyIdx = $dict[$bookingDescr['language']]['POLICY_' . strtoupper($location) . '_' . $idx];
 		$mailMessage .= <<<EOT
 			      <tr>
 				<td width="15" valign="top"><img width="5" height="17" src="cid:bullet"></td>

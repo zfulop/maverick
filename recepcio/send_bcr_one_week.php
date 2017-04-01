@@ -1,44 +1,49 @@
 <?php
 
-require("includes.php");
-require("bcr_common.php");
-
 $hostel = $argv[1];
-$lang = $argv[2];
 
 $configFile = ROOT_DIR . '../includes/config/' . $hostel . '.php';
 if(file_exists($configFile)) {
 	require($configFile);
 }
-require(LANG_DIR . $lang . '.php');
+
+require("includes.php");
+require("bcr_common.php");
+
 $_SESSION['login_user'] = 'bcr';
 
-echo "BCR Sending - 7 day before arrival notification for $hostel. Getting bookings with language: $lang\n";
+echo "BCR Sending - 7 day before arrival notification for $hostel.\n";
 
 $link = db_connect($hostel);
+
+$sql = "SELECT * FROM lang_text WHERE table_name='website'";
+$result = mysql_query($sql, $link);
+$dict = array();
+while($row = mysql_fetch_assoc($result)) {
+	$dict[$row['lang']][$row['column_name']] = $row['value'];
+}
 
 $oneWeekFromToday = date('Y/m/d', strtotime(date('Y-m-d') . ' +1 week'));
 $bcrTo = array();
 $sendBcr = array();
-$orLangNull = '';
-if($lang == 'eng') {
-	$orLangNull = ' OR language IS NULL';
-}
-$sql = "SELECT * FROM booking_descriptions WHERE first_night<='$oneWeekFromToday' AND cancelled=0 AND confirmed=0 AND checked_in=0 AND bcr_sent IS NULL AND (language='$lang'$orLangNull)";
+$sql = "SELECT * FROM booking_descriptions WHERE first_night<='$oneWeekFromToday' AND cancelled=0 AND confirmed=0 AND checked_in=0 AND bcr_sent IS NULL";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	trigger_error("Cannot bookings without BCR: " . mysql_error($link) . " (SQL: $sql)");
 	echo "Cannot get bookings without BCR\n";
 } else {
 	while($row = mysql_fetch_assoc($result)) {
-		sendBcr($row, $hostel, $link);
+		if(is_null($row['language'])) {
+			$row['language'] = 'eng';
+		}
+		sendBcr($row, $hostel, $link, $dict);
 	}
 }
 
 mysql_close($link);
 
 
-function sendBcr($row, $location, $link) {
+function sendBcr($row, $location, $link, &$dict) {
 	$descrId = $row['id'];
 	$email = $row['email'];
 	$name = $row['name'];
@@ -48,7 +53,7 @@ function sendBcr($row, $location, $link) {
 		return;
 	}
 	
-	$mailMessage = getBcrMessage($row, BCR_MESSAGE_ONE_WEEK, $link);
+	$mailMessage = getBcrMessage($row, $dict[$row['language']]['BCR_MESSAGE_ONE_WEEK'], $link, $dict, $location);
 	$inlineAttachments = array(	
 		'logo' => EMAIL_IMG_DIR . 'logo-' . $location . '.jpg',
 		'airport' => EMAIL_IMG_DIR . 'airport.jpg',
@@ -57,14 +62,14 @@ function sendBcr($row, $location, $link) {
 		'railwaystation' => EMAIL_IMG_DIR . 'railwaystation.jpg'
 	);
 
-	$locationName = constant('LOCATION_NAME_' . strtoupper($location));
-	$subject = str_replace('LOCATION', $locationName, BCR_MESSAGE_ONE_WEEK_SUBJECT);
+	$locationName = $dict[$row['language']]['LOCATION_NAME_' . strtoupper($location)];
+	$subject = str_replace('LOCATION', $locationName, $dict[$row['language']]['BCR_MESSAGE_ONE_WEEK_SUBJECT']);
 	
 	$result = sendMail(CONTACT_EMAIL, $locationName, 
 		$email, $name, $subject, $mailMessage, $inlineAttachments);
 
-	echo "BCR Email sent to $name $email $fnight [result: $result]";
-		
+	echo "BCR Email sent to $name $email $fnight [result: $result]\n";
+
 	mysql_query('START TRANSACTION', $link);
 
 	$today=date('Y/m/d');
