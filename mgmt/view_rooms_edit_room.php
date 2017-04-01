@@ -56,7 +56,9 @@ $additionalRoomTypesOptions = '';
 foreach($roomTypes as $rtId => $roomType) {
 	$rtName = $roomType['name'];
 	$roomTypeOptions .= "<option value=\"$rtId\"" . ($roomData['room_type_id'] == $rtId ? ' selected' : '') . ">$rtName</option>";
-	$additionalRoomTypesOptions .= "<option value=\"$rtId\"" . (in_array($rtId, $additionalRoomTypes) ? ' selected' : '') . ">$rtName</option>";
+	if($roomData['room_type_id'] != $rtId and $roomType['type'] != 'DORM') {
+		$additionalRoomTypesOptions .= "<option value=\"$rtId\"" . (in_array($rtId, $additionalRoomTypes) ? ' selected' : '') . ">$rtName</option>";
+	}
 }
 
 $name = $roomData['name'];
@@ -67,6 +69,15 @@ $title = 'Edit Room';
 if($roomId < 1) {
 	$title = 'New Room';
 }
+
+$additionalRoomTypesRow = '';
+if(isset($roomTypes[$roomData['room_type_id']]) and $roomTypes[$roomData['room_type_id']]['type'] != 'DORM')
+$additionalRoomTypesRow = <<<EOT
+	<tr><td><label>Additional room types</label></td><td><select name="additional_types[]" multiple="multiple" style="width: 200px; height: 100px; font-size: 11px;">
+$additionalRoomTypesOptions
+	</select></td></tr>
+
+EOT;
 
 echo <<<EOT
 
@@ -79,9 +90,7 @@ echo <<<EOT
 	<tr><td><label>Type</label></td><td><select name="type" style="width: 200px; font-size: 11px;">
 $roomTypeOptions
 	</select></td></tr>
-	<tr><td><label>Additional room types</label></td><td><select name="additional_types[]" multiple="multiple" style="width: 200px; height: 100px; font-size: 11px;">
-$additionalRoomTypesOptions
-	</select></td></tr>
+$additionalRoomTypesRow
 	<tr><td><label>Valid from</label></td><td><input name="valid_from" value="$validFrom" style="width: 80px;"> <span> (YYYY/MM/DD) - inclusive</span></td></tr>
 	<tr><td><label>Valid to</label></td><td><input name="valid_to" value="$validTo" style="width: 80px;"> <span> (YYYY/MM/DD) - inclusive</span></td></tr>
 </table>

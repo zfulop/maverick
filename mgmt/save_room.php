@@ -19,6 +19,21 @@ $validTo = $_REQUEST['valid_to'];
 if(strlen($validTo) != 10)
 	$validTo = '2099/12/31';
 
+$sql = "SELECT * FROM room_types WHERE id=$type";
+$result = mysql_query($sql, $link);
+if(!$result) {
+	trigger_error("Cannot get room type in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	set_error('Error getting  room type');
+	mysql_close($link);
+	return;
+}
+if(mysql_num_rows($result) < 1) {
+	set_error('Cannot find room type');
+	mysql_close($link);
+	return;	
+}
+$roomType = mysql_fetch_assoc($result);
+
 mysql_query("START TRANSACTION", $link);
 
 
@@ -59,7 +74,7 @@ foreach($additionalRoomTypes as $rt) {
 	}
 }
 
-if(strlen($sql) > 0) {
+if(strlen($sql) > 0 and $roomType['type'] != 'DORM') {
 	$sql = "INSERT INTO rooms_to_room_types (room_id, room_type_id) VALUES " . substr($sql, 0, -1);
 	$result = mysql_query($sql, $link);
 	if(!$result) {

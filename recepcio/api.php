@@ -182,6 +182,22 @@ function loadAvailability() {
 
 	$retVal['rooms'] = array();
 	foreach($roomTypesData as $roomTypeId => $roomType) {
+		if(!isDorm($roomType) and $roomType['num_of_rooms_avail'] == 1) {
+			$roomId = $roomType['rooms_providing_availability'];
+			$roomData = $rooms[$roomId];
+			if($roomData['room_type_id'] == $roomTypeId) {
+				logDebug("For room type: $roomTypeId there is only one room available (" . $roomData['name'] . ") and that room's original room type is this room type"); 
+				logDebug("Removing availability from the additional room types that this room is has"); 
+				// There is only 1 room available for this room type and that one room's main room type is this room type.
+				// In this case we need to remove this room's availability from all the additional room types for this room
+				foreach($roomData['room_types']	as $additionalRoomTypeId => $additionalRoomTypeName) {
+					if($additionalRoomTypeId == $roomTypeId) { continue; }
+					logDebug("	remove availability from the additional room type: $additionalRoomTypeName ($additionalRoomTypeId)");
+					$roomTypesData[$additionalRoomTypeId]['num_of_rooms_avail'] -= 1;
+					str_replace(",$roomId,", ",", $roomType['rooms_providing_availability']);
+				}
+			}
+		}
 		if(is_null($filterRoomIds) or in_array($roomTypeId, $filterRoomIds)) {
 			matchSpecialOffer($roomType, $roomTypeId, $nights, $arriveDate, $specialOffers, $link);
 			$retVal['rooms'][] = $roomType;
@@ -320,9 +336,15 @@ function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType, 
 	}
 	if($minAvailBeds == $roomData['num_of_beds']) {
 		$roomType['num_of_rooms_avail'] += 1;
-		$roomType['rooms_providing_availability'] .= $roomData['id'] . ',';
+		if(strlen($roomType['rooms_providing_availability']) > 0) {
+			$roomType['rooms_providing_availability'] .= ',';
+		}
+		$roomType['rooms_providing_availability'] .= $roomData['id'];
 	} elseif($minAvailBeds > 0 and isDorm($roomType)) {
-		$roomType['rooms_providing_availability'] .= $roomData['id'] . ',';
+		if(strlen($roomType['rooms_providing_availability']) > 0) {
+			$roomType['rooms_providing_availability'] .= ',';
+		}
+		$roomType['rooms_providing_availability'] .= $roomData['id'];
 	}
 
 	$roomType['num_of_beds_avail'] += $minAvailBeds;
