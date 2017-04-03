@@ -889,18 +889,19 @@ function respond($code, $success, $errorMessage = null) {
 		$msg = $MESSAGES[$code];
 		$retVal['error'] = array('code' => $code, 'msg' => $msg, 'comment' => $errorMessage);
 	}
-	
-	logDebug("Response: code=$code, success=$success, errorMessage=$errorMessage");
+
 	$retVal = array('success' => true);
-	logDebug("Response (as it is sent back): " . json_encode($retVal));
-	
+	if(function_exists('logDebug')) {
+		logDebug("Response: code=$code, success=$success, errorMessage=$errorMessage");
+		logDebug("Response (as it is sent back): " . json_encode($retVal));
+	}
 	
 	header("Content-type: application/json; charset=utf-8");
 	echo json_encode($retVal);
 
 	if(!is_null($errorMessage)) {
 		$result = sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', 'Error with booking from myallocator to ' . LOCATION, $errorMessage . "\n\nRequest:\n" . stripslashes($_REQUEST['booking']));
-		if(!is_null($result)) {
+		if(!is_null($result) && function_exists('logDebug')) {
 			logDebug("Cannot send error email: " . $result);
 		}
 	}
