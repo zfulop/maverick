@@ -124,6 +124,28 @@ class RoomDao {
 		$roomTypes = RoomDao::getRoomTypes($lang, $link);
 		return $roomTypes[$roomTypeId];
 	}
+	
+	/**
+	 * Returns true if type is DORM
+	 */
+	public static function isDorm($roomType) {
+		return $roomType['type'] == 'DORM';
+	}
+	
+	/**
+	 * Returns true if type is PRIVATE
+	 */
+	function isPrivate($roomType) {
+		return $roomType['type'] == 'PRIVATE';
+	}
+
+	/**
+	 * Returns true if type is APARTMENT
+	 */
+	function isApartment(&$roomType) {
+		return $roomType['type'] == 'APARTMENT';
+	}
+
 
 	/**
 	 * Gets the room images that are saved in the system. 

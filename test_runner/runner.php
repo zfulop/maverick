@@ -2,7 +2,7 @@
 
 require '../includes/config/teszt_hostel.php';
 require 'includes.php';
-require '../roomcaptain_recepcio/room_booking.php';
+require '../reception/room_booking.php';
 
 logDebug("Running tests");
 
@@ -127,7 +127,7 @@ function splitIntoCommands($content) {
 		if($oneLine == '') {
 			continue;
 		}
-		if(startsWith($oneLine, 'Given') or startsWith($oneLine, 'When') or startsWith($oneLine, 'Then')) {
+		if(startsWith($oneLine, 'Given') or startsWith($oneLine, 'When') or startsWith($oneLine, 'Then') or startsWith($oneLine, 'Verify')) {
 			$commands[] = trim($currentCommand);
 			$currentCommand = '';
 		}

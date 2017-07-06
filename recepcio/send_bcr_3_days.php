@@ -2,7 +2,7 @@
 
 $hostel = $argv[1];
 
-$configFile = ROOT_DIR . '../includes/config/' . $hostel . '.php';
+$configFile = '../includes/config/' . $hostel . '.php';
 if(file_exists($configFile)) {
 	require($configFile);
 }

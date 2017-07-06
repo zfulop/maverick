@@ -137,7 +137,7 @@ function whenTheFollowingBookingArrivesFromMyallocator($table) {
 	
 	$postString = "password=dfvsdq23sd&booking=" . urlencode(json_encode($jsonMessage));
 	
-	$curl_connection = curl_init('http://dev.recepcio.roomcaptain.com/myallocator_booking.php');	
+	$curl_connection = curl_init('http://recepcio.dev.roomcaptain.com/myallocator_booking.php');	
 	curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
     curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);

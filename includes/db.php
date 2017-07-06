@@ -8,13 +8,15 @@ function db_connect($dbName = null, $forceNew = false) {
 		logError("Error openning connection to DB: No const defined for " . 'DB_' . strtoupper($dbName) . '_USERNAME');
 		return null;
 	}
+	$dbServer = constant('DB_SERVER');
+	$dbMysqlName = constant('DB_' . strtoupper($dbName) . '_DBNAME');
 	$dbUser = constant('DB_' . strtoupper($dbName) . '_USERNAME');
 	$dbPwd = constant('DB_' . strtoupper($dbName) . '_PASSWORD');
-	$link = mysql_connect('localhost', $dbUser, $dbPwd, $forceNew);
-	mysql_select_db($dbName, $link);
+	$link = mysql_connect($dbServer, $dbUser, $dbPwd, $forceNew);
+	mysql_select_db($dbMysqlName, $link);
 	$error = mysql_error();
 	if(!is_null($error)) {
-		logError("Error openning connection to DB. DB name: $dbName, username: $dbUser. DB error: $error");
+		logError("Error openning connection to DB. DB name: $dbMysqlName, username: $dbUser. DB error: $error");
 	}
 	if(!mysql_query("SET NAMES utf8", $link)) {
 		$err = mysql_error($link);

@@ -2,7 +2,9 @@
 
 $hostel = $argv[1];
 
-$configFile = ROOT_DIR . '../includes/config/' . $hostel . '.php';
+
+
+$configFile = '../includes/config/' . $hostel . '.php';
 if(file_exists($configFile)) {
 	require($configFile);
 }
@@ -23,10 +25,18 @@ while($row = mysql_fetch_assoc($result)) {
 	$dict[$row['lang']][$row['column_name']] = $row['value'];
 }
 
+$bdId = null;
+if(count($argv) > 2) {
+	$bdId = intval($argv[2]);
+}
 $oneWeekFromToday = date('Y/m/d', strtotime(date('Y-m-d') . ' +1 week'));
 $bcrTo = array();
 $sendBcr = array();
-$sql = "SELECT * FROM booking_descriptions WHERE first_night<='$oneWeekFromToday' AND cancelled=0 AND confirmed=0 AND checked_in=0 AND bcr_sent IS NULL";
+if(is_null($bdId)) {
+	$sql = "SELECT * FROM booking_descriptions WHERE first_night='$oneWeekFromToday' AND cancelled=0 AND confirmed=0 AND checked_in=0 AND bcr_sent IS NULL";
+} else {
+	$sql = "SELECT * FROM booking_descriptions WHERE id=$bdId";
+}
 $result = mysql_query($sql, $link);
 if(!$result) {
 	trigger_error("Cannot bookings without BCR: " . mysql_error($link) . " (SQL: $sql)");
@@ -68,7 +78,7 @@ function sendBcr($row, $location, $link, &$dict) {
 	$result = sendMail(CONTACT_EMAIL, $locationName, 
 		$email, $name, $subject, $mailMessage, $inlineAttachments);
 
-	echo "BCR Email sent to $name $email $fnight [result: $result]\n";
+	echo "BCR Email sent from " . CONTACT_EMAIL . " to $name $email $fnight [result: $result]\n";
 
 	mysql_query('START TRANSACTION', $link);
 

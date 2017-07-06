@@ -657,7 +657,7 @@ function getRoomIds(&$rooms, $roomTypeId) {
 	}
 	foreach($roomTypeIds as $roomTypeId) {
 		foreach($rooms as $rid => $roomData) {
-			if(in_array($roomTypeId, array_keys($roomData['room_types']))) {
+			if(isRoomOfType($roomData, $roomTypeId)) {
 				$rids[] = $rid;
 			}
 		}

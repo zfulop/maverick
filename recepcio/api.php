@@ -38,6 +38,10 @@ if($action == 'rooms') {
 	$retVal = loadRoomCalendarAvailability();
 } elseif($action == 'room_highlights') {
 	$retVal = loadRoomHighlights();
+} elseif($action == 'confirm_booking') {
+	$retVal = getBookingToConfirm();
+} elseif($action == 'confirm_booking_submit') {
+	$retVal = doConfirmBooking();
 } else {
 	echo "invalid action parameter value";
 }
@@ -125,16 +129,18 @@ function loadAvailability() {
 	
 	logDebug("Loading availability from $fromDate to $toDate ($nights nights)");
 
-	if($fromDate < date('Y-m-d')) {
-		return array('error' => 'BOOKING_DATE_MUST_BE_IN_THE_FUTURE');
+	if(!hasParameter('ignore_date_check') or (hasParameter('ignore_date_check') and getParameter('ignore_date_check') !== 'true')) {
+		if($fromDate < date('Y-m-d')) {
+			return array('error' => 'BOOKING_DATE_MUST_BE_IN_THE_FUTURE');
+		}
+		if($toDate <= date('Y-m-d')) {
+			return array('error' => 'BOOKING_DATE_MUST_BE_IN_THE_FUTURE');
+		}
+		if($toDate <= $fromDate) {
+			return array('error' => 'CHECKOUT_DATE_MUST_BE_AFTER_CHECKIN_DATE');
+		}
 	}
-	if($toDate <= date('Y-m-d')) {
-		return array('error' => 'BOOKING_DATE_MUST_BE_IN_THE_FUTURE');
-	}
-	if($toDate <= $fromDate) {
-		return array('error' => 'CHECKOUT_DATE_MUST_BE_AFTER_CHECKIN_DATE');
-	}
-
+		
 	$link = db_connect($location);
 
 	$minMax = getMinMaxStay($fromDate, $toDate, $link);
@@ -182,20 +188,13 @@ function loadAvailability() {
 
 	$retVal['rooms'] = array();
 	foreach($roomTypesData as $roomTypeId => $roomType) {
+		// Check if for a room type there is only 1 room available and that rooms original room type is that type, then that room cannot be
+		// counted as available for any other addtional room type
 		if(!isDorm($roomType) and $roomType['num_of_rooms_avail'] == 1) {
 			$roomId = $roomType['rooms_providing_availability'];
 			$roomData = $rooms[$roomId];
 			if($roomData['room_type_id'] == $roomTypeId) {
-				logDebug("For room type: $roomTypeId there is only one room available (" . $roomData['name'] . ") and that room's original room type is this room type"); 
-				logDebug("Removing availability from the additional room types that this room is has"); 
-				// There is only 1 room available for this room type and that one room's main room type is this room type.
-				// In this case we need to remove this room's availability from all the additional room types for this room
-				foreach($roomData['room_types']	as $additionalRoomTypeId => $additionalRoomTypeName) {
-					if($additionalRoomTypeId == $roomTypeId) { continue; }
-					logDebug("	remove availability from the additional room type: $additionalRoomTypeName ($additionalRoomTypeId)");
-					$roomTypesData[$additionalRoomTypeId]['num_of_rooms_avail'] -= 1;
-					str_replace(",$roomId,", ",", $roomType['rooms_providing_availability']);
-				}
+				removeAvailabilityForAdditionalRoomTypes($roomData, $roomTypesData);
 			}
 		}
 		if(is_null($filterRoomIds) or in_array($roomTypeId, $filterRoomIds)) {
@@ -259,6 +258,29 @@ function isAvailable($roomAvailability) {
 	if(!isDorm($roomAvailability) and $roomAvailability['num_of_rooms_avail'] > 0) {
 		return true;
 	}
+}
+
+function removeAvailabilityForAdditionalRoomTypes($roomData, &$roomTypesData) {
+	$roomTypeId = $roomData['room_type_id'];
+	$roomId = $roomData['id'];
+	logDebug("For room type: $roomTypeId there is only one room available (" . $roomData['name'] . ") and that room's original room type is this room type"); 
+	logDebug("Removing availability from the additional room types that this room is has"); 
+	// There is only 1 room available for this room type and that one room's main room type is this room type.
+	// In this case we need to remove this room's availability from all the additional room types for this room
+	foreach($roomData['room_types']	as $additionalRoomTypeId => $additionalRoomTypeName) {
+		if($additionalRoomTypeId == $roomTypeId) { continue; }
+		logDebug("	remove availability from the additional room type: $additionalRoomTypeName ($additionalRoomTypeId)");
+		$roomTypesData[$additionalRoomTypeId]['rooms_providing_availability'] = removeRoomIdFromList($roomId, $roomTypesData[$additionalRoomTypeId]['rooms_providing_availability']);
+		$roomTypesData[$additionalRoomTypeId]['num_of_rooms_avail'] -= 1;
+	}
+}
+
+function removeRoomIdFromList($roomId, $roomsProvidingAvailability) {
+	$roomIdArray = array();
+	foreach(explode(',',$roomProvidingAvailability) as $id) {
+		if($id != $roomId) { $roomIdArray[] = $id; }
+	}
+	return implode(",", $roomIdArray);
 }
 
 // Returns array wit key: room type id, value: list of image objects
@@ -348,7 +370,7 @@ function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType, 
 	}
 
 	$roomType['num_of_beds_avail'] += $minAvailBeds;
-	$roomType['price'] = number_format(convertAmount(getPrice($arriveTS, $nights, $roomData, 1),'EUR',$currency, date('Y-m-d')) / $nights, 2);
+	$roomType['price'] = convertAmount(getPrice($arriveTS, $nights, $roomData, 1)/$nights,'EUR',$currency, date('Y-m-d')) ;
 	if(isApartment($roomType)) {
 		for($i=2; $i<= $roomType['num_of_beds']; $i++) {
 			$roomType['price_' . $i] = number_format(convertAmount(getPrice($arriveTS, $nights, $roomData, $i),'EUR',$currency, date('Y-m-d')) / $nights, 2);
@@ -356,7 +378,7 @@ function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType, 
 	}
 
 	if(!is_null($specialOffers)) {
-		list($discount, $selectedSo) = findSpecialOffer($specialOffers, $roomType, $nights, date('Y-m-d', $arriveTs), 1);
+		list($discount, $selectedSo) = findSpecialOffer($specialOffers, $roomType, $nights, date('Y-m-d', $arriveTS), 1);
 		// apply special offer
 		$discountedPayment = $roomType['price'];
 		if($discount > 0) {
@@ -457,6 +479,99 @@ function loadRoomHighlights() {
 	return $retVal;
 }
 
+
+function getBookingToConfirm() {
+	if(!checkMissingParameters(array('location','lang','confirm_code'))) {
+		return null;
+	}
+
+	logDebug("Loading booking to confirm");
+	$location = getParameter('location');
+	$lang = getParameter('lang');
+	$confirmCode = getParameter('confirm_code');
+	$link = db_connect($location);
+
+	$row = getDBBooking($confirmCode, $link);
+	$retVal = array();
+	if(!is_null($row)) {
+		$retVal = array('name' => $row['name'],
+			'name' => $row['name'],
+			'email' => $row['email'],
+			'arrive_date' => str_replace('/','-',$row['first_night']),
+			'departure_date' => date('Y-m-d', strtotime(str_replace('/','-',$row['last_night']) . ' +1 day')),
+		);
+	}
+
+	mysql_close($link);
+	return $retVal;
+}
+
+function getDBBooking($confirmCode, $link) {
+	$idx = strpos($confirmCode, 'A');
+	$descrId = substr($confirmCode, 0, $idx);
+	$code = substr($confirmCode, $idx + 1);
+	logDebug("booking descr id: $descrId");
+	$sql = "SELECT * FROM booking_descriptions WHERE id=$descrId";
+	$result = mysql_query($sql, $link);
+	if($result and (mysql_num_rows($result) > 0)) {
+		$row = mysql_fetch_assoc($result);
+		$emailValue = $row['email'];
+		if(password_verify($emailValue, $code)) {
+			logDebug("Found and validated booking with email: $emailValue");
+			return $row;
+		} else {
+			logDebug("Cannot validate the email");
+		}
+	} else {
+		logDebug("No booking found for description id");
+	}
+	return null;
+}
+
+
+function doConfirmBooking() {
+	if(!checkMissingParameters(array('location','lang','confirm_code', 'arrive_time', 'comment'))) {
+		return null;
+	}
+
+	logDebug("Submit booking confirmation");
+	$location = getParameter('location');
+	$lang = getParameter('lang');
+	$confirmCode = getParameter('confirm_code');
+	$link = db_connect($location);
+
+	$row = getDBBooking($confirmCode, $link);
+	$retVal = array();
+	if(!is_null($row)) {
+		$arrivalTime = mysql_real_escape_string(getParameter('arrive_time'), $link);
+		$comment = mysql_real_escape_string(getParameter('comment'), $link);
+		$descrId = $row['id'];
+
+		$sql = "UPDATE bcr SET checkin_time='$arrivalTime', comment='$comment' WHERE booking_description_id=$descrId";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("cannot confirm booking: Cannot update booking data (sql: $sql) error: " . mysql_error($link));
+			$hasError = true;
+		}
+
+		$sql = "UPDATE booking_descriptions SET arrival_time='$arrivalTime', confirmed=1 WHERE id=$descrId";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("cannot confirm booking: Cannot update booking data (sql: $sql) error: " . mysql_error($link));
+			$hasError = true;
+		}
+		$retVal = array('name' => $row['name'],
+			'name' => $row['name'],
+			'email' => $row['email'],
+			'arrive_date' => str_replace('/','-',$row['first_night']),
+			'departure_date' => date('Y-m-d', strtotime(str_replace('/','-',$row['last_night']) . ' +1 day')),
+		);
+
+	}
+
+	mysql_close($link);
+	return $retVal;
+}
 
 
 
@@ -1188,32 +1303,32 @@ function checkParameterValue($parameterName, $possibleValues) {
 }
 
 function getParameter($parameterName) {
-	if(isset($_SERVER["argv"])) {
-		$argv = $_SERVER["argv"];
+	if(isset($argv)) {
 		for($i = 1; $i < (count($argv)-1); $i++) {
 			if($argv[$i] == ('-' . $parameterName)) {
 				return $argv[$i+1];
 			}
 		}
-		return null;
-	} else {
-		return $_REQUEST[$parameterName];		
 	}
+	if(isset($_REQUEST) and isset($_REQUEST[$parameterName])) {
+		return $_REQUEST[$parameterName];
+	}
+	return null;
 }
 
 function hasParameter($parameterName) {
-	if(isset($_SERVER["argv"])) {
-		$argv = $_SERVER["argv"];
+	if(isset($argv)) {
 		$parameterName = '-' . $parameterName;
 		for($i = 1; $i < (count($argv)-1); $i++) {
 			if($argv[$i] == $parameterName) {
 				return true;
 			}
 		}
-		return false;
-	} else {
+	}
+	if(isset($_REQUEST)) {
 		return isset($_REQUEST[$parameterName]);
 	}
+	return false;
 }
 
 

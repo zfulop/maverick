@@ -30,12 +30,15 @@ $loadMyAllocator = '';
 
 $startDate = $_REQUEST['start_date'];
 $endDate = $_REQUEST['end_date'];
+logDebug("Start: $startDate, End: $endDate");
 $paramsArray = array();
 $datesArray = array();
 $currDate = $startDate;
 $currEndDate = min($endDate, date('Y-m-d', strtotime($startDate . ' +1 month')));
 $cntr = 0;
-while($currDate < $endDate) {
+while($currDate <= $endDate) {
+	logDebug("currDate: $currDate");
+	logDebug("currEndDate: $currEndDate");
 	list($currStartYear, $currStartMonth, $currStartDay) = explode('-', $currDate);
 	list($currEndYear, $currEndMonth, $currEndDay) = explode('-', $currEndDate);
 	if(strlen($currStartDay) == 1)
@@ -51,8 +54,8 @@ while($currDate < $endDate) {
 	$datesArray[] = "$currDate - $currEndDate";
 	$loadHrs .= in_array('hrs', $_REQUEST['sites']) ? "loadFrame('hrs$cntr', 'hrs.php?$params');\n" : '';
 	$loadMyAllocator .= in_array('myallocator', $_REQUEST['sites']) ? "loadFrame('myallocator$cntr', 'myallocator.php?$params');\n" : '';
-	$currDate = $currEndDate;
-	$currEndDate = min($endDate, date('Y-m-d', strtotime($currDate . ' +1 month')));
+	$currDate = date('Y-m-d', strtotime($currEndDate . ' +1 day'));
+	$currEndDate = min(max($currDate, $endDate), date('Y-m-d', strtotime($currDate . ' +1 month')));
 	$cntr += 1;
 }
 $diff = strtotime($endDate) - strtotime($startDate);

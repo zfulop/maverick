@@ -113,7 +113,7 @@ EOT;
 	echo "	<tr><td>$key</td>";
 	foreach(getLanguages() as $code => $langName) {
 		$name = 'WEBSITETEXT_' . $key . '_' . $code;
-		echo "<td><input name=\"$name\" value=\"" . (isset($values[$code]) ? $values[$code] : '') . "\"></td>";
+		echo "<td><textarea name=\"$name\">" . (isset($values[$code]) ? $values[$code] : '') . "</textarea></td>";
 	}
 	echo "</tr>\n";
 	$cntr += 1;

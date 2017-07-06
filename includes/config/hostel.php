@@ -1,7 +1,7 @@
 <?php
 
-define('EXCHANGE_TABLE_FILE', '/home/zolika/includes/config/exchange_table_lodge.php');
-define('COUNTRIES_FILE', '/home/zolika/includes/countries.txt');
+define('EXCHANGE_TABLE_FILE', '/home/maveric3/includes/config/exchange_table_lodge.php');
+define('COUNTRIES_FILE', '/home/maveric3/includes/countries.txt');
 define('LOCATION', 'hostel');
 
 define('CONTACT_EMAIL', 'reservation@maverickhostel.com');

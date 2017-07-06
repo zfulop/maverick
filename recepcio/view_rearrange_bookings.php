@@ -34,10 +34,21 @@ if(!$result) {
 	while($row = mysql_fetch_assoc($result)) {
 		$rooms[$row['id']] = $row;
 		$roomIdToPosition[$row['id']] = $pos;
-		$roomTypeNames[$row['rtid']] = $row['room_type_name'];
 		$pos += 1 + $row['num_of_beds'] * 20;
 	}
 }
+
+$sql = "SELECT * FROM room_types";
+$result = mysql_query($sql, $link);
+if(!$result) {
+	trigger_error("Cannot get room types: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+} else {
+	$pos = 1;
+	while($row = mysql_fetch_assoc($result)) {
+		$roomTypeNames[$row['id']] = $row['name'];
+	}
+}
+
 
 
 $bookings = array();

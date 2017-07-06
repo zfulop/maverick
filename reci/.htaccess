@@ -1,4 +1,4 @@
-AuthUserFile  /var/hosting/web/mavericklodges.com/website/recepcio/.htpasswd
+AuthUserFile  /home/maveric3/reci.mavericklodges.com/.htpasswd
 AuthName "Maverick City Lodge - Recepcio"
 AuthType Basic
 <Limit GET POST>

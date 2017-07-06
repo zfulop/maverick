@@ -25,6 +25,8 @@ UNION ALL
 SELECT pfd.price_set_date, '' as price_unset_date, pfd.price_per_room, pfd.price_per_bed, 0 as occupancy FROM prices_for_date pfd WHERE room_type_id=$roomTypeId AND date='$currDateSlash'
 EOT;
 
+$roomTypes = loadRoomTypes($link);
+
 $prices = array();
 $result = mysql_query($sql, $link);
 while($row = mysql_fetch_assoc($result)) {

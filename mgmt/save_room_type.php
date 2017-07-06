@@ -24,19 +24,19 @@ $order = intval($_REQUEST['order']);
 
 mysql_query("START TRANSACTION", $link);
 
-$sql = "UPDATE room_types SET _order=_order+1 WHERE _order>=$order";
-$result = mysql_query($sql, $link);
-if(!$result) {
-	trigger_error("Cannot change room types orders in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
-	set_error('Cannot save new room type');
-	mysql_close($link);
-	return;
-}
 
 if($id < 1) {
+	$sql = "UPDATE room_types SET _order=_order+1 WHERE _order>=$order";
+	$result = mysql_query($sql, $link);
+	if(!$result) {
+		trigger_error("Cannot change room types orders in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+		set_error('Cannot save new room type');
+		mysql_close($link);
+		return;
+	}
 	$sql = "INSERT INTO room_types (name, type, num_of_beds, num_of_extra_beds, price_per_room, price_per_bed, surcharge_per_bed, _order) VALUES ('$name', '$type', $numOfBeds, $numOfExtraBeds, $pricePerRoom, $pricePerBed, $surchargePerBed, $order)";
 } else {
-	$sql = "UPDATE room_types SET name='$name', type='$type', num_of_beds=$numOfBeds, num_of_extra_beds=$numOfExtraBeds, price_per_room=$pricePerRoom, price_per_bed=$pricePerBed, _order=$order, surcharge_per_bed=$surchargePerBed WHERE id=$id";
+	$sql = "UPDATE room_types SET name='$name', type='$type', num_of_beds=$numOfBeds, num_of_extra_beds=$numOfExtraBeds, price_per_room=$pricePerRoom, price_per_bed=$pricePerBed, surcharge_per_bed=$surchargePerBed WHERE id=$id";
 }
 
 $result = mysql_query($sql, $link);

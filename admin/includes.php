@@ -1,6 +1,8 @@
 <?php
 
-define('ROOT_DIR', '/home/zolika/roomcaptain_admin/');
+date_default_timezone_set('Europe/Budapest');
+
+define('ROOT_DIR', '/home/maveric3/admin/');
 
 require(ROOT_DIR . 'includes/config.php');
 require(ROOT_DIR . '../includes/message.php');

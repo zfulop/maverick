@@ -1,6 +1,6 @@
 <?php
 
-define('PHP_MAILER_LANGUAGE_DIR', "/home/zolika/includes/phpmailer/language");
+define('PHP_MAILER_LANGUAGE_DIR', "/home/maveric3/includes/phpmailer/language");
 define('PHP_MAILER_SENDTYPE_SENDMAIL', 'SENDMAIL');
 define('PHP_MAILER_SENDTYPE_MAIL', 'MAIL');
 define('PHP_MAILER_SENDTYPE_SMTP', 'SMTP');
@@ -13,10 +13,10 @@ define('PHP_MAILER_SENDTYPE_SMTP_USER', 'sdfvew');
 define('PHP_MAILER_SENDTYPE_SMTP_PASSWORD', 'NmQ4Ym9qMnB2dzli');
 
 
-define('EMAIL_IMG_DIR', "/home/zolika/www/img/email/");
+define('EMAIL_IMG_DIR', "/home/maveric3/reception/img/email/");
 
-define('IMG_ROOT_URL', 'http://www.mavericklodges.com/img/');
-define('IMG_ROOT_DIR', '/home/zolika/www/img/');
+define('IMG_ROOT_URL', 'https://reception.roomcaptain.com/img/');
+define('IMG_ROOT_DIR', '/home/maveric3/reception/img/');
 
 define('ROOMS_IMG_DIR', IMG_ROOT_DIR . "rooms/");
 define('ROOMS_IMG_URL', IMG_ROOT_URL . "rooms/");
@@ -27,13 +27,12 @@ define('AWARDS_IMG_URL', IMG_ROOT_URL . "awards/");
 
 define('ROOT_URL', '/');
 
-define('FPDF_FONTPATH','/home/zolika/includes/font');
+define('FPDF_FONTPATH','/home/maveric3/includes/font');
 
-define('CONFIRM_BOOKING_URL', 'http://www.mavericklodges.com/LANG/confirm_booking.php?location=LOCATION&confirmCode=CONFIRM_CODE');
-define('LANG_DIR', '/home/zolika/www/includes/language/');
+define('CONFIRM_BOOKING_URL', 'http://mavericklodges.com/LANG_2/confirm-booking/?confirm_code=CONFIRM_CODE&location=LOCATION&lang=LANG');
 
-define('LOG_DIR', '/home/zolika/logs/recepcio/');
+define('LOG_DIR', '/home/maveric3/logs/reception/');
 
-define('EDIT_BOOKING_URL', 'http://recepcio.roomcaptain.com/edit_booking.php');
+define('EDIT_BOOKING_URL', 'http://reception.roomcaptain.com/edit_booking.php');
 
 ?>

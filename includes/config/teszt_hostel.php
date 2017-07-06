@@ -1,7 +1,7 @@
 <?php
 
-define('EXCHANGE_TABLE_FILE', '/home/zolika/dev/includes/config/exchange_table_test_hostel.php');
-define('COUNTRIES_FILE', '/home/zolika/dev/includes/countries.txt');
+define('EXCHANGE_TABLE_FILE', '/home/maveric3/includes-dev/config/exchange_table_test_hostel.php');
+define('COUNTRIES_FILE', '/home/maveric3/includes-dev/countries.txt');
 define('LOCATION', 'test_hostel');
 
 define('CONTACT_EMAIL', 'zolika@zolilla.com');
