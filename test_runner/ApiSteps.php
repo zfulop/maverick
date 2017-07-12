@@ -17,7 +17,11 @@ function whenIAskForTheAvailabilityFromTheAPI($table) {
 }
 
 function executeApi($currency, $action, $params) {
-	$cmd = '/home/maveric3/reception-dev/api.php -lang eng -currency $currency -action $action -ignore_date_check true';
+	return executeApiViaUrl($currency, $action, $params);
+}
+
+function executeApiViaLocalCmd($currency, $action, $params) {
+	$cmd = 'php -c /home/maveric3/php.ini /home/maveric3/dev/reception/api.php -location teszt_hostel -lang eng -currency $currency -action $action -ignore_date_check true';
 	foreach($params as $name => $value) {
 		$cmd .= " -$name $value";
 	}
@@ -31,7 +35,22 @@ function executeApi($currency, $action, $params) {
 	if($returnVar > 0) {
 		throw new Exception("Cannot execute command: $cmd. Error: $apiOutput");
 	}
+	return $apiOutput;
 }
+
+function executeApiViaUrl($currency, $action, $params) {
+	$httpClient = new Http_Client();
+	$postData = array('location' => 'teszt_hostel', 'lang' => 'eng', 'currency' => $currency, 'action' => $action, 'ignore_date_check' => 'true');
+	foreach($params as $name => $value) {
+		$postData[$name] = $value;
+	}
+
+	$retCode = $httpClient->post("http://reception.dev.roomcaptain.com/api.php", $postData);
+	$resp = $httpClient->currentResponse();
+	return $resp['body'];
+}
+
+
 
 function thenTheFollowingRoomsReturnFromTheAPI($table) {
 	global $apiOutput;
@@ -97,77 +116,12 @@ function apiAvailCompare($avail1, $avail2) {
 	if($avail1['rt_name'] < $avail2['rt_name']) { return -1; }
 	if($avail1['id'] > $avail2['id']) { return 2; }
 	if($avail1['id'] < $avail2['id']) { return -2; }
-	if($avail1['num_of_beds_avail'] > $avail2['num_of_beds_avail']) { return 3; }
-	if($avail1['num_of_beds_avail'] < $avail2['num_of_beds_avail']) { return -3; }
-	if($avail1['num_of_rooms_avail'] > $avail2['num_of_rooms_avail']) { return 4; }
-	if($avail1['num_of_rooms_avail'] < $avail2['num_of_rooms_avail']) { return -4; }
+	if(trim($avail1['num_of_beds_avail']) !== '' and $avail1['num_of_beds_avail'] > $avail2['num_of_beds_avail']) { return 3; }
+	if(trim($avail1['num_of_beds_avail']) !== '' and $avail1['num_of_beds_avail'] < $avail2['num_of_beds_avail']) { return -3; }
+	if(trim($avail1['num_of_rooms_avail']) !== '' and $avail1['num_of_rooms_avail']> $avail2['num_of_rooms_avail']) { return 4; }
+	if(trim($avail1['num_of_rooms_avail']) !== '' and $avail1['num_of_rooms_avail'] < $avail2['num_of_rooms_avail']) { return -4; }
 	return 0;
 }
-
-function givenThereAreNoVirtualRoomsConfigured() {
-	$link = db_connect('teszt_hostel');
-	deleteVirtualRooms($link);
-	mysql_close($link);
-}
-
-function deleteVirtualRooms($link) {
-	echo "Deleting virtual rooms\n";
-	$sql = "DELETE FROM rooms_to_room_types";
-	$result = mysql_query($sql, $link);
-	if(!$result) {
-		mysql_close($link);
-		throw new Exception("Error deleting all existing virtual rooms: " . mysql_error($link) . " (SQL: $sql)");		
-	}
-}
-
-function givenTheFollowingVirtualRoomsAreConfigured($table) {
-
-	echo "Setting up virtual rooms\n";
-
-	$link = db_connect('teszt_hostel');
-	$sql = "SELECT * FROM rooms";
-	$result = mysql_query($sql, $link);
-	$rooms = array();
-	while($row = mysql_fetch_assoc($result)) {
-		$rooms[$row['name']] = $row;
-	}
-	$sql = "SELECT * FROM room_types";
-	$result = mysql_query($sql, $link);
-	$roomTypes = array();
-	while($row = mysql_fetch_assoc($result)) {
-		$roomTypes[$row['name']] = $row;
-	}
-
-	$rows = array();
-	foreach($table['rows'] as $row) {
-		$roomName = $row['room name'];
-		$roomTypeName = $row['additional room type'];
-		if(!isset($rooms[$roomName])) {
-			mysql_close($link);
-			throw new Exception("Cannot find room by name: $roomName");
-		}
-		if(!isset($roomTypes[$roomTypeName])) {
-			mysql_close($link);
-			throw new Exception("Cannot find room type by name: $roomTypeName");
-		}
-		$roomId = $rooms[$roomName]['id'];
-		$roomTypeId = $roomTypes[$roomTypeName]['id'];
-		echo "    $roomName ($roomId) to be associated with type: $roomTypeName ($roomTypeId)\n";
-		$rows[] = "($roomId, $roomTypeId)";
-	}
-	
-	deleteVirtualRooms($link);
-
-	$sql = "INSERT INTO rooms_to_room_types (room_id, room_type_id) VALUES " . implode(",", $rows);
-	$result = mysql_query($sql, $link);
-	if(!$result) {
-		mysql_close($link);
-		throw new Exception("Error setting up virtual rooms: " . mysql_error($link) . " (SQL: $sql)");		
-	}
-	
-
-}
-
 
 
  ?>

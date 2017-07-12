@@ -341,7 +341,6 @@ function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType, 
 		// echo "For room:  " . $roomData['name'] . " (room type: " . $roomData['room_type_id'] . ") for day: $oneDay, there are $availBeds available beds<br>\n";
 		$minAvailBeds = min($minAvailBeds, $availBeds);
 		$oneDayTS = strtotime(date('Y-m-d',$oneDayTS) . ' +1 day');
-
 	}
 	if((isPrivate($roomData) or isApartment($roomData)) and $minAvailBeds < $roomData['num_of_beds']) {
 		$minAvailBeds = 0;

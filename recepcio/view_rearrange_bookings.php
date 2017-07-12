@@ -111,7 +111,7 @@ foreach($bookings as $oneBooking) {
 			$errorText .= "Booking: " . $oneBooking['name'] . '(id:' . $oneBooking['id'] . ") is made for roomId: $roomId, but this room is not valid in that period. Please check that the room\'s validity is ok for this date: $currDate<br>\n";
 			continue;
 		}
-		$name = str_replace('\'', "\\'", $oneBooking['name'].' '.$oneBooking['name_ext']) . ' <i>' . $oneBooking['source'] . '</i>';
+		$name = str_replace('\'', " ", $oneBooking['name'].' '.$oneBooking['name_ext']) . ' <i>' . $oneBooking['source'] . '</i>';
 		$title = /*$rooms[$oneBooking['room_id']]['name'] . ' ' . */$oneBooking['first_night'] . ' - ' . $oneBooking['last_night'] . ' ' . $roomTypeNames[$oneBooking['original_room_type_id']];
 		$numOfPers = $oneBooking['num_of_person'];
 		$js .= "		div = new Element('div', {'id': '$divId', 'class': 'booking_div', 'title': '$title'}).update('$name ($numOfPers)');\n";

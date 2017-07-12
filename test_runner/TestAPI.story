@@ -3,14 +3,14 @@
 Scenario 0: Preconditions
 
 Verify that the following room types exist
-id | name                                 | type      | number of beds |
-35 | 6 bed Dorm                           | DORM      | 6              |
-39 | Double room with shared bathroom     | PRIVATE   | 2              |
-42 | 10 bed dorm                          | DORM      | 10             |
-46 | Double room ensuite                  | PRIVATE   | 2              |
-69 | Deluxe Studio Apartment, Ferenciek   | APARTMENT | 6              |
-70 | Studio Apartment, Ferenciek          | APARTMENT | 4              |
-72 | One-Bedroom Apartment 2.0, Ferenciek | APARTMENT | 2              |
+id | name                                  | type      | number of beds | 
+35 | 6 bed Dorm                            | DORM      | 6              | 
+39 | Double room with shared bathroom      | PRIVATE   | 2              | 
+42 | 10 bed Dorm                           | DORM      | 10             | 
+46 | Double room ensuite                   | PRIVATE   | 2              | 
+69 | Deluxe Studio Apartment, Ferenciek    | APARTMENT | 4              | 
+70 | Studio Apartment, Ferenciek           | APARTMENT | 2              | 
+72 | One-Bedroomm Apartment 2.0, Ferenciek | APARTMENT | 5              | 
 
 Verify that the following rooms exist
 name                     | room type id | room type name                         |
@@ -30,21 +30,24 @@ name                     | room type id | room type name                        
 24. Curtis               | 69           | Deluxe Studio Apartment, Ferenciek     |
 25. Alisha               | 69           | Deluxe Studio Apartment, Ferenciek     |
 
+
+ 
  
 Scenario 1: Get rooms
 
-Given there are no virtual rooms configured
+Given there are no virtual rooms
 
 When I ask for the rooms from the API
 
 Then the following rooms return from the API
-room type name                          | name                         | type      | number of beds | id |
-6 bed dorm                              | 6 bed Dorm                   | DORM      | 6              | 35 |
-Double room with shared bathroom        | Basic Double room            | PRIVATE   | 2              | 39 |
-10 bed dorm                             | 10 bed dorm                  | DORM      | 10             | 42 |
-Double room ensuite                     | Standard Double room ensuite | PRIVATE   | 2              | 46 |
-Deluxe Studio Apartment, Ferenciek      | Deluxe Studio Apartment      | APARTMENT | 6              | 69 |
-
+room type name                          | name                            | type      | number of beds | id |
+6 bed Dorm                              | 6 bed Dorm                      | DORM      | 6              | 35 |
+Double room with shared bathroom        | Basic Double room               | PRIVATE   | 2              | 39 |
+10 bed Dorm                             | 10 bed dorm                     | DORM      | 10             | 42 |
+Double room ensuite                     | Standard Double room ensuite    | PRIVATE   | 2              | 46 |
+Deluxe Studio Apartment, Ferenciek      | Deluxe Studio Apartment         | APARTMENT | 4              | 69 |
+Studio Apartment, Ferenciek             | Studio Apartment                | APARTMENT | 2              | 70 | 
+One-Bedroomm Apartment 2.0, Ferenciek   | One-Bedroom Apartment           | APARTMENT | 5              | 72 | 
 
  
 
@@ -53,6 +56,8 @@ Scenario 2: Get availability
 Given there are no bookings
 Start date | end date
 2010-01-01 | 2010-12-31
+
+Given there are no virtual rooms
 
 Given the following bookings exist
 room name                | room type                               | 2010-01-02 | 2010-01-03 | 2010-01-04 |
@@ -78,13 +83,13 @@ EUR      | 2010-01-02 | 2010-01-04 |
 
 Then the following availability returns from the API
 id | room type name                          | number of beds available | number of rooms available |
-35 | 6 bed dorm                              | 8                        | 1                         |
-42 | 10 bed dorm                             | 10                       | 1                         |
-39 | Double room with shared bathroom        | 4                        | 2                         |
-46 | Double room ensuite                     | 10                       | 5                         |
-72 | One-Bedroom Apartment 2.0, Ferenciek    | 2                        | 1                         |
-69 | Deluxe Studio Apartment, Ferenciek      | 0                        | 0                         |
-70 | Studio Apartment, Ferenciek             | 4                        | 1                         |
+35 | 6 bed Dorm                              |     8                    |                           |
+42 | 10 bed Dorm                             |    10                    |                           |
+39 | Double room with shared bathroom        |                          | 2                         |
+46 | Double room ensuite                     |                          | 5                         |
+72 | One-Bedroomm Apartment 2.0, Ferenciek   |                          | 1                         |
+69 | Deluxe Studio Apartment, Ferenciek      |                          | 1                         |
+70 | Studio Apartment, Ferenciek             |                          | 0                         |
 
 
 
@@ -96,12 +101,14 @@ Given there are no bookings
 Start date | end date
 2010-01-01 | 2010-12-31
 
+Given there are no virtual rooms
+
 Given the following virtual rooms are configured
-room name                | additional room type                 |
-16. 4.em. Mia            | Double room with shared bathroom     |
-16. 4.em. Mia            | One-Bedroom Apartment 2.0, Ferenciek |
-16. 4.em. Mia            | Deluxe Studio Apartment, Ferenciek   |
-18. 4.em. Jules          | Double room with shared bathroom     |
+room name                | additional room type                  |
+16. 4.em. Mia            | Double room with shared bathroom      |
+16. 4.em. Mia            | One-Bedroomm Apartment 2.0, Ferenciek |
+16. 4.em. Mia            | Deluxe Studio Apartment, Ferenciek    |
+18. 4.em. Jules          | Double room with shared bathroom      |
 
 Given the following bookings exist
 room name                | room type                               | 2010-01-02 | 2010-01-03 | 2010-01-04 |
@@ -127,13 +134,13 @@ EUR      | 2010-01-02 | 2010-01-04 |
  
 Then the following availability returns from the API
 id | room type name                          | number of beds available | number of rooms available |
-35 | 6 bed dorm                              | 12                       | 2                         |
-42 | 10 bed dorm                             | 10                       | 1                         |
-39 | Double room with shared bathroom        | 8                        | 4                         |
-46 | Double room ensuite                     | 10                       | 5                         |
-72 | One-Bedroom Apartment 2.0, Ferenciek    | 6                        | 3                         |
-69 | Deluxe Studio Apartment, Ferenciek      | 18                       | 3                         |
-70 | Studio Apartment, Ferenciek             | 4                        | 1                         |
+35 | 6 bed Dorm                              | 12                       |                           |
+42 | 10 bed Dorm                             | 10                       |                           |
+39 | Double room with shared bathroom        |                          | 4                         |
+46 | Double room ensuite                     |                          | 5                         |
+72 | One-Bedroomm Apartment 2.0, Ferenciek   |                          | 2                         |
+69 | Deluxe Studio Apartment, Ferenciek      |                          | 4                         |
+70 | Studio Apartment, Ferenciek             |                          | 1                         |
 
  
 
@@ -144,11 +151,13 @@ Given there are no bookings
 Start date | end date
 2010-01-01 | 2010-12-31
 
+Given there are no virtual rooms
+
 Given the following virtual rooms are configured
-room name                | additional room type                    |
-16. 4.em. Mia            | 39 Double room with shared bathroom     |
-18. 4.em. Jules          | 39 Double room with shared bathroom     |
-16. 4.em. Mia            | 69 Deluxe Studio Apartment, Ferenciek   |
+room name                | additional room type                 |
+16. 4.em. Mia            | Double room with shared bathroom     |
+18. 4.em. Jules          | Double room with shared bathroom     |
+16. 4.em. Mia            | Deluxe Studio Apartment, Ferenciek   |
  
 Given the following bookings exist
 room name                | room type                               | 2010-01-02 | 2010-01-03 | 2010-01-04 |
@@ -174,13 +183,13 @@ EUR      | 2010-01-02 | 2010-01-04 |
 
 Then the following availability returns from the API
 id | room type name                          | number of beds available | number of rooms available |
-35 | 6 bed dorm                              | 8                        | 1                         |
-42 | 10 bed dorm                             | 10                       | 1                         |
-39 | Double room with shared bathroom        | 6                        | 3                         |
-46 | Double room ensuite                     | 4                        | 2                         |
-72 | One-Bedroom Apartment 2.0, Ferenciek    | 2                        | 1                         |
-69 | Deluxe Studio Apartment, Ferenciek      | 18                       | 3                         |
-70 | Studio Apartment, Ferenciek             | 4                        | 1                         |
+35 | 6 bed Dorm                              |     10                   |                           |
+42 | 10 bed Dorm                             |     10                   |                           |
+39 | Double room with shared bathroom        |                          | 3                         |
+46 | Double room ensuite                     |                          | 2                         |
+72 | One-Bedroomm Apartment 2.0, Ferenciek   |                          | 1                         |
+69 | Deluxe Studio Apartment, Ferenciek      |                          | 4                         |
+70 | Studio Apartment, Ferenciek             |                          | 1                         |
  
 
 
@@ -191,6 +200,8 @@ Scenario 5: Get availability with virtual rooms (only 1 room available so it doe
 Given there are no bookings
 Start date | end date
 2010-01-01 | 2010-12-31
+
+Given there are no virtual rooms
  
 Given the following virtual rooms are configured
 room name                | additional room type                 |
@@ -222,13 +233,13 @@ EUR      | 2010-01-02 | 2010-01-04 |
  
 Then the following availability returns from the API
 id | room type name                          | number of beds available | number of rooms available |
-35 | 6 bed dorm                              | 12                       | 2                         |
-42 | 10 bed dorm                             | 10                       | 1                         |
-39 | Double room with shared bathroom        | 4                        | 2                         |
-46 | Double room ensuite                     | 2                        | 1                         |
-72 | One-Bedroom Apartment 2.0, Ferenciek    | 2                        | 1                         |
-69 | Deluxe Studio Apartment, Ferenciek      | 12                       | 2                         |
-70 | Studio Apartment, Ferenciek             | 4                        | 1                         |
+35 | 6 bed Dorm                              | 12                       |                           |
+42 | 10 bed Dorm                             | 10                       |                           |
+39 | Double room with shared bathroom        |                          | 2                         |
+46 | Double room ensuite                     |                          | 1                         |
+72 | One-Bedroomm Apartment 2.0, Ferenciek   |                          | 1                         |
+69 | Deluxe Studio Apartment, Ferenciek      |                          | 2                         |
+70 | Studio Apartment, Ferenciek             |                          | 1                         |
  
  
  
@@ -239,6 +250,8 @@ Scenario 6: Get availability with virtual rooms (only 1 room available but that 
 Given there are no bookings
 Start date | end date
 2010-01-01 | 2010-12-31
+
+Given there are no virtual rooms
  
 Given the following virtual rooms are configured
 room name                | additional room type                 |
@@ -270,10 +283,10 @@ EUR      | 2010-01-02 | 2010-01-04 |
  
 Then the following availability returns from the API
 id | room type name                          | number of beds available | number of rooms available |
-35 | 6 bed dorm                              | 12                       | 2                         |
-42 | 10 bed dorm                             | 10                       | 1                         |
+35 | 6 bed Dorm                              | 12                       | 2                         |
+42 | 10 bed Dorm                             | 10                       | 1                         |
 39 | Double room with shared bathroom        | 4                        | 2                         |
 46 | Double room ensuite                     | 4                        | 2                         |
-72 | One-Bedroom Apartment 2.0, Ferenciek    | 2                        | 1                         |
+72 | One-Bedroomm Apartment 2.0, Ferenciek   | 2                        | 1                         |
 69 | Deluxe Studio Apartment, Ferenciek      | 6                        | 1                         |
 70 | Studio Apartment, Ferenciek             | 4                        | 1                         |

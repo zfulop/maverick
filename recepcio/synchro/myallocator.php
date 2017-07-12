@@ -42,13 +42,12 @@ class MyAllocatorBooker extends Booker {
 		$endTS = strtotime("$endYear-$endMonth-$endDay");
 		$allocations = '';
 		$availabilities = array();
+		$roomDataToSend = array();
 		foreach($myallocatorRoomMap[$propertyId] as $oneRoomMap) {
 			$availabilities[$oneRoomMap['roomName']] = array();
 			//echo "Updating price and availability for room: " . $oneRoomMap['roomName'] . "...<br>\n";
 
 			$currDate = "$startYear-$startMonth-$startDay";
-			$idx = 0;
-			$roomDataToSend = array();
 			do {
 				$currTS = strtotime($currDate);
 				$currYear = date('Y', $currTS);
@@ -84,8 +83,10 @@ class MyAllocatorBooker extends Booker {
 				if(is_array($oneRoomMap['roomTypeId'])) {
 					$price = 0;
 					foreach($oneRoomMap['roomTypeId'] as $rtId) {
-						$price = PriceDao::getPrice($currTS, 1, $rtId, $roomData['num_of_beds'], $link);
+						$price = max($price, PriceDao::getPrice($currTS, 1, $rtId, $roomData['num_of_beds'], $link));
 					}
+				} elseif(RoomDao::isDorm($roomData)) {
+					$price = PriceDao::getPrice($currTS, 1, $oneRoomMap['roomTypeId'], 1, $link);
 				} else {
 					$price = PriceDao::getPrice($currTS, 1, $oneRoomMap['roomTypeId'], $roomData['num_of_beds'], $link);
 				}
@@ -97,36 +98,39 @@ class MyAllocatorBooker extends Booker {
 					'roomTypeId' => $oneRoomMap['roomTypeId'], 
 					'type' => $roomData['type'],
 					'remoteRoomId' => $remoteRoomId, 
-					'startDate' => "$currYear-$currMonth-$currDay", 
-					'endDate' => "$currYear-$currMonth-$currDay", 
+					'date' => "$currYear-$currMonth-$currDay", 
 					'units' => $units,
 					'price' => $price.".00",
 					'roomsProvidingAvaialability' => $roomsProvidingAvaialability);
 				
 				$currDate = date('Y-m-d', strtotime("$currDate +1 day"));
-				$idx += 1;
-			} while($currTS < $endTS);
+			} while($currTS < $endTS); // End of iteration of dates 
 
-			// If for a 'non-DORM' room type there is 1 available and the room providing that 1 availability is of type the room tpye 
-			// then remove availability from the other room types that is associated with that room
-			foreach($roomDataToSend as $item) {
-				if($item['units'] != 1 or $item['type'] == 'DORM') {
-					continue;
-				}
-				$room1 = $rooms[$item['roomsProvidingAvaialability'][0]];
-				if($room1['room_type_id'] != $item['roomTypeId']) {
-					continue;
-				}
-				removeAdditionalAvailability($room1, $roomDataToSend);
-			}			
+			//echo "done.<br>\n";
+		} // End of iteration of rooms
+
+		logDebug("There are " . count($roomDataToSend) . " items in the roomDataToSend array");
+		// If for a 'non-DORM' room type there is 1 available and the room providing that 1 availability is of type the room tpye 
+		// then remove availability from the other room types that is associated with that room
+		foreach($roomDataToSend as $item) {
+			if($item['units'] != 1 or $item['type'] == 'DORM') {
+				continue;
+			}
+			// There is only 1 room in the roomsProvidingAvaialability list because Units=1
+			$room1 = $rooms[$item['roomsProvidingAvaialability'][0]];
+			if($room1['room_type_id'] != $item['roomTypeId']) {
+				continue;
+			}
+			removeAdditionalAvailability($room1, $item['date'], $roomDataToSend);
+		}			
 			
-			foreach($roomDataToSend as $item) {
-				$remoteRoomId = $item['remoteRoomId'];
-				$startDate = $item['startDate'];
-				$endDate = $item['endDate'];
-				$units = $item['units'];
-				$price = $item['price'];
-				$allocations .= <<<EOT
+		foreach($roomDataToSend as $item) {
+			$remoteRoomId = $item['remoteRoomId'];
+			$startDate = $item['date'];
+			$endDate = $item['date'];
+			$units = $item['units'];
+			$price = $item['price'];
+			$allocations .= <<<EOT
 		<Allocation>
 			<RoomTypeId>$remoteRoomId</RoomTypeId>
 			<StartDate>$startDate</StartDate>
@@ -138,11 +142,8 @@ class MyAllocatorBooker extends Booker {
 		</Allocation>
 
 EOT;
-			}
-
-			//echo "done.<br>\n";
 		}
-
+		
 		$auth = $this->getAuth($propertyId);
 		$request = <<<EOT
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -160,30 +161,33 @@ EOT;
 
 		$resp = $this->processRequest($request);
 
-		echo "<table>\n";
-		echo "	<tr><th></th>";
+		$availTable = "";
+		$availTable .=  "<table>\n";
+		$availTable .=  "	<tr><th></th>";
 		$currDate = "$startYear-$startMonth-$startDay";
 		$debugLine = str_repeat(" ", 10);
 		do {
 			$debugLine .= (sprintf("%12s", $currDate));
-			echo "<th>$currDate</th>";
+			$availTable .=  "<th>$currDate</th>";
 			$currTS = strtotime($currDate);
 			$currDate = date('Y-m-d', strtotime("$currDate +1 day"));
 		} while($currTS < $endTS);
-		echo "</tr>\n";
+		$availTable .=  "</tr>\n";
 		logDebug($debugLine);
 		foreach($availabilities as $roomName => $availForDates) {
 			$debugLine = sprintf("%10.10s", $roomName);
-			echo "	<tr><th>$roomName</th>";
+			$availTable .=  "	<tr><th>$roomName</th>";
 			foreach($availForDates as $date => $avail) {
-				echo "<td>$avail</td>";
+				$availTable .=  "<td>$avail</td>";
 				$debugLine .= sprintf("%12.12s", $avail);
 			}
-			echo "</tr>\n";
+			$availTable .=  "</tr>\n";
 			logDebug($debugLine);
 		}
-		echo "</table>\n";
-
+		$availTable .=  "</table>\n";
+		if(!isset($_REQUEST['test_runner_response'])) {
+			echo $availTable;
+		}
 	}
 
 	function shutdown() {
@@ -252,6 +256,7 @@ EOT;
 		// echo "Request: " . $request . "\n";
 		logDebug($request);
 		if(!is_null($this->saveFile)) {
+			echo "Request saved into file: " . $this->saveFile;
 			file_put_contents($this->saveFile,$request);
 			return;
 		}
@@ -347,7 +352,7 @@ header('Content-Type: text/html');
 
 $link = db_connect();
 $rooms = loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link);
-PriceDao::loadPriceForDate(strtotime("$startYear-$startMonth-$startDay", strtotime("$endYear-$endMonth-$endDay"), $link);
+PriceDao::loadPriceForDate(strtotime("$startYear-$startMonth-$startDay"), strtotime("$endYear-$endMonth-$endDay"), $link);
 
 echo "Period begining: $startYear-$startMonth-$startDay<br>\n";
 echo "Period ending: $endYear-$endMonth-$endDay<br>\n";
@@ -379,7 +384,24 @@ return;
  *   $room                - The room where for the room type (identified by $room['room_type_id']) there is only one available (this room)
  *   $roomDataToSend      - The data to be converted to XML and sent to myallocator
  */
-function removeAdditionalAvailability($room, &$roomDataToSend) {
+function removeAdditionalAvailability($room, $date, &$roomDataToSend) {
+	logDebug("For room type: " . $room['room_type_id'] . " there is only one room available whose original type is this. Removing availability for the additional room types from array with size: " . count($roomDataToSend)); 
+	foreach($room['room_types'] as $roomTypeId => $roomTypeName) {
+		if($room['room_type_id'] == $roomTypeId) {
+			continue;
+		}
+		logDebug("\tdecrementing availability for date: $date and room type: $roomTypeName($roomTypeId)"); 
+		for($i = 0; $i < count($roomDataToSend); $i++) {
+			//logDebug("\t\tchecking room data item with room type id: " . is_array($roomDataToSend[$i]['roomTypeId']) ? print_r($roomDataToSend[$i]['roomTypeId'], true) : $roomDataToSend[$i]['roomTypeId']);
+			if($roomDataToSend[$i]['date'] != $date) {
+				continue;
+			}
+			if(is_array($roomDataToSend[$i]['roomTypeId']) ? in_array($roomTypeId, $roomDataToSend[$i]['roomTypeId']) : ($roomDataToSend[$i]['roomTypeId'] == $roomTypeId)) {
+				$roomDataToSend[$i]['units'] -= 1;
+				logDebug("\trevised availability: " . $roomDataToSend[$i]['units']); 
+			}
+		}
+	}
 }
 
 

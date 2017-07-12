@@ -1,5 +1,7 @@
 <?php
 
+ini_set("include_path", '/home/maveric3/php:' . ini_get("include_path") );
+
 require '../includes/config/teszt_hostel.php';
 require 'includes.php';
 require '../reception/room_booking.php';

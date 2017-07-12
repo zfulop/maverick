@@ -669,7 +669,7 @@ function getRoomIds(&$rooms, $roomTypeId) {
 // This method returns the booking data base fo the date and the selected rooms (and the people in each room).
 // Parameters:
 //   $numOfPersonForRoomType - array with each element has a structure: {roomTypeIds: array, numOfPerson: array}. 
-//                             roomTypeIds: the list of room types where the one booking can be booked in.
+//                             roomTypeIds: the list of room types 	where the one booking can be booked in.
 //                             numOfPerson: list of number of people to be booke in each room. If there are 2 room bookings, this array will have 2 items
 // creates two arrays: 
 // $toBook that contains the roomId as a key and the value contains the number of people and the type (ROOM or BED) of the booking.

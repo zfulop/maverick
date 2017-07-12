@@ -135,14 +135,14 @@ class RoomDao {
 	/**
 	 * Returns true if type is PRIVATE
 	 */
-	function isPrivate($roomType) {
+	public static function isPrivate($roomType) {
 		return $roomType['type'] == 'PRIVATE';
 	}
 
 	/**
 	 * Returns true if type is APARTMENT
 	 */
-	function isApartment(&$roomType) {
+	public static function isApartment(&$roomType) {
 		return $roomType['type'] == 'APARTMENT';
 	}
 

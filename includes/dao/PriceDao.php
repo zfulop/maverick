@@ -8,7 +8,7 @@ class PriceDao {
 	public static function getPrice($arriveTS, $nights, $roomTypeId, $numOfPerson, $link) {
 		$oneDayTS = $arriveTS;
 		$totalPrice = 0;
-		$roomType = RoomDao::getRoomType($roomTypeId, $lang, $link);
+		$roomType = RoomDao::getRoomType($roomTypeId, 'eng', $link);
 		logDebug("getting price for " . $roomType['name'] . " arriving " . date('Y-m-d', $arriveTS) . " staying for $nights nights for $numOfPerson guests");
 		for($i = 0; $i < $nights; $i++) {
 			$currYear = date('Y', $oneDayTS);
@@ -17,19 +17,19 @@ class PriceDao {
 			$oneDay =  date('Y/m/d', $oneDayTS);
 			$oneDayTS += 24 * 60 * 60;
 			if(RoomDao::isDorm($roomType)) {
-				$bedPrice = PriceDao::getBedPrice($currYear, $currMonth, $currDay, $roomTypeId) * $numOfPerson;
+				$bedPrice = PriceDao::getBedPrice($currYear, $currMonth, $currDay, $roomTypeId, $link) * $numOfPerson;
 				logDebug("      for $oneDay the bedPrice for all the people: $bedPrice");
 				$totalPrice += $bedPrice;
-			} elseif(isPrivate($roomData)) {
-				$roomPrice = PriceDao::getRoomPrice($currYear, $currMonth, $currDay, $roomTypeId);
+			} elseif(RoomDao::isPrivate($roomType)) {
+				$roomPrice = PriceDao::getRoomPrice($currYear, $currMonth, $currDay, $roomTypeId, $link);
 				logDebug("      for $oneDay the room price for all the people: $roomPrice");
 				$totalPrice += $roomPrice;
-			} elseif(isApartment($roomData)) {
+			} elseif(RoomDao::isApartment($roomType)) {
 				//logDebug('get apartment price');
-				$price = PriceDao::getRoomPrice($currYear, $currMonth, $currDay, $roomTypeId);
+				$price = PriceDao::getRoomPrice($currYear, $currMonth, $currDay, $roomTypeId, $link);
 				//logDebug('room price: ' . $price);
 				//logDebug('data: ' . print_r(array('num of person'=>$numOfPerson,'room beds'=>$roomData['num_of_beds'],'surcharge per bed'=>getSurchargePerBed($currYear, $currMonth, $currDay, $roomData)),true));
-				$price = $price + $price * ($numOfPerson - 2) * PriceDao::getSurchargePerBed($currYear, $currMonth, $currDay, $roomData) / 100.0;
+				$price = $price + $price * ($numOfPerson - 2) * PriceDao::getSurchargePerBed($currYear, $currMonth, $currDay, $roomTypeId, $link) / 100.0;
 				logDebug("      for $oneDay the apt room price for $numOfPerson people: $price");
 				$totalPrice += $price;
 			}
@@ -42,7 +42,7 @@ class PriceDao {
 
 	public static function getBedPrice($year, $month, $day, $roomTypeId, $link) {
 		$retVal = null;
-		$roomTypeData = RoomDao::getRoomType($roomTypeId, $link);
+		$roomTypeData = RoomDao::getRoomType($roomTypeId, 'eng', $link);
 		$priceData = PriceDao::__getPriceForDate($year, $month, $day, $roomTypeId, $link);
 		if(!is_null($priceData)) {
 			if(is_null($priceData['price_per_bed']))
@@ -60,9 +60,9 @@ class PriceDao {
 
 
 
-	function getRoomPrice($year, $month, $day, $roomTypeId, $link) {
+	public static function getRoomPrice($year, $month, $day, $roomTypeId, $link) {
 		$retVal = null;
-		$roomTypeData = RoomDao::getRoomType($roomTypeId, $link);
+		$roomTypeData = RoomDao::getRoomType($roomTypeId, 'eng', $link);
 		$priceData = PriceDao::__getPriceForDate($year, $month, $day, $roomTypeId, $link);
 		if(!is_null($priceData)) {
 			if(is_null($priceData['price_per_room']))
@@ -79,9 +79,9 @@ class PriceDao {
 	}
 
 
-	function getSurchargePerBed($year, $month, $day, $roomTypeId, $link) {
+	public static function getSurchargePerBed($year, $month, $day, $roomTypeId, $link) {
 		$retVal = null;
-		$roomTypeData = RoomDao::getRoomType($roomTypeId, $link);
+		$roomTypeData = RoomDao::getRoomType($roomTypeId, 'eng', $link);
 		$priceData = PriceDao::__getPriceForDate($year, $month, $day, $roomTypeId, $link);
 		if(!is_null($priceData)) {
 			$retVal = $priceData['surcharge_per_bed'];
@@ -94,10 +94,10 @@ class PriceDao {
 
 	/**
 	 */
-	public static function __getPriceForDate($year, $month, $day, $roomTypeId, $link) {
+	static function __getPriceForDate($year, $month, $day, $roomTypeId, $link) {
 		global $pricedao_priceForDate;
-		if($month < 10) { $month = '0' . $month; }
-		if($day < 10) { $day = '0' . $day; }
+		if(intval($month) < 10) { $month = '0' . intval($month); }
+		if(intval($day) < 10) { $day = '0' . intval($day); }
 		$dateStr = "$year/$month/$day";
 		if(!isset($pricedao_priceForDate[$dateStr])) {
 			$sql = "SELECT * FROM prices_for_date WHERE date like '$year%'";
