@@ -194,7 +194,7 @@ function loadAvailability() {
 			$roomId = $roomType['rooms_providing_availability'];
 			$roomData = $rooms[$roomId];
 			if($roomData['room_type_id'] == $roomTypeId) {
-				removeAvailabilityForAdditionalRoomTypes($roomData, $roomTypesData);
+				removeAvailabilityForAdditionalRoomTypes($roomData, $roomTypesData, $retVal);
 			}
 		}
 		if(is_null($filterRoomIds) or in_array($roomTypeId, $filterRoomIds)) {
@@ -260,24 +260,28 @@ function isAvailable($roomAvailability) {
 	}
 }
 
-function removeAvailabilityForAdditionalRoomTypes($roomData, &$roomTypesData) {
+function removeAvailabilityForAdditionalRoomTypes($roomData, &$roomTypesData, $retVal) {
 	$roomTypeId = $roomData['room_type_id'];
 	$roomId = $roomData['id'];
 	logDebug("For room type: $roomTypeId there is only one room available (" . $roomData['name'] . ") and that room's original room type is this room type"); 
-	logDebug("Removing availability from the additional room types that this room is has"); 
+	logDebug("Removing availability from the additional room types that this room is has. It has " . (count($roomData['room_types'])-1) . " additional room types"); 
 	// There is only 1 room available for this room type and that one room's main room type is this room type.
 	// In this case we need to remove this room's availability from all the additional room types for this room
 	foreach($roomData['room_types']	as $additionalRoomTypeId => $additionalRoomTypeName) {
 		if($additionalRoomTypeId == $roomTypeId) { continue; }
-		logDebug("	remove availability from the additional room type: $additionalRoomTypeName ($additionalRoomTypeId)");
+		logDebug("	remove availability from the additional room type: $additionalRoomTypeName ($additionalRoomTypeId). Current availability: " . $roomTypesData[$additionalRoomTypeId]['num_of_rooms_avail']);
 		$roomTypesData[$additionalRoomTypeId]['rooms_providing_availability'] = removeRoomIdFromList($roomId, $roomTypesData[$additionalRoomTypeId]['rooms_providing_availability']);
 		$roomTypesData[$additionalRoomTypeId]['num_of_rooms_avail'] -= 1;
+		logDebug("  new availability: " . $roomTypesData[$additionalRoomTypeId]['num_of_rooms_avail']);
+		for($i = 0; $i < count($retVal['rooms']); $i++) {
+			
+		}
 	}
 }
 
 function removeRoomIdFromList($roomId, $roomsProvidingAvailability) {
 	$roomIdArray = array();
-	foreach(explode(',',$roomProvidingAvailability) as $id) {
+	foreach(explode(',',$roomsProvidingAvailability) as $id) {
 		if($id != $roomId) { $roomIdArray[] = $id; }
 	}
 	return implode(",", $roomIdArray);
@@ -566,6 +570,31 @@ function doConfirmBooking() {
 			'departure_date' => date('Y-m-d', strtotime(str_replace('/','-',$row['last_night']) . ' +1 day')),
 		);
 
+		logDebug("Sending email about guest confirmation to reception: " . CONTACT_EMAIL);
+		$name = $row['name'];
+		$email = $row['email'];
+		$id = $row['id'];
+		$arriveDate = $row['first_night'];
+		$editBookingUrl = "http://reception.roomcaptain.com/edit_booking.php?description_id=$id";
+		$mailMessage = <<<EOT
+		
+Guest confirmed a <a href="$editBookingUrl">booking</a><br>
+<table>
+<tr><td>Name</td><td>$name</td></tr>
+<tr><td>Email</td><td>$email</td></tr>
+<tr><td>Arrive date</td><td>$arriveDate</td></tr>
+<tr><td>Arrive time</td><td>$arrivalTime</td></tr>
+<tr><td>Comment</td><td>$comment</td></tr>
+</table>
+
+This email was generated from the API call when a user confirmed a booking via the website in response to a BCR email.
+
+EOT;
+		$result = MaverickMailer::send(CONTACT_EMAIL, $location . " API", CONTACT_EMAIL, $location . " API", "Guest confirmed booking", $mailMessage);
+		if(!is_null($result)) {
+			logError("Cannot send email: $result");
+		}
+		
 	}
 
 	mysql_close($link);
@@ -1105,7 +1134,7 @@ EOT;
 
 	$locationName = $texts['LOCATION_NAME_' . strtoupper($location)];
 	$subject = str_replace('LOCATION', $locationName, $texts['BOOKING_CONFIRMATION_EMAIL_SUBJECT']);
-	$result = sendMail('reservation@mavericklodges.com', $locationName, $emailValue, "$nameValue", $subject, $mailMessage, $inlineAttachments);
+	$result = MaverickMailer::send(CONTACT_EMAIL, $locationName, $emailValue, $nameValue, $subject, $mailMessage, $inlineAttachments);
 	if(!is_null($result)) {
 		logError("Cannot send email: $result");
 	}
@@ -1170,7 +1199,7 @@ EOT;
 	$recepcioMessage .= "</table><br>\n";
 	$recepcioMessage .= "Total: $total euro<br>\n";
 
-	$result = sendMail(CONTACT_EMAIL, $locationName, CONTACT_EMAIL, $locationName, "Booking arrived from website", $recepcioMessage);
+	$result = MaverickMailer::send(CONTACT_EMAIL, $locationName, CONTACT_EMAIL, $locationName, "Booking arrived from website", $recepcioMessage);
 	if(!is_null($result)) {
 		logError("Cannot send email: $result");
 	}

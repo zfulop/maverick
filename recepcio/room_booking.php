@@ -630,7 +630,7 @@ function specialOfferApplies(&$specialOffer, &$roomType, $nights, $arriveDate, $
 		}
 	}
 
-	logDebug("this special offer applies for arrive date: $arriveDate, nights: $nights, roomType: " . $roomType['name'] . '[' . $roomType['id'] . '], special offer: ' . $specialOffer['name']);
+	// logDebug("this special offer applies for arrive date: $arriveDate, nights: $nights, roomType: " . $roomType['name'] . '[' . $roomType['id'] . '], special offer: ' . $specialOffer['name']);
 	return true;
 }
 

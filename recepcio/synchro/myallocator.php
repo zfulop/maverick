@@ -42,9 +42,11 @@ class MyAllocatorBooker extends Booker {
 		$endTS = strtotime("$endYear-$endMonth-$endDay");
 		$allocations = '';
 		$availabilities = array();
+		$prices = array();
 		$roomDataToSend = array();
 		foreach($myallocatorRoomMap[$propertyId] as $oneRoomMap) {
 			$availabilities[$oneRoomMap['roomName']] = array();
+			$prices[$oneRoomMap['roomName']] = array();
 			//echo "Updating price and availability for room: " . $oneRoomMap['roomName'] . "...<br>\n";
 
 			$currDate = "$startYear-$startMonth-$startDay";
@@ -87,11 +89,14 @@ class MyAllocatorBooker extends Booker {
 					}
 				} elseif(RoomDao::isDorm($roomData)) {
 					$price = PriceDao::getPrice($currTS, 1, $oneRoomMap['roomTypeId'], 1, $link);
+				} elseif(RoomDao::isApartment($roomData)) {
+					$price = PriceDao::getPrice($currTS, 1, $oneRoomMap['roomTypeId'], 2, $link);
 				} else {
 					$price = PriceDao::getPrice($currTS, 1, $oneRoomMap['roomTypeId'], $roomData['num_of_beds'], $link);
 				}
 				$units = $roomData['type'] == 'DORM' ? $numOfAvailBeds : $numOfAvailRooms;
 				$availabilities[$oneRoomMap['roomName']][$currYear . '-' . $currMonth . '-' . $currDay] = $units;
+				$prices[$oneRoomMap['roomName']][$currYear . '-' . $currMonth . '-' . $currDay] = $price;
 				$remoteRoomId = $oneRoomMap['remoteRoomId'];
 
 				$roomDataToSend[] = array(
@@ -178,8 +183,9 @@ EOT;
 			$debugLine = sprintf("%10.10s", $roomName);
 			$availTable .=  "	<tr><th>$roomName</th>";
 			foreach($availForDates as $date => $avail) {
-				$availTable .=  "<td>$avail</td>";
-				$debugLine .= sprintf("%12.12s", $avail);
+				$prc = $prices[$roomName][$date];
+				$availTable .=  "<td>$avail($prc)</td>";
+				$debugLine .= sprintf("%12.12s", $avail . '(' . $prc . ')');
 			}
 			$availTable .=  "</tr>\n";
 			logDebug($debugLine);

@@ -23,11 +23,20 @@ foreach($hostels as $hostel) {
 	$output['howazit ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -c ../php.ini howazit_extract.php ' . $hostel);
 	echo "\tsending booking summary\n";
 	$output['send booking summary ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -c ../php.ini send_booking_summary.php ' . $hostel);
+	echo "\tbackup db\n";
+	$output['db backup ' . $hostel] = shell_exec('cd /home/maveric3/; php -c php.ini backup_db.php $hostel');
+
+	if(intval(date('d')) == 1) {
+		echo "\tFirst day of the month backup the archive db\n";
+		$output['db backup archive ' . $hostel] = shell_exec('cd /home/maveric3/; php -c php.ini backup_db.php ' . archive_ . '$hostel');
+	}
 
 	$link = db_connect($hostel);
 	deleteOutOfDateRoomChanges($link, $hostel, $output);
 	moveDataToArchive($link, $hostel, $output);
 	mysql_close($link);
+
+	deleteOldBackup($hostel, $output);
 }
 
 deleteReceipt($link, $output);
@@ -38,6 +47,23 @@ foreach($output as $title => $data) {
 }
 
 // END OF DAILY TASKS
+
+function deleteOldBackup($hostel, &$output) {
+	$msg = '';
+	$dh = opendir('/home/maveric3/db_backup/');
+	$fileOneWeekOld = 'db-backup-'.$hostel.'-'.date('Ymd', strtotime(date('Y-m-d') . ' -1 week'));
+	while (($file = readdir($dh)) !== false) {
+		if((substr($file, 0, strlen('db-backup-'.$hostel)) == 'db-backup-'.$hostel) and $file < $fileOneWeekOld) {
+			unlink('/home/maveric3/db_backup/' . $file);
+			$msg = $file . "\n";
+		}
+	}
+	closedir($dh);	
+	if(strlen($msg) > 0) {
+		$output["Deleting receipt"] = $msg;
+	}
+}
+
 
 function deleteReceipt($link, &$output) {
 	$msg = '';

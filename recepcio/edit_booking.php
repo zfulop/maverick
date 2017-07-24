@@ -386,14 +386,12 @@ if(is_null($bcr)) {
 } else {
 	$bcrSent = $bcr['mail_sent'];
 	$bcrEmail = $bcr['email'];
-	$bcrName = $bcr['name'];
-	$bcrFnight = $bcr['first_night'];
+	$bcrComment = $bcr['comment'];
 	$bcrHtml = <<<EOT
 			<table style="font-size: 100%;">
 				<tr><td>Sent</td><td>$bcrSent</td></tr>
-				<tr><td>Name</td><td>$bcrName</td></tr>
 				<tr><td>Email</td><td>$bcrEmail</td></tr>
-				<tr><td>1st night</td><td>$bcrFnight</td></tr>
+				<tr><td>comment</td><td>$bcrComment</td></tr>
 			</table>
 
 EOT;

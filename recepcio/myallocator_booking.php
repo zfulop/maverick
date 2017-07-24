@@ -15,6 +15,7 @@ $SOURCES = array(
 	'fam' => 'Famous Hostels',
 	'gom' => 'Gomio',
 	'hb2' => 'hostelbookers',
+	'hbe' => array('lodge' => array('Liberate' => 'Hotel Beds source', 'Merchant' => 'Hotel Beds - merchant source'), 'hostel' => array('Liberate' => 'hotelbeds', 'Merchant' => 'hotelbeds merchant')),
 	'hc' => 'HC',
 	'hcu' => 'Hostel Culture',
 	'hi' => 'HiHostels',
@@ -207,7 +208,7 @@ function cancelBooking($myAllocatorId, $link) {
 
 
 function createBooking($bookingData, $link) {
-	global $lang, $bookingJson, $locationName, $SOURCES, $MESSAGES, $COUNTRY_ALIASES, $propertyId, $loadedRooms, $rooms;
+	global $lang, $bookingJson, $location, $locationName, $SOURCES, $MESSAGES, $COUNTRY_ALIASES, $propertyId, $loadedRooms, $rooms;
 	logDebug("Creating booking");
 	$nowTime = date('Y-m-d H:i:s');
 	if(!isset($bookingData['Rooms']) or !is_array($bookingData['Rooms']) or count($bookingData['Rooms']) < 1) {
@@ -259,10 +260,7 @@ function createBooking($bookingData, $link) {
 	$country = isset($customer['CustomerCountry']) ? mysql_real_escape_string($customer['CustomerCountry'], $link) : '';
 	$address = $city . ', ' . $country;
 	$comment = mysql_real_escape_string(print_r($bookingData, true), $link);
-	$source = (isset($bookingData['Channel']) and isset($SOURCES[$bookingData['Channel']])) ? $SOURCES[$bookingData['Channel']] : '';
-	if(is_array($source) and ($bookingData['Channel'] == 'exp')) {
-		$source = $source[$bookingData['ChannelSpecific']['PaymentType']];
-	}
+	$source = getSource($location, $bookingData);
 
 	set_debug("before combine: <pre>" . print_r($bookingData['Rooms'], true) . "</pre>\n");
 	if(canCombineRooms($bookingData['Rooms'])) {
@@ -1335,5 +1333,23 @@ function decode($str) {
 
 	return $str;
 }
+
+function getSource($location, &$bookingData) {
+	global $SOURCES;
+	$source = (isset($bookingData['Channel']) and isset($SOURCES[$bookingData['Channel']])) ? $SOURCES[$bookingData['Channel']] : '';
+	if(is_array($source) and ($bookingData['Channel'] == 'exp')) {
+		$source = $source[$bookingData['ChannelSpecific']['PaymentType']];
+	}
+	if(is_array($source) and ($bookingData['Channel'] == 'hbe')) {
+		if(isset($bookingData['OrderSource'])) {
+			$os = $bookingData['OrderSource'];
+		} else {
+			$os = 'Merchant';
+		}
+		$source = $source[$location][$os];
+	}
+	return $source;
+}
+
 
 ?>
