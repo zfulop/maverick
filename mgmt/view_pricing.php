@@ -260,7 +260,7 @@ echo "<table class=\"stat\">\n\t<tr>\n\t\t<td>&nbsp;</td><th>Available Beds</th>
 
 $endDateTs = strtotime($endDate);
 $currDateTs = strtotime($startDate);
-while($currDateTs <= $endDateTs) {
+while($currDateTs <= $endDateTsb) {
 	$currDate = date('Y-m-d', $currDateTs);
 	$currDay = date('D', $currDateTs);
 	$cssClass = '';
@@ -378,8 +378,8 @@ function countIndividualRooms($bookings) {
 	$roomUsed = array();
 	$cntr = 0;
 	foreach($bookings as $oneBooking) {
-		if(!in_array($oneBooking['original_room_type'])) {
-			$roomUsed[] = $oneBooking['original_room_type'];
+		if(!in_array($oneBooking['room_id'], $roomUsed)) {
+			$roomUsed[] = $oneBooking['room_id'];
 			$cntr += 1;
 		}
 	}
