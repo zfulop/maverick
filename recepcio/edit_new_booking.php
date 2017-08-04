@@ -72,6 +72,14 @@ while($row = mysql_fetch_assoc($result)) {
 	$roomTypes[$row['id']] = $row;
 }
 
+// get additional room types for each room and increment the num_of_rooms in the previous query
+$sql = "SELECT room_type_id, count(*) AS cnt FROM rooms_to_room_types GROUP BY room_type_id";
+$result = mysql_query($sql, $link);
+while($row = mysql_fetch_assoc($result)) {
+	$roomTypes[$row['room_type_id']]['num_of_rooms'] += $row['cnt'];
+}
+
+
 foreach($_SESSION as $code => $val) {
 	if(substr($code, 0, 4) == 'ENB_') {
 		$booking[substr($code, 4)] = $val;

@@ -136,7 +136,7 @@ function &loadOnlyRooms($startYear, $startMonth, $startDay, $endYear, $endMonth,
 	return $rooms;
 }
 
-function &loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link, $lang = 'eng') {
+function &loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link, $lang = 'eng', $archive = false) {
 	$startMonth = __getNormalizedDate($startMonth);
 	$startDay = __getNormalizedDate($startDay);
 	$endMonth = __getNormalizedDate($endMonth);
@@ -148,7 +148,9 @@ function &loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $en
 	$rooms = loadOnlyRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link, $lang);
 
 	$roomChanges = array();
-	$sql = "SELECT brc.*, bd.name, bd.name_ext, b.description_id, b.room_payment, b.booking_type, b.num_of_person, b.creation_time, bd.first_night, bd.last_night, bd.num_of_nights, bd.confirmed, bd.cancelled, bd.checked_in, bd.paid FROM booking_room_changes brc INNER JOIN bookings b ON brc.booking_id=b.id INNER JOIN booking_descriptions bd ON b.description_id=bd.id WHERE brc.date_of_room_change>='$arriveDate' AND brc.date_of_room_change<='$lastNightDate'";
+	$schema = ($archive ? constant('DB_' . strtoupper($_SESSION['login_hotel']) . '_ARCHIVE_DBNAME') : '');
+	$sql = "SELECT brc.*, bd.name, bd.name_ext, b.description_id, b.room_payment, b.booking_type, b.num_of_person, b.creation_time, bd.first_night, bd.last_night, bd.num_of_nights, bd.confirmed, bd.cancelled, bd.checked_in, bd.paid FROM $schema.booking_room_changes brc INNER JOIN $schema.bookings b ON brc.booking_id=b.id INNER JOIN $schema.booking_descriptions bd ON b.description_id=bd.id WHERE brc.date_of_room_change>='$arriveDate' AND brc.date_of_room_change<='$lastNightDate'";
+	logDebug("loadRooms - loading room changes for archive=" . $archive . ". sql: $sql");
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot get existing bookings: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -163,7 +165,8 @@ function &loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $en
 		}
 	}
 
-	$sql = "SELECT bd.name, bd.name_ext, bd.confirmed, bd.checked_in, bd.cancelled, bd.cancel_type, bd.paid, bd.first_night, bd.arrival_time, bd.last_night, bd.num_of_nights, b.* FROM bookings b INNER JOIN booking_descriptions bd ON b.description_id=bd.id WHERE bd.first_night<='$lastNightDate' AND bd.last_night>='$arriveDate'";
+	$sql = "SELECT bd.name, bd.name_ext, bd.confirmed, bd.checked_in, bd.cancelled, bd.cancel_type, bd.paid, bd.first_night, bd.arrival_time, bd.last_night, bd.num_of_nights, b.* FROM $schema.bookings b INNER JOIN $schema.booking_descriptions bd ON b.description_id=bd.id WHERE bd.first_night<='$lastNightDate' AND bd.last_night>='$arriveDate'";
+	logDebug("loadRooms - loading booking descriptions for archive=" . $archive . ". sql: $sql");
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot get existing bookings between dates: $arriveDate and $lastNightDate: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -206,7 +209,8 @@ function &loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $en
 				}
 			}
 		}
-		$sql = "SELECT * FROM service_charges WHERE booking_description_id IN ($descrIds)";
+		$sql = "SELECT * FROM $schema.service_charges WHERE booking_description_id IN ($descrIds)";
+		logDebug("loadRooms - loading service charges for archive=" . $archive . ". sql: $sql");
 		$result = mysql_query($sql, $link);
 		if(!$result) {
 			trigger_error("Cannot get service chanrges when loading rooms: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -231,7 +235,8 @@ function &loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $en
 
 	//logDebug("Rooms: " . print_r($rooms, true));
 
-	$sql = "SELECT * FROM prices_for_date WHERE date<='$lastNightDate'  AND date>='$arriveDate'";
+	$sql = "SELECT * FROM $schema.prices_for_date WHERE date<='$lastNightDate'  AND date>='$arriveDate'";
+	logDebug("loadRooms - loading prices for archive=" . $archive . ". sql: $sql");
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot get existing room prices when loading rooms data: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -391,8 +396,6 @@ function getNumOfAvailBeds(&$oneRoom, $oneDay, $excludeBookingWithId = null, $ex
 
 
 
-
-
 function getNumOfOccupBeds(&$oneRoom, $oneDay, $excludeBookingWithId = null, $excludeBookingWithDescrId = null) {
 	$occupBeds = 0;
 	$oneDay = str_replace('-', '/', $oneDay);
@@ -464,6 +467,61 @@ function getNumOfOccupBeds(&$oneRoom, $oneDay, $excludeBookingWithId = null, $ex
 	return $occupBeds;
 }
 
+
+function isRoomAvailable(&$oneRoom, $oneDay, $excludeBookingWithId = null, $excludeBookingWithDescrId = null) {
+	$oneDay = str_replace('-', '/', $oneDay);
+	list($year, $month, $day) = explode('/', $oneDay);
+	$month = __getNormalizedDate($month);
+	$day = __getNormalizedDate($day);
+	$oneDate = "$year/$month/$day";
+
+	foreach($oneRoom['bookings'] as $oneBooking) {
+		if($oneBooking['cancelled'] == 1) {
+			continue;
+		}
+		if($oneBooking['id'] == $excludeBookingWithId) {
+			continue;
+		}
+		if($oneBooking['description_id'] == $excludeBookingWithDescrId) {
+			continue;
+		}
+
+		if(isset($oneBooking['changes'])) {
+			$isThereRoomChangeForDay = false;
+			foreach($oneBooking['changes'] as $oneChange) {	
+				if($oneChange['date_of_room_change'] == $oneDate) {
+					$isThereRoomChangeForDay = true;
+				}
+			}
+			if($isThereRoomChangeForDay)
+				continue;
+		}
+
+		// If this booking is for the particular day then this room is not available
+		if(($oneBooking['first_night'] <= $oneDay) and ($oneBooking['last_night'] >= $oneDay)) {
+			return false;
+		}
+	}
+
+	foreach($oneRoom['room_changes'] as $oneRoomChange) {
+		if($oneRoomChange['cancelled'] == 1) {
+			continue;
+		}
+		if($oneRoomChange['booking_id'] == $excludeBookingWithId) {
+			continue;
+		}
+		if($oneRoomChange['description_id'] == $excludeBookingWithDescrId) {
+			continue;
+		}
+
+		// If this booking is for the particular day then this room is not available
+		if($oneRoomChange['date_of_room_change'] == $oneDay) {
+			return false;
+		}
+	}
+
+	return true;
+}
 
 
 /**
@@ -713,7 +771,8 @@ function getBookingData($numOfPersonForRoomType, $startDate, $endDate, &$rooms, 
 					}
 					$roomType = $roomTypes[$roomTypeId];
 					$availableBeds = getNumOfAvailBeds($roomData, $currDate);
-					if((isPrivate($roomType) or isApartment($roomType)) and $availableBeds != $roomType['num_of_beds']) {
+					$roomAvailable = isRoomAvailable($roomData, $currDate);
+					if((isPrivate($roomType) or isApartment($roomType)) and !$roomAvailable) {
 						$roomsNotToBook[$roomId][] = $currDate;
 						logDebug("getBookingData() - Not using room $roomId fpr $currDate");
 					}

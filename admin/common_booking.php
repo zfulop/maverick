@@ -1,6 +1,6 @@
 <?php
 
-function getBookings($roomTypeId, &$rooms, $startPeriod, $endPeriod, $startDateBookingRec = '', $endDateBookingRec = '') {
+function getBookings($roomTypeId, &$rooms, $startPeriod, $endPeriod, $startDateBookingRec = '', $endDateBookingRec = '', &$archRooms = array()) {
 	$retVal = array();
 	$oneDay = $startPeriod;
 	if(strlen($endPeriod) < 1) {
@@ -8,7 +8,7 @@ function getBookings($roomTypeId, &$rooms, $startPeriod, $endPeriod, $startDateB
 	}
 	while($oneDay <= $endPeriod) {
 		$oneDaySlash = str_replace('-', '/', $oneDay);
-		foreach($rooms as $roomId => $oneRoom) {
+		foreach(array_merge(array_values($rooms), array_values($archRooms)) as $oneRoom) {
 			if(!isRoomOfType($oneRoom, $roomTypeId)) {
 				continue;
 			}

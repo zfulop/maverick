@@ -12,6 +12,7 @@ define('PHP_MAILER_SENDTYPE_SMTP_SECURE', '');
 define('PHP_MAILER_SENDTYPE_SMTP_USER', 'sdfvew');
 define('PHP_MAILER_SENDTYPE_SMTP_PASSWORD', 'NmQ4Ym9qMnB2dzli');
 
+define('JSON_DIR', '/home/maveric3/json/');
 
 define('EMAIL_IMG_DIR', "/home/maveric3/reception/img/email/");
 

@@ -35,6 +35,13 @@ while($row = mysql_fetch_assoc($result)) {
 	$roomTypes[$row['id']] = $row;
 }
 
+// get additional room types for each room and increment the num_of_rooms in the previous query
+$sql = "SELECT room_type_id, count(*) AS cnt FROM rooms_to_room_types GROUP BY room_type_id";
+$result = mysql_query($sql, $link);
+while($row = mysql_fetch_assoc($result)) {
+	$roomTypes[$row['room_type_id']]['num_of_rooms'] += $row['cnt'];
+}
+
 
 $rooms = array();
 $sql = "SELECT r.*, rt.name AS rt_name FROM rooms r inner join room_types rt on r.room_type_id=rt.id";
@@ -573,7 +580,7 @@ echo <<<EOT
 			<input type="hidden" name="booking_description_id" value="$descrId">
 			<input type="hidden" name="booking_ids" value="$bookingIdsComaSeparatedList">
 			<table>
-				<tr><th rowspan="2">Room name</th><th rowspan="2">Type</th><th rowspan="2"># of beds</th><th rowspan="2">Extra beds</th><th rowspan="2">Price</th><th colspan="$numOfNights">Room changes</th></tr>
+				<tr><th rowspan="2">Room name</th><th rowspan="2">Original Room Type</th><th rowspan="2">Type</th><th rowspan="2"># of beds</th><th rowspan="2">Extra beds</th><th rowspan="2">Price</th><th colspan="$numOfNights">Room changes</th></tr>
 				<tr>
 EOT;
 
@@ -592,7 +599,8 @@ $roomTotal = 0;
 foreach($bookings as $booking) {
 	$bid = $booking['id'];
 	$rn = urlencode($booking['room_name']);
-	echo "				<tr><td>" . $booking['room_name'] . "</td><td>" . $booking['booking_type'] . "</td><td align=\"center\">" . $booking['num_of_person'] . "</td><td><input size=\"2\" name=\"extra_beds_$bid\" value=\"" . $booking['extra_beds'] . "\"></td><td align=\"right\">" . sprintf("%10.1f",$booking['room_payment']) . " euro</td>";
+	$roomTypeName = $roomTypes[$booking['original_room_type_id']]['name'];
+	echo "				<tr><td>" . $booking['room_name'] . "</td><td>$roomTypeName</td><td>" . $booking['booking_type'] . "</td><td align=\"center\">" . $booking['num_of_person'] . "</td><td><input size=\"2\" name=\"extra_beds_$bid\" value=\"" . $booking['extra_beds'] . "\"></td><td align=\"right\">" . sprintf("%10.1f",$booking['room_payment']) . " euro</td>";
 	foreach($dates as $oneDate) {
 		$roomName = '';
 		$style = ($oneDate == $todayPer ? 'color:red;' : '') . "width: 50px;";

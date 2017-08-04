@@ -46,10 +46,13 @@ class MaverickMailer {
 		}
 
 		try {
+			logDebug("Sending mail from $fromName <$fromEmail> to $toName <$toEmail>");
 			$mail->Send();
 		}  catch (phpmailerException $e) {
+			logError("Error sending mail: " . $e->errorMessage());
 			return $e->errorMessage(); //Pretty error messages from PHPMailer
 		} catch (Exception $e) {
+			logError("Error sending mail: " . $e->getMessage());
 			return $e->getMessage(); //Boring error messages from anything else!
 		}
 		return NULL;

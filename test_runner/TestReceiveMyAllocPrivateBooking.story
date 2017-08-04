@@ -65,6 +65,8 @@ room type           | room                            | first night | last night
 Double room ensuite | 19. 4.em. Butch;20. 4.em. Honey | 2010-01-02  | 2010-01-03 | ROOM         | 40           |
 
 
+
+
 Scenario 2: Do one bookings then change the price
 Given there are no bookings
 Start date | end date
@@ -106,3 +108,43 @@ Then the following bookings will exist in the db
 room type           | room            | first night | last night | booking type | room payment |
 Double room ensuite | 20. 4.em. Honey | 2010-01-02  | 2010-01-03 | ROOM         | 50           |
 
+
+
+
+Scenario 3: Book one of the empty private room that is the only avaialbe as a virtual room for apartment
+Given there are no bookings
+Start date | end date
+2010-01-01 | 2010-12-31
+
+Given the following bookings exist
+room name                | room type                               | 2010-01-02 | 
+11. Lemon                | 39 Double room with shared bathroom     |            |
+12. Yellow               | 39 Double room with shared bathroom     |            |
+13. The Blue Brothers    | 35 6 bed Dorm                           |            |
+14. Mss Peach            | 35 6 bed Dorm                           |            |
+15. Mr Green             | 42 10 bed Dorm                          |            |
+16. 4.em. Mia            | 46 Double room ensuite                  |            |
+18. 4.em. Jules          | 46 Double room ensuite                  |            |
+17. 4.em. Vincent        | 46 Double room ensuite                  |            |
+19. 4.em. Butch          | 46 Double room ensuite                  |            |
+20. 4.em. Honey          | 46 Double room ensuite                  |            |
+21. Nathan               | 69 Deluxe Studio Apartment, Ferenciek   |     X      |
+22. Simon                | 70 Studio Apartment, Ferenciek          |            |
+23. Kelly                | 72 One-Bedroom Apartment 2.0, Ferenciek |            |
+24. Curtis               | 69 Deluxe Studio Apartment, Ferenciek   |     X      |
+25. Alisha               | 69 Deluxe Studio Apartment, Ferenciek   |     X      |
+
+Given there are no virtual rooms
+
+Given the following virtual rooms are configured
+room name                | additional room type                  |
+16. 4.em. Mia            | Deluxe Studio Apartment, Ferenciek    |
+
+When the following booking arrives from myallocator
+room type                          | start date   | end date    | currency | units | price  | comission |
+                                   | 2010-01-02   | 2010-01-02  | EUR      |       |        |           |
+Deluxe Studio Apartment, Ferenciek | 2010-01-02   | 2010-01-02  |          | 1     | 40     | 0         |
+
+Then the following bookings will exist in the db
+room type           | room          | first night | last night | booking type | room payment |
+Double room ensuite | 16. 4.em. Mia | 2010-01-02  | 2010-01-02 | ROOM         | 40           |

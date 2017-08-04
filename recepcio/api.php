@@ -67,7 +67,16 @@ function _loadRooms() {
 	$location = getParameter('location');
 	$lang = getParameter('lang');
 	$currency = getParameter('currency');
-	$link = db_connect($location);
+	
+	$filePath = JSON_DIR . $location . '/rooms_' . $lang . '_' . $currency . '.json';
+	if(file_exists($filePath)) {
+		logDebug("File exists: $filePath. Loading the file instead of loading all data from the db");
+		$json = file_get_contents($filePath);
+		return json_decode($json, true);
+	}
+	
+	logDebug("Loading the rooms data from the db");
+	$link = db_connect($location, true);
 	
 	$roomTypesData = RoomDao::getRoomTypesWithRooms($lang, $link);
 	
@@ -75,6 +84,10 @@ function _loadRooms() {
 
 	logDebug("Rooms loaded. There are " . count($roomTypesData) . " room types");
 	mysql_close($link);
+	
+	$json = json_encode($roomTypesData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+	logDebug("Saving rooms data to $filePath");
+	file_put_contents($filePath, $json);
 	return $roomTypesData;
 }
 
@@ -169,12 +182,8 @@ function loadAvailability() {
 	}
 	usort($specialOffers, 'sortOffersByPercent');
 	$retVal['special_offers'] = $specialOffers;
-	 
-	logDebug("Loading room types");
-	$roomTypesData = RoomDao::getRoomTypesWithRooms($lang, $link);
 
-	enrichWithImageAndPrice($roomTypesData, $lang, $currency, $link);
-
+	$roomTypesData = _loadRooms();
 	
 	logDebug("Loading rooms and their bookings for the selected period");
 	$rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
@@ -376,7 +385,7 @@ function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType, 
 	$roomType['price'] = convertAmount(getPrice($arriveTS, $nights, $roomData, 1)/$nights,'EUR',$currency, date('Y-m-d')) ;
 	if(isApartment($roomType)) {
 		for($i=2; $i<= $roomType['num_of_beds']; $i++) {
-			$roomType['price_' . $i] = number_format(convertAmount(getPrice($arriveTS, $nights, $roomData, $i),'EUR',$currency, date('Y-m-d')) / $nights, 2);
+			$roomType['price_' . $i] = convertAmount(getPrice($arriveTS, $nights, $roomData, $i),'EUR',$currency, date('Y-m-d')) / $nights;
 		}
 	}
 
@@ -386,8 +395,8 @@ function fillInPriceAndAvailability($arriveTS, $nights, &$roomData, &$roomType, 
 		$discountedPayment = $roomType['price'];
 		if($discount > 0) {
 			$discountedPayment = $discountedPayment * (100 - $discount) / 100;
-			$roomType['price_without_discount'] = number_format($roomType['price'], 2);
-			$roomType['price'] = number_format($discountedPayment, 2);
+			$roomType['price_without_discount'] = $roomType['price'];
+			$roomType['price'] = $discountedPayment;
 		}
 	}
 
@@ -1139,7 +1148,7 @@ EOT;
 		logError("Cannot send email: $result");
 	}
 
-	$editBookingUrl = "http://recepcio.roomcaptain.com/edit_booking.php?description_id=$descriptionId";
+	$editBookingUrl = "http://reception.roomcaptain.com/edit_booking.php?description_id=$descriptionId";
 	$recepcioMessage = <<<EOT
 Booking arrived (<a href="$editBookingUrl">edit</a>)<br>
 

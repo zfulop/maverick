@@ -125,6 +125,7 @@ function moveDataToArchive($link, $hostel, &$output) {
 	$sql[] = "INSERT INTO $archiveSchema.audit SELECT * FROM $activeSchema.audit WHERE time_of_event<'$oneYearAgoDash'";
 	$sql[] = "INSERT INTO $archiveSchema.prices_for_date SELECT * FROM $activeSchema.prices_for_date WHERE date<'$oneYearAgoSlash'";
 	$sql[] = "INSERT INTO $archiveSchema.prices_for_date_history SELECT * FROM $activeSchema.prices_for_date_history WHERE date<'$oneYearAgoSlash'";
+	$sql[] = "INSERT INTO $archiveSchema.cash_out SELECT * FROM $activeSchema.cash_out WHERE time_of_payment<'$oneYearAgoDash'";
 
 	$sql[] = "DELETE brc FROM $activeSchema.booking_room_changes brc inner join $activeSchema.bookings b on brc.booking_id=b.id inner join $activeSchema.booking_descriptions  bd ON b.description_id=bd.id WHERE bd.last_night<'$oneYearAgoSlash'";
 	$sql[] = "DELETE b FROM $activeSchema.bookings b inner join $activeSchema.booking_descriptions  bd ON b.description_id=bd.id WHERE bd.last_night<'$oneYearAgoSlash'";
@@ -136,6 +137,7 @@ function moveDataToArchive($link, $hostel, &$output) {
 	$sql[] = "DELETE FROM $activeSchema.audit WHERE time_of_event<'$oneYearAgoDash'";
 	$sql[] = "DELETE FROM $activeSchema.prices_for_date WHERE date<'$oneYearAgoSlash'";
 	$sql[] = "DELETE FROM $activeSchema.prices_for_date_history WHERE date<'$oneYearAgoSlash'";
+	$sql[] = "DELETE FROM $activeSchema.cash_out WHERE time_of_payment<'$oneYearAgoDash'";
 	$msg = '';
 	foreach($sql as $s) {
 		$result = mysql_query($s, $link);

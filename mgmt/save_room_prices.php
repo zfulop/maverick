@@ -56,7 +56,7 @@ list($endYear,$endMonth,$endDay) = explode('-', $endDate);
 $startDateDash = str_replace('-', '/', $startDate);
 $endDateDash = str_replace('-', '/', $endDate);
 
-$todaySlash = date('Y/m/d');
+$todaySlash = date('Y/m/d H:i:s');
 $roomTypes = loadRoomTypesWithAvailableBeds($link, $startDate, $endDate);
 $rooms = loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link);
 $sql = "SELECT * FROM prices_for_date WHERE room_type_id in (" . implode(',', $roomTypeIds) . ") AND date>='$startDateDash' AND date<='$endDateDash'";

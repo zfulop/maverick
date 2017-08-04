@@ -48,7 +48,7 @@ if(isset($_REQUEST['pay_mode'])) {
 	$payMode = $_REQUEST['pay_mode'];
 }
 
-$tables = array('SC' => 'Service charges', 'CIO' => 'Cash In/Out', 'P' => 'Payment');
+$tables = array('SC' => 'Service charges', 'CIO' => 'Cash In/Out', 'P' => 'Payment', 'GT' => 'Guest Transfer');
 
 $tablesSelected = array_keys($tables);
 if(isset($_REQUEST['tables'])) {
@@ -91,25 +91,29 @@ foreach(array('CASH','CASH2','CASH3','BANK_TRANSFER','CREDIT_CARD') as $pm) {
 
 $tablesOption = '';
 foreach($tables as $key => $desc) {
-	$tablesOption .= ' <input type="checkbox" name="tables[]" value="' . $key . '"' . (in_array($key, $tablesSelected) ? ' checked' : '') . '> ' . $desc . '<br>'; 
+	$tablesOption .= ' <div style="clear:left;"><input type="checkbox" name="tables[]" value="' . $key . '"' . (in_array($key, $tablesSelected) ? ' checked' : '') . '> ' . $desc . '</div>'; 
 }
 
 
 $cashOuts = array();
 if(in_array('CIO', $tablesSelected)) {
-	$sql = "SELECT c.type AS type, c.time_of_payment, c.pay_mode, c.receiver, c.comment, c.currency, c.amount FROM cash_out c WHERE SUBSTR(c.time_of_payment,1,10)>='$startDate' AND SUBSTR(c.time_of_payment,1,10)<='$endDate' AND c.storno<>1";
+	logDebug("Loading the Cash In/Outs");
+	$sql = "SELECT c_1.type AS type, c_1.time_of_payment, c_1.pay_mode, c_1.receiver, c_1.comment, c_1.currency, c_1.amount FROM cash_out c_1 WHERE SUBSTR(c_1.time_of_payment,1,10)>='$startDate' AND SUBSTR(c_1.time_of_payment,1,10)<='$endDate' AND c_1.storno<>1";
 	if(strlen($comment) > 0) {
-		$sql .= " AND c.comment LIKE '%$comment%'";
+		$sql .= " AND c_1.comment LIKE '%$comment%'";
 	}
 	if(count($payMode) > 0) {
-		$sql .= " AND c.pay_mode IN ('" . implode("','",$payMode) . "')";
+		$sql .= " AND c_1.pay_mode IN ('" . implode("','",$payMode) . "')";
 	}
 	if(count($type) > 0) {
-		$sql .= " AND c.type IN ('" . implode("','", $type) . "')";
+		$sql .= " AND c_1.type IN ('" . implode("','", $type) . "')";
 	}
-	$result = mysql_query($sql, $link);
+	$archSql = str_replace("cash_out", constant('DB_' . strtoupper($_SESSION['login_hotel']) . '_ARCHIVE_DBNAME') . '.cash_out', $sql);
+	$archSql = str_replace("c_1", "c_2", $archSql);
+	$unionSql = $sql . " UNION ALL " . $archSql;
+	$result = mysql_query($unionSql, $link);
 	if(!$result) {
-		trigger_error("Cannot get cashout for report: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+		trigger_error("Cannot get cashout for report: " . mysql_error($link) . " (SQL: $unionSql)", E_USER_ERROR);
 	} else {
 		while($row = mysql_fetch_assoc($result)) {
 			$cashOuts[] = $row;
@@ -119,20 +123,23 @@ if(in_array('CIO', $tablesSelected)) {
 
 $payments = array();
 if(in_array('P', $tablesSelected)) {
-	$sql = "SELECT p.* FROM payments p WHERE SUBSTR(p.time_of_payment,1,10)>='$startDate' AND SUBSTR(p.time_of_payment,1,10)<='$endDate' AND p.storno<>1";
+	logDebug("Loading the Payments");
+	$sql = "SELECT p_1.* FROM payments p_1 WHERE SUBSTR(p_1.time_of_payment,1,10)>='$startDate' AND SUBSTR(p_1.time_of_payment,1,10)<='$endDate' AND p_1.storno<>1";
 	if(strlen($comment) > 0) {
-		$sql .= " AND p.comment LIKE '%$comment%'";
+		$sql .= " AND p_1.comment LIKE '%$comment%'";
 	}
 	if(count($type) > 0) {
-		$sql .= " AND p.type IN ('" . implode("','", $type) . "')";
+		$sql .= " AND p_1.type IN ('" . implode("','", $type) . "')";
 	}
 	if(count($payMode) > 0) {
-		$sql .= " AND p.pay_mode IN ('" . implode("','",$payMode) . "')";
+		$sql .= " AND p_1.pay_mode IN ('" . implode("','",$payMode) . "')";
 	}
-	$sql .= " ORDER BY time_of_payment";
-	$result = mysql_query($sql, $link);
+	$archSql = str_replace("payments", constant('DB_' . strtoupper($_SESSION['login_hotel']) . '_ARCHIVE_DBNAME') . '.payments', $sql);
+	$archSql = str_replace("p_1", "p_2", $archSql);
+	$unionSql = "select p.* from ($sql UNION ALL $archSql) as p ORDER BY p.time_of_payment";
+	$result = mysql_query($unionSql, $link);
 	if(!$result) {
-		trigger_error("Cannot get cashout for report: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+		trigger_error("Cannot get payments for report: " . mysql_error($link) . " (SQL: $unionSql)", E_USER_ERROR);
 	} else {
 		while($row = mysql_fetch_assoc($result)) {
 			$payments[] = $row;
@@ -142,20 +149,23 @@ if(in_array('P', $tablesSelected)) {
 
 $scharges = array();
 if(in_array('SC', $tablesSelected)) {
-	$sql = "SELECT sc.* FROM service_charges sc WHERE SUBSTR(sc.time_of_service,1,10)>='$startDate' AND SUBSTR(sc.time_of_service,1,10)<='$endDate'";
+	logDebug("Loading the Service Charges");
+	$sql = "SELECT sc_1.* FROM service_charges sc_1 WHERE SUBSTR(sc_1.time_of_service,1,10)>='$startDate' AND SUBSTR(sc_1.time_of_service,1,10)<='$endDate'";
 	if(strlen($comment) > 0) {
 		$sql .= " AND comment LIKE '%$comment%'";
 	}
 	if(count($type) > 0) {
-		$sql .= " AND sc.type IN ('" . implode('\',\'', $type) . "')";
+		$sql .= " AND sc_1.type IN ('" . implode('\',\'', $type) . "')";
 	}
 	if(count($payMode) > 0) {
 		$sql .= " AND 1=0";
 	}
-	$sql .= " ORDER BY time_of_service";
-	$result = mysql_query($sql, $link);
+	$archSql = str_replace("service_charges", constant('DB_' . strtoupper($_SESSION['login_hotel']) . '_ARCHIVE_DBNAME') . ".service_charges", $sql);
+	$archSql = str_replace("sc_1", "sc_2", $archSql);
+	$unionSql = "select sc.* from ($sql UNION ALL $archSql) as sc ORDER BY sc.time_of_service";
+	$result = mysql_query($unionSql, $link);
 	if(!$result) {
-		trigger_error("Cannot get service charges for report: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+		trigger_error("Cannot get service charges for report: " . mysql_error($link) . " (SQL: $unionSql)", E_USER_ERROR);
 	} else {
 		while($row = mysql_fetch_assoc($result)) {
 			$scharges[] = $row;
@@ -165,17 +175,18 @@ if(in_array('SC', $tablesSelected)) {
 
 $gtransfers = array();
 if(in_array('GT', $tablesSelected)) {
-	$sql = "SELECT * FROM guest_transfer WHERE SUBSTR(time_of_enter,1,10)>='$startDate' AND SUBSTR(time_of_enter,1,10)<='$endDate'";
+	logDebug("Loading the Guest Transfers");
+	$sql = "SELECT gt_1.* FROM guest_transfer gt_1 WHERE SUBSTR(gt_1.time_of_enter,1,10)>='$startDate' AND SUBSTR(gt_1.time_of_enter,1,10)<='$endDate'";
 	if(strlen($comment) > 0) {
-		$sql .= " AND comment LIKE '%$comment%'";
+		$sql .= " AND gt_1.comment LIKE '%$comment%'";
 	}
 	if(strlen($gtDest) > 0) {
-		$sql .= " AND destination='$gtDest'";
+		$sql .= " AND gt_1.destination='$gtDest'";
 	}
 	if(count($payMode) > 0) {
-		$sql .= " AND pay_mode IN ('" . implode("','",$payMode) . "')";
+		$sql .= " AND gt_1.pay_mode IN ('" . implode("','",$payMode) . "')";
 	}
-	$sql .= " ORDER BY time_of_enter";
+	$sql .= " ORDER BY gt_1.time_of_enter";
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot get guest transfers for report: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -222,7 +233,6 @@ $extraHeader = <<<EOT
 	</style>
 
 EOT;
-
 
 if($exportToExcel) {
 	header('Content-Type: text/csv');
@@ -292,6 +302,9 @@ if($exportToExcel) {
 EOT;
 
 }
+
+logDebug("tablesSelected: " . print_r($tablesSelected, true));
+logDebug("There are " . count($scharges) . " service charges, " . count($cashOuts) . " cash in/outs, " . count($payments) . " payments and " . count($gtransfers) . " guest transfers");
 
 $takeSc = false;
 $takeCo = false;

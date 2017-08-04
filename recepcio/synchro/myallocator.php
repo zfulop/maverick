@@ -267,7 +267,7 @@ EOT;
 			return;
 		}
 		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_URL, 'http://api.myallocator.com/pms/v201408/xml/SetAllocation');
+		curl_setopt($curl, CURLOPT_URL, 'https://api.myallocator.com/pms/v201408/xml/SetAllocation');
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
 		curl_setopt($curl, CURLOPT_TIMEOUT, 60);

@@ -9,8 +9,6 @@ if(!checkLogin(SITE_ADMIN)) {
 }
 
 
-$link = db_connect();
-
 
 $extraHeader = <<<EOT
 
@@ -207,8 +205,12 @@ $endDateSlash = str_replace('-', '/', $endDate);
 list($startYear, $startMonth, $startDay) = explode('-', $startDate);
 list($endYear, $endMonth, $endDay) = explode('-', $endDate);
 
-$rooms = loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link);
 
+$link = db_connect();
+
+$rooms = loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link);
+$archRooms = loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link, 'eng', true);
+//$archRooms = array();
 $roomTypes = loadRoomTypesWithAvailableBeds($link, $startDate, $endDate);
 
 mysql_close($link);
@@ -259,8 +261,8 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 			$endPeriod = date('Y-m-d', strtotime("$startPeriod +$groupDays day"));
 		}
 		$endPeriod = date('Y-m-d', strtotime("$endPeriod -1 day"));
-		$relBookings = getBookings($roomTypeId, $rooms, $startPeriod, $endPeriod, $startDateBookingRec, $endDateBookingRec);
-		$absBookings = getBookings($roomTypeId, $rooms, $startPeriod, $endPeriod);
+		$relBookings = getBookings($roomTypeId, $rooms, $startPeriod, $endPeriod, $startDateBookingRec, $endDateBookingRec, $archRooms);
+		$absBookings = getBookings($roomTypeId, $rooms, $startPeriod, $endPeriod, '', '', $archRooms);
 		if(!isDorm($roomType)) {
 			//set_message("Room: " . $roomType['name'] . " is apartment with num of beds: " . $roomType['num_of_beds']);
 			//set_message("abs selected bookings: " . print_r($absBookings, true));

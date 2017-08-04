@@ -260,7 +260,7 @@ echo "<table class=\"stat\">\n\t<tr>\n\t\t<td>&nbsp;</td><th>Available Beds</th>
 
 $endDateTs = strtotime($endDate);
 $currDateTs = strtotime($startDate);
-while($currDateTs <= $endDateTsb) {
+while($currDateTs <= $endDateTs) {
 	$currDate = date('Y-m-d', $currDateTs);
 	$currDay = date('D', $currDateTs);
 	$cssClass = '';
@@ -295,6 +295,7 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 			$occupancy = round($avgNumOfBeds / $roomType['available_beds'] * 100);
 		} else {
 			$numOfRoomsBooked = countIndividualRooms($bookings);
+			logDebug("For " . $roomType['type'] . " room type: " . $roomType['name'] . " there are " . $numOfRoomsBooked . " rooms booked from " . count($bookings) . " bookings");
 			if($roomType['num_of_rooms'] < 1) {
 				$occupancy = 0;
 			} else {
@@ -377,12 +378,24 @@ function admin_getRoomPrice($currDate, &$rooms, &$roomType) {
 function countIndividualRooms($bookings) {
 	$roomUsed = array();
 	$cntr = 0;
+	logDebug("counting individual rooms for the bookings");
+	$bookingIds = '';
+	$roomIds = '';
 	foreach($bookings as $oneBooking) {
-		if(!in_array($oneBooking['room_id'], $roomUsed)) {
-			$roomUsed[] = $oneBooking['room_id'];
+		$bookingIds .= $oneBooking['id'] . ',';
+		$roomIdColumn = 'room_id';
+		if(!isset($oneBooking['room_id'])) {
+			$roomIdColumn = 'new_room_id';
+		}
+		$roomIds .= $oneBooking[$roomIdColumn] . ',';
+		if(!in_array($oneBooking[$roomIdColumn], $roomUsed)) {
+			$roomUsed[] = $oneBooking[$roomIdColumn];
 			$cntr += 1;
 		}
 	}
+	logDebug("booking ids: $bookingIds");
+	logDebug("room ids: $roomIds");
+	logDebug("unique room ids: " . implode(',',$roomUsed));
 	return $cntr;
 }
 
