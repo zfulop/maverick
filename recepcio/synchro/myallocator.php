@@ -62,7 +62,7 @@ class MyAllocatorBooker extends Booker {
 				$roomIds = getRoomIds($rooms, $oneRoomMap['roomTypeId']);
 				$roomsProvidingAvaialability = array();
 				foreach($roomIds as $roomId) {
-					if(is_null($roomData) and $rooms[$roomId]['room_type_id'] == $oneRoomMap['roomTypeId']) {
+					if(is_null($roomData) and (($rooms[$roomId]['room_type_id'] == $oneRoomMap['roomTypeId']) or in_array($rooms[$roomId]['room_type_id'], $oneRoomMap['roomTypeId']))) {
 						$roomData = $rooms[$roomId];
 					}
 					if(!isset($rooms[$roomId])) {
@@ -82,30 +82,30 @@ class MyAllocatorBooker extends Booker {
 				//logDebug("The list of room ids: " . print_r($roomIds, true));
 				//logDebug("Type of room: " . $roomData['type']);
 				$rtId = $oneRoomMap['roomTypeId'];
+				$numOfPerson = (RoomDao::isDorm($roomData) ? 1 : (RoomDao::isApartment($roomData) ? 2 : $roomData['num_of_beds']));
 				if(is_array($oneRoomMap['roomTypeId'])) {
 					$price = 0;
 					foreach($oneRoomMap['roomTypeId'] as $rtId) {
-						$price = max($price, PriceDao::getPrice($currTS, 1, $rtId, $roomData['num_of_beds'], $link));
+						$price = max($price, PriceDao::getPrice($currTS, 1, $rtId, $numOfPerson, $link));
 					}
-				} elseif(RoomDao::isDorm($roomData)) {
-					$price = PriceDao::getPrice($currTS, 1, $oneRoomMap['roomTypeId'], 1, $link);
-				} elseif(RoomDao::isApartment($roomData)) {
-					$price = PriceDao::getPrice($currTS, 1, $oneRoomMap['roomTypeId'], 2, $link);
 				} else {
-					$price = PriceDao::getPrice($currTS, 1, $oneRoomMap['roomTypeId'], $roomData['num_of_beds'], $link);
+					$price = PriceDao::getPrice($currTS, 1, $rtId, $numOfPerson, $link);
 				}
 				$units = $roomData['type'] == 'DORM' ? $numOfAvailBeds : $numOfAvailRooms;
 				$availabilities[$oneRoomMap['roomName']][$currYear . '-' . $currMonth . '-' . $currDay] = $units;
 				$prices[$oneRoomMap['roomName']][$currYear . '-' . $currMonth . '-' . $currDay] = $price;
 				$remoteRoomId = $oneRoomMap['remoteRoomId'];
-
+				if($price == intval($price)) {
+					$price = $price . '.00';
+				}
+				
 				$roomDataToSend[] = array(
 					'roomTypeId' => $oneRoomMap['roomTypeId'], 
 					'type' => $roomData['type'],
 					'remoteRoomId' => $remoteRoomId, 
 					'date' => "$currYear-$currMonth-$currDay", 
 					'units' => $units,
-					'price' => $price.".00",
+					'price' => $price,
 					'roomsProvidingAvaialability' => $roomsProvidingAvaialability);
 				
 				$currDate = date('Y-m-d', strtotime("$currDate +1 day"));

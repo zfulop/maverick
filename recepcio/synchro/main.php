@@ -30,7 +30,15 @@ $loadMyAllocator = '';
 
 $startDate = $_REQUEST['start_date'];
 $endDate = $_REQUEST['end_date'];
+$hostel = getLoginHotel();
 logDebug("Start: $startDate, End: $endDate");
+
+logDebug("Exporting availability for the period into file");
+$cmd = "php -c ../../php.ini extract_availability.php $hostel $startDate $endDate";
+logDebug("cmd: $cmd");
+$output = shell_exec("cd /home/maveric3/reception/synchro; $cmd");
+logDebug("availability exported. Output: $output");
+
 $paramsArray = array();
 $datesArray = array();
 $currDate = $startDate;
