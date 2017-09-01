@@ -8,7 +8,7 @@ if(!checkLogin(SITE_MGMT)) {
 
 
 
-header('Location: view_rooms.php');
+header('Location: delete_extracted_rooms_file.php');
 
 $link = db_connect();
 

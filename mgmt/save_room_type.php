@@ -9,7 +9,7 @@ if(!checkLogin(SITE_MGMT)) {
 
 $link = db_connect();
 
-header('Location: view_rooms.php');
+header('Location: delete_extracted_rooms_file.php');
 
 $id = intval($_REQUEST['id']);
 $name = $_REQUEST['name'];
