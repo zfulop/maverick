@@ -68,14 +68,16 @@ function thenTheFollowingRoomsReturnFromTheAPI($table) {
 			'name' => $row['name'],
 			'type' => $row['type'],
 			'num_of_beds' => $row['number of beds'],
-			'id' => $row['id']);
+			'id' => $row['id'],
+			'num_of_rooms' => $row['number of rooms'], 
+			'rooms_providing_availability' => explode(',',$row['rooms providing availability']));
 	}
 	
 	compareList($expectedRooms, $apiRooms, 'apiRoomCompare');
 
 }
 
-function apiRoomCompare($room1, $room2) {
+function apiRoomCompare(&$room1, &$room2) {
 	if($room1['rt_name'] > $room2['rt_name']) { return 1; }
 	if($room1['rt_name'] < $room2['rt_name']) { return -1; }
 	if($room1['name'] > $room2['name']) { return 2; }
@@ -86,6 +88,20 @@ function apiRoomCompare($room1, $room2) {
 	if($room1['num_of_beds'] < $room2['num_of_beds']) { return -4; }
 	if($room1['id'] > $room2['id']) { return 5; }
 	if($room1['id'] < $room2['id']) { return -5; }
+	if($room1['num_of_rooms'] > $room2['num_of_rooms']) { return 6; }
+	if($room1['num_of_rooms'] < $room2['num_of_rooms']) { return -6; }
+	if(!isset($room1['rpa'])) {
+		sort($room1['rooms_providing_availability']);
+		$room1['rpa'] = implode(',', $room1['rooms_providing_availability']);
+	}
+	if(!isset($room2['rpa'])) {
+		sort($room2['rooms_providing_availability']);
+		$room2['rpa'] = implode(',', $room2['rooms_providing_availability']);
+	}
+	$rpa1 = $room1['rpa'];
+	$rpa2 = $room2['rpa'];
+	if($rpa1 > $rpa2) { return 7; }
+	if($rpa1 < $rpa2) { return -7; }
 	return 0;
 }
 
@@ -97,7 +113,19 @@ function thenTheFollowingAvailabilityReturnsFromTheAPI($table) {
 	if(is_null($json)) {
 		throw new Exception("Invalid JSON returned from API: $apiOutput");
 	}
-	$apiAvail = $json['rooms'];
+	$apiAvail = array();
+	foreach($json['rooms'] as $apiRoom) {
+		$avail = array(
+			'rt_name' => $apiRoom['rt_name'],
+			'id' => $apiRoom['id']);
+		if(isset($apiRoom['num_of_beds_avail'])) {
+			$avail['num_of_beds_avail'] = $apiRoom['num_of_beds_avail'];
+		}
+		if(isset($apiRoom['num_of_rooms_avail'])) {
+			$avail['num_of_rooms_avail'] = $apiRoom['num_of_rooms_avail'];
+		}
+		$apiAvail[] = $avail;
+	}
 	$expectedAvail = array();
 	foreach($table['rows'] as $row) {
 		$expectedAvail[] = array(

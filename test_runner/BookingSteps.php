@@ -39,9 +39,43 @@ function givenTheFollowingBookingsExist($table) {
 			if($title == 'room name' or $title == 'room type' or $title == '') {
 				continue;
 			}
-			$whatToBook = trim($row[$title]);
+			$bookingDate = $title;
+			$whatToBook = trim($row[$bookingDate]);
 			if(strlen($whatToBook) > 0) {
-				createBooking($rooms[$roomName], $title, $whatToBook, $link);
+				createBooking($rooms[$roomName], $bookingDate, $bookingDate, $whatToBook, $link);
+			}
+		}
+	}
+	mysql_query("COMMIT", $link);
+	mysql_close($link);
+}
+
+
+function givenTheFollowingMultiDayBookingsExist($table) {
+	$link = db_connect('teszt_hostel');
+	mysql_query("START TRANSACTION", $link);
+	$sql = "SELECT r.*,rt.type, rt.num_of_beds FROM rooms r INNER JOIN room_types rt ON r.room_type_id=rt.id";
+	$result = mysql_query($sql, $link);
+	$rooms = array();
+	while($row = mysql_fetch_assoc($result)) {
+		$rooms[$row['name']] = $row;
+	}
+	foreach($table['rows'] as $row) {
+		$roomName = $row['room name'];
+		$firstNight = $row['first night'];
+		$lastNight = $row['last night'];
+		$numOfPerson = $row['number of person'];
+		$bookingId = createBooking($rooms[$roomName], $firstNight, $lastNight, $numOfPerson, $link);
+		if(isset($row['new room name']) and isset($row['room change date']) and strlen($row['room change date']) == 10) {
+			$newRoomName = $row['new room name'];
+			$roomChangeDate = $row['room change date'];
+			// insert a booking room change
+			$roomChangeDate = str_replace('-', '/', $roomChangeDate);
+			$newRoomId = $rooms[$newRoomName]['id'];
+			echo "Creating room change for new room: $newRoomName and date: $roomChangeDate\n";
+			$sql = "INSERT INTO booking_room_changes (booking_id, date_of_room_change, new_room_id) VALUES ($bookingId, '$roomChangeDate', $newRoomId)";
+			if(!mysql_query($sql, $link)) {
+				throw new Exception("Error creating booking room change: " . mysql_error($link) . " (SQL: $sql)");
 			}
 		}
 	}
@@ -51,23 +85,31 @@ function givenTheFollowingBookingsExist($table) {
 
 
 
-function createBooking($roomData, $date, $whatToBook, $link) {
-	$date = str_replace('-','/',$date);
-	$sql = "INSERT INTO booking_descriptions (name,first_night,last_night,num_of_nights,source) VALUES ('test booking', '$date', '$date', 1, '**TESTER**')";
+function createBooking($roomData, $firstNight, $lastNight, $whatToBook, $link) {
+	$firstNight = str_replace('-','/',$firstNight);
+	$lastNight = str_replace('-','/',$lastNight);
+	$numOfNights = round((strtotime($lastNight) - strtotime($firstNight)) / (60*60*24));
+	$sql = "INSERT INTO booking_descriptions (name,first_night,last_night,num_of_nights,source) VALUES ('test booking', '$firstNight', '$lastNight', $numOfNights, '**TESTER**')";
 	if(!mysql_query($sql, $link)) {
 		throw new Exception("Error creating booking descr: " . mysql_error($link) . " (SQL: $sql)");
 	}
 	$bdid = mysql_insert_id($link);
-	$numOfPerson = $roomData['type'] == 'DORM' ? $whatToBook : $roomData['num_of_beds'];
+	if(intval($whatToBook) > 0) {
+		$numOfPerson = intval($whatToBook);
+	} else {
+		$numOfPerson = $roomData['num_of_beds'];
+	}
 	$bookingType = $roomData['type'] == 'DORM' ? 'BED' : 'ROOM';
 	$roomId = $roomData['id'];
 	$now = date('Y-m-d H:i:s');
 	$roomTypeId = $roomData['room_type_id'];
-	echo "Creating booking for room: " . $roomData['name'] . " for date: $date, type: $bookingType, num: $numOfPerson\n";
+	echo "Creating booking for room: " . $roomData['name'] . " for first night: $firstNight, last night: $lastNight, type: $bookingType, num: $numOfPerson\n";
 	$sql = "INSERT INTO bookings (num_of_person,room_id,booking_type,creation_time,description_id,room_payment,original_room_type_id) VALUES ($numOfPerson,$roomId,'$bookingType','$now',$bdid,10,$roomTypeId)";
 	if(!mysql_query($sql, $link)) {
 		throw new Exception("Error creating booking descr: " . mysql_error($link) . " (SQL: $sql)");
 	}
+	$bookingId = mysql_insert_id($link);
+	return $bookingId;
 }
 
 

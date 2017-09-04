@@ -9,7 +9,6 @@ require('includes/db_config.php');
 require('includes/logger.php');
 
 $hostel = $argv[1];
-backup_tables($hostel);
 
 echo "Backing up $hostel\n";
 $link = db_connect($hostel);

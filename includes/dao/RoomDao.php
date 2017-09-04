@@ -19,9 +19,12 @@ class RoomDao {
 	 *                     * valid_to               date until the room is valid (can be used)
 	 *                     * room_types             The additional room types that the room can be. This is an assoc array with key: room type id, value: room type name
 	 */
-	public static function getRooms($link) {
+	public static function getRooms($link, $dateWhenRoomValid = null) {
 		global $rooms;
 		if(is_null($rooms)) {
+			if(is_null($dateWhenRoomValid)) {
+				$dateWhenRoomValid = date('Y/m/d');
+			}
 			$sql = "SELECT * FROM rooms";
 			$result = mysql_query($sql, $link);
 			if(!$result) {
@@ -31,7 +34,9 @@ class RoomDao {
 			logDebug("There are " . mysql_num_rows($result) . " rooms loaded");
 			$rooms = array();
 			while($row = mysql_fetch_assoc($result)) {
-				$rooms[$row['id']] = $row;
+				if($row['valid_from'] <= $dateWhenRoomValid and $row['valid_to'] >= $dateWhenRoomValid) {
+					$rooms[$row['id']] = $row;
+				}
 			}
 			
 			$sql = "SELECT rtrt.*, rt.name AS room_type_name FROM rooms_to_room_types rtrt INNER JOIN room_types rt ON (rtrt.room_type_id=rt.id)";
@@ -76,7 +81,7 @@ class RoomDao {
 	 */
 	public static function getRoomTypes($lang, $link) {
 		$sql = "SELECT rt.id, rt.name AS rt_name, rt.price_per_bed, rt.price_per_room, rt.surcharge_per_bed, rt.type, rt.num_of_beds, lt1.value AS name, lt2.value AS description, " .
-			"lt3.value AS short_description, lt4.value AS size, lt5.value AS location, lt6.value AS bathroom, rt._order, 0 AS num_of_beds_avail FROM room_types rt " . 
+			"lt3.value AS short_description, lt4.value AS size, lt5.value AS location, lt6.value AS bathroom, rt._order, 0 AS num_of_beds_avail, 0 AS num_of_rooms FROM room_types rt " . 
 			"INNER JOIN lang_text lt1 ON (lt1.table_name='room_types' AND lt1.column_name='name' AND lt1.row_id=rt.id AND lt1.lang='$lang') " . 
 			"INNER JOIN lang_text lt2 ON (lt2.table_name='room_types' AND lt2.column_name='description' AND lt2.row_id=rt.id AND lt2.lang='$lang') " . 
 			"LEFT OUTER JOIN lang_text lt3 ON (lt3.table_name='room_types' AND lt3.column_name='short_description' AND lt3.row_id=rt.id AND lt3.lang='$lang') " .
@@ -92,7 +97,23 @@ class RoomDao {
 		}
 		$roomTypesData = array();
 		while($row = mysql_fetch_assoc($result)) {
+			$row['rooms_providing_availability'] = array();
+			$row['original_rooms_types'] = array();
 			$roomTypesData[$row['id']] = $row;
+		}
+		logDebug("There are " . count($roomTypesData) . " room types loaded");
+
+		foreach(RoomDao::getRooms($link) as $rId => $room) {
+			$roomTypesData[$room['room_type_id']]['num_of_rooms'] += 1;
+			$roomTypesData[$room['room_type_id']]['rooms_providing_availability'][] = $rId;
+			$roomTypesData[$room['room_type_id']]['original_rooms_types'][] = $rId;
+			if(isset($room['room_types'])) {
+				foreach($room['room_types'] as $roomTypeId => $roomTypeName) {
+					logDebug("\tFor room " . $room['name'] . "($rId) there are additional room types setup: $roomTypeName($roomTypeId)");
+					$roomTypesData[$roomTypeId]['num_of_rooms'] += 1;
+					$roomTypesData[$roomTypeId]['rooms_providing_availability'][] = $rId;
+				}
+			}
 		}
 
 		return $roomTypesData;
@@ -101,18 +122,23 @@ class RoomDao {
 	/**
 	 * Returns only the room types that have rooms associated with it.
 	 */
-	public static function getRoomTypesWithRooms($lang, $link) {
+	public static function getRoomTypesWithRooms($lang, $from, $to, $link) {
 		$roomTypes = RoomDao::getRoomTypes($lang, $link);
-		$today = date('Y/m/d');
-		$sql = "SELECT id FROM room_types rt WHERE rt.id NOT IN (SELECT DISTINCT r.room_type_id FROM rooms r WHERE r.valid_from<='$today' AND r.valid_to>='$today' UNION SELECT DISTINCT rtrt.room_type_id FROM rooms_to_room_types rtrt)";
+		logDebug("There are " . count($roomTypes) . " room types loaded. Now removing the room types that have not rooms for the period between $from and $to.");
+		$from = str_replace('-','/',$from);
+		$to = str_replace('-','/',$to);
+		$sql = "SELECT id FROM room_types rt WHERE rt.id NOT IN (SELECT DISTINCT r.room_type_id FROM rooms r WHERE r.valid_from<='$from' AND r.valid_to>='$to' UNION " .
+			"SELECT DISTINCT rtrt.room_type_id FROM rooms_to_room_types rtrt INNER JOIN rooms r2 ON rtrt.room_id=r2.id WHERE r2.valid_from<='$from' AND r2.valid_to>='$to')";
 		$result = mysql_query($sql, $link);
 		if(!$result) {
 			trigger_error("Cannot load rooms types that has not rooms. Error: " . mysql_error($link) . " (SQL: $sql)");
 			return null;
 		}
+		logDebug("Removing " . mysql_num_rows($result) . " room types that have no valid rooms within the period");
 		while($row = mysql_fetch_assoc($result)) {
 			unset($roomTypes[$row['id']]);
 		}
+		logDebug("Returning " . count($roomTypes) . " room types");
 		return $roomTypes;
 	}
 	

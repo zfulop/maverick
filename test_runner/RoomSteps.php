@@ -28,17 +28,19 @@ function verifyThatTheFollowingRoomsExist($table) {
 	$rooms = RoomDao::getRooms($link);
 	$expectedRooms = array();
 	foreach($table['rows'] as $row) {
-		$expectedRooms[] = array('name' => $row['name'], 'room_type_id' => $row['room type id']);
+		$expectedRooms[] = array('id' => $row['id'], 'name' => $row['name'], 'room_type_id' => $row['room type id']);
 	}
 	compareList($expectedRooms, array_values($rooms), 'roomCompare');
 	mysql_close($link);
 }
 
 function roomCompare($room1, $room2) {
-	if($room1['name'] < $room2['name']) return -1;
-	if($room1['name'] > $room2['name']) return 1;
-	if($room1['room_type_id'] < $room2['room_type_id']) return -2;
-	if($room1['room_type_id'] > $room2['room_type_id']) return 2;
+	if($room1['id'] < $room2['id']) return -1;
+	if($room1['id'] > $room2['id']) return 1;
+	if($room1['name'] < $room2['name']) return -2;
+	if($room1['name'] > $room2['name']) return 2;
+	if($room1['room_type_id'] < $room2['room_type_id']) return -3;
+	if($room1['room_type_id'] > $room2['room_type_id']) return 3;
 	return 0;
 }
 

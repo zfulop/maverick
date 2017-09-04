@@ -74,7 +74,7 @@ if($err) {
 	return;
 }
 
-// sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Booking request in " . LOCATION, 'booking data: ' . print_r($bookingData,true) . "\n\nRaw data: \n" . stripslashes($_REQUEST['booking']));
+// MaverickMailer::send(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Booking request in " . LOCATION, 'booking data: ' . print_r($bookingData,true) . "\n\nRaw data: \n" . stripslashes($_REQUEST['booking']));
 
 if(!isset($bookingData['PropertyId'])) {
 	$matches = array();
@@ -125,17 +125,14 @@ $roomTypesData = loadRoomTypes($link);
 $loadedRooms = array();
 $rooms = array();
 
-// sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "myalloc debug", "location: $location, property: $propertyId, db name: " . mysql_db_name($link) . ", db error: " . mysql_error($link));
+// MaverickMailer::send(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "myalloc debug", "location: $location, property: $propertyId, db name: " . mysql_db_name($link) . ", db error: " . mysql_error($link));
 
 $result = null;
 if((strpos($bookingJson, "\"IsCancellation\":true") > 0) or (isset($bookingData['IsCancellation']) and $bookingData['IsCancellation'])) {
-	$matches = array();
-	preg_match('/"MyallocatorId":"([^"]*)"/', $bookingJson, $matches);
-	$myallocId = $matches[1];
-	// sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Booking cancellation [$myallocId] for " . LOCATION, stripslashes($_REQUEST['booking']));
+	// MaverickMailer::send(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Booking cancellation [$myallocId] for " . LOCATION, stripslashes($_REQUEST['booking']));
 	$result = cancelBooking($bookingData['MyallocatorId'], $link);
 } else {
-	// sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Booking creation " . LOCATION, 'booking data: ' . print_r($bookingData,true) . "\n\nRaw data: \n" . stripslashes($_REQUEST['booking']));
+	// MaverickMailer::send(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', "Booking creation " . LOCATION, 'booking data: ' . print_r($bookingData,true) . "\n\nRaw data: \n" . stripslashes($_REQUEST['booking']));
 	$result = createBooking($bookingData, $link);
 }
 
@@ -178,7 +175,7 @@ function cancelBooking($myAllocatorId, $link) {
 		$message .= "$name - $email<br>\n";
 		$message .= "$fn - $ln<br>\n";
 		logDebug("Sending notification email about cancelling checked in booking to " . CONTACT_EMAIL);
-		$result = sendMail(CONTACT_EMAIL, $locationName, CONTACT_EMAIL, $locationName, $subject, $message);
+		$result = MaverickMailer::send(CONTACT_EMAIL, $locationName, CONTACT_EMAIL, $locationName, $subject, $message);
 		respond(null, true);
 		return true;
 	}
@@ -242,9 +239,15 @@ function createBooking($bookingData, $link) {
 	$bookingRef = $bookingData['OrderId'];
 
 	$customer = $bookingData['Customers'][0];
-	$firstname = mysql_real_escape_string(decode($customer['CustomerFName']), $link);
+	if(isset($customer['CustomerFName'])) {
+		$firstname = mysql_real_escape_string(decode($customer['CustomerFName']), $link);
+	} else {
+		$firstname = '';
+	}
 	$lastname = mysql_real_escape_string(decode($customer['CustomerLName']), $link);
-	$email = $customer['CustomerEmail'];
+	if(isset($customer['CustomerEmail'])) {
+		$email = $customer['CustomerEmail'];
+	}
 
 	verifyBlacklist("$firstname $lastname", $email, CONTACT_EMAIL, $link);
 
@@ -617,7 +620,7 @@ function sendDiffEmail(&$dbBookingDescriptions, $diffs) {
 	}
 	$message .= "</ul>";
 	logDebug("Sending diff email to " . CONTACT_EMAIL);
-	$result = sendMail(CONTACT_EMAIL, $locationName, CONTACT_EMAIL, $locationName, $subject, $message);
+	$result = MaverickMailer::send(CONTACT_EMAIL, $locationName, CONTACT_EMAIL, $locationName, $subject, $message);
 	if(!is_null($result)) {
 		logDebug("Cannot send diff email: " . $result);
 	}
@@ -639,7 +642,7 @@ function sendEmailNotification(&$bookingDescriptions) {
 		logDebug("Sending email to reception about booking for $name $email between dates: $fn - $ln and ID: $descriptionId");
 	}
 	logDebug("Sending new booking email to " . CONTACT_EMAIL);
-	$result = sendMail(CONTACT_EMAIL, $locationName, CONTACT_EMAIL, $locationName, $subject, $message);
+	$result = MaverickMailer::send(CONTACT_EMAIL, $locationName, CONTACT_EMAIL, $locationName, $subject, $message);
 	if(!is_null($result)) {
 		logDebug("Cannot send notification email: " . $result);
 	}
@@ -812,6 +815,7 @@ function updateExistingPayments($dbBookingDescriptions, $bookingDescriptions, $d
 function saveDeposit(&$bookingData, $descrIds) {
 	global $link;
 	logDebug("Saving deposit");
+	$nowTime = date('Y-m-d H:i:s');
 	if(!isset($bookingData['Deposit']) or ($bookingData['Deposit'] < 1)) {
 		logDebug("No deposit to save");
 		return true;
@@ -898,7 +902,7 @@ function respond($code, $success, $errorMessage = null) {
 	echo json_encode($retVal);
 
 	if(!is_null($errorMessage)) {
-		$result = sendMail(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', 'Error with booking from myallocator to ' . LOCATION, $errorMessage . "\n\nRequest:\n" . stripslashes($_REQUEST['booking']));
+		$result = MaverickMailer::send(CONTACT_EMAIL, $locationName, 'zfulop@zolilla.com', 'FZ', 'Error with booking from myallocator to ' . LOCATION, $errorMessage . "\n\nRequest:\n" . stripslashes($_REQUEST['booking']));
 		if(!is_null($result) && function_exists('logDebug')) {
 			logDebug("Cannot send error email: " . $result);
 		}

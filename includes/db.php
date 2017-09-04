@@ -14,8 +14,8 @@ function db_connect($dbName = null, $forceNew = false) {
 	$dbPwd = constant('DB_' . strtoupper($dbName) . '_PASSWORD');
 	$link = mysql_connect($dbServer, $dbUser, $dbPwd, $forceNew);
 	mysql_select_db($dbMysqlName, $link);
-	$error = mysql_error();
-	if(!is_null($error)) {
+	$error = mysql_error($link);
+	if(!is_null($error) and strlen($error) > 0) {
 		logError("Error openning connection to DB. DB name: $dbMysqlName, username: $dbUser. DB error: $error");
 	}
 	if(!mysql_query("SET NAMES utf8", $link)) {

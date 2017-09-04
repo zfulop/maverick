@@ -80,6 +80,9 @@ function runStory($file) {
 		}
 		if($success) {
 			$successes[] = $commands[0];
+		} else {
+			echo "Error occured. Stopping story file.\n";
+			break;
 		}
 	}
 	
@@ -193,7 +196,7 @@ function loadTable($oneCommand) {
 
 function compareList($expectedList, $testList, $compareFct) {
 	if(count($expectedList) != count($testList)) {
-		throw new Exception("Comparison failed. Expected list has " . count($expectedList) . " elements, but we only see " . count($testList) . " elements.");
+		throw new Exception("Comparison failed. Expected list has " . count($expectedList) . " elements, but we see instead " . count($testList) . " elements.");
 	}
 	if(!function_exists($compareFct)) {
 		throw new Exception("Comparison failed. The compare function $compareFct does not exists");

@@ -16,9 +16,11 @@ if(isset($_SERVER['SCRIPT_NAME'])) {
 	$logFile = LOG_DIR . 'default_' . $today . '.log';
 }
 
+$errorLogFile = LOG_DIR . 'ERROR_' . $today . '.log';
+
 Logger::configure(array(
     'rootLogger' => array(
-        'appenders' => array('default'),
+        'appenders' => array('default','error'),
     ),
     'appenders' => array(
         'default' => array(
@@ -29,6 +31,17 @@ Logger::configure(array(
             'params' => array(
             	'file' => $logFile,
 				'threshold' => 'all',
+            	'append' => true
+            )
+        ),
+        'error' => array(
+            'class' => 'LoggerAppenderDailyFile',
+            'layout' => array(
+                'class' => 'LoggerLayoutPattern'
+            ),
+            'params' => array(
+            	'file' => $errorLogFile,
+				'threshold' => 'error',
             	'append' => true
             )
         )

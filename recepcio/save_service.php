@@ -93,6 +93,18 @@ set_message('Service saved');
 mysql_query("COMMIT", $link);
 mysql_close($link);
 
+$dir = JSON_DIR . getLoginHotel();
+logDebug("Deleting extracted service info from folder: $dir");
+
+$files = glob($dir . '/services*');
+foreach($files as $file) {
+	logDebug("\t$file");
+	unlink($file);
+}
+
+set_message("Extracted files containing service data removed");
+
+
 function saveLangText($paramName,$lang, $id, $link) {
 	$value = mysql_real_escape_string($_REQUEST[$paramName . '_' . $lang], $link);
 	$sql = "INSERT INTO lang_text (table_name, column_name, row_id, lang, value) VALUES ('services', '$paramName', $id, '$lang', '$value')";

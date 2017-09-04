@@ -3,6 +3,7 @@
 date_default_timezone_set('Europe/Budapest');
 
 define('LOG_DIR', '/home/maveric3/logs/');
+define('JSON_DIR', '/home/maveric3/json/');
 
 require('includes/db.php');
 require('includes/db_config.php');
@@ -24,11 +25,19 @@ foreach($hostels as $hostel) {
 	echo "\tsending booking summary\n";
 	$output['send booking summary ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -c ../php.ini send_booking_summary.php ' . $hostel);
 	echo "\tbackup db\n";
-	$output['db backup ' . $hostel] = shell_exec('cd /home/maveric3/; php -c php.ini backup_db.php $hostel');
-
+	$output['db backup ' . $hostel] = shell_exec("cd /home/maveric3/; php -c php.ini backup_db.php $hostel");
+	echo "\tdeleting extracted rooms data\n";
+	$output['delete extracted room data ' . $hostel] = "Deleting extracted files containing rooms data\n";
+	$files = glob(JSON_DIR . $hostel . '/rooms*');
+	foreach($files as $file) {
+		$output['delete extracted room data ' . $hostel] .= "\t$file\n";
+		unlink($file);
+	}
+	
+	
 	if(intval(date('d')) == 1) {
 		echo "\tFirst day of the month backup the archive db\n";
-		$output['db backup archive ' . $hostel] = shell_exec('cd /home/maveric3/; php -c php.ini backup_db.php ' . archive_ . '$hostel');
+		$output['db backup archive ' . $hostel] = shell_exec('cd /home/maveric3/; php -c php.ini backup_db.php archive_' . $hostel);
 	}
 
 	$link = db_connect($hostel);

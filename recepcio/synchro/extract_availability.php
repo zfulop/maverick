@@ -10,7 +10,7 @@ echo "Start: $startDate, End: $endDate\n";
 $configFile = '../../includes/config/' . $location . '.php';
 if(!file_exists($configFile)) {
 	echo "invalid location parameter";
-	return;
+	exit;
 }
 require($configFile);
 require('../includes.php');
@@ -27,7 +27,7 @@ $link = db_connect($location);
 $startDateDash = str_replace('-', '/', $startDate);
 $endDateDash = str_replace('-', '/', $endDate);
 
-$sql = "SELECT r.id AS room_id, r.name AS room_name, rt.id AS room_type_id, rt.name AS room_type_name, bd.name AS booking_name, bd.id AS booking_description_id, bd.confirmed, bd.checked_in, bd.paid, b.id AS booking_id, brc.date_of_room_change, 1 as is_room_change FROM booking_descriptions bd INNER JOIN bookings b ON bd.id=b.description_id INNER JOIN booking_room_changes brc ON b.id=brc.booking_id INNER JOIN rooms r ON brc.new_room_id=r.id INNER JOIN room_types rt ON r.room_type_id=rt.id WHERE bd.last_night>='$startDateDash' AND bd.first_night<='$endDateDash' AND brc.date_of_room_change>='$startDateDash' AND brc.date_of_room_change<='$endDateDash' AND bd.cancelled<>1";
+$sql = "SELECT bd.first_night, bd.last_night, bd.cancelled, r.id AS room_id, r.name AS room_name, rt.id AS room_type_id, rt.name AS room_type_name, bd.name AS booking_name, bd.id AS booking_description_id, b.booking_type, b.num_of_person, bd.confirmed, bd.checked_in, bd.paid, b.id AS booking_id, 1 as is_room_change FROM booking_descriptions bd INNER JOIN bookings b ON bd.id=b.description_id INNER JOIN booking_room_changes brc ON b.id=brc.booking_id INNER JOIN rooms r ON brc.new_room_id=r.id INNER JOIN room_types rt ON r.room_type_id=rt.id WHERE bd.last_night>='$startDateDash' AND bd.first_night<='$endDateDash' AND brc.date_of_room_change>='$startDateDash' AND brc.date_of_room_change<='$endDateDash'";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	echo "Cannot get room changes. Error: " . mysql_error($link) . " (SQL: $sql)\n";
@@ -38,6 +38,9 @@ $roomAvail = array();
 $bookingForDate = array();
 echo "There are " . mysql_num_rows($result) . " room changes\n";
 while($row = mysql_fetch_assoc($result)) {
+	if($row['cancelled'] == 1) {
+		continue;
+	}
 	$date = str_replace('/','-',$row['date_of_room_change']);
 	$rId = $row['room_id'];
 	$bId = $row['booking_id'];
@@ -51,7 +54,7 @@ while($row = mysql_fetch_assoc($result)) {
 	$bookingForDate[$date][$bId] = 'X';
 }
 
-$sql = "SELECT r.id AS room_id, r.name AS room_name, rt.id AS room_type_id, rt.name AS room_type_name, bd.name AS booking_name, bd.id AS booking_description_id, bd.confirmed, bd.checked_in, bd.paid, b.id AS booking_id, 0 as is_room_change FROM booking_descriptions bd INNER JOIN bookings b ON bd.id=b.description_id INNER JOIN rooms r ON b.room_id=r.id INNER JOIN room_types rt ON r.room_type_id=rt.id WHERE bd.last_night>='$startDateDash' AND bd.first_night<='$endDateDash' AND bd.cancelled<>1";
+$sql = "SELECT bd.first_night, bd.last_night, bd.cancelled, r.id AS room_id, r.name AS room_name, rt.id AS room_type_id, rt.name AS room_type_name, bd.name AS booking_name, bd.id AS booking_description_id, b.booking_type, b.num_of_person, bd.confirmed, bd.checked_in, bd.paid, b.id AS booking_id, 0 as is_room_change FROM booking_descriptions bd INNER JOIN bookings b ON bd.id=b.description_id INNER JOIN rooms r ON b.room_id=r.id INNER JOIN room_types rt ON r.room_type_id=rt.id WHERE bd.last_night>='$startDateDash' AND bd.first_night<='$endDateDash'";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	echo "Cannot get room changes. Error: " . mysql_error($link) . " (SQL: $sql)\n";
@@ -60,7 +63,11 @@ if(!$result) {
 }
 echo "There are " . mysql_num_rows($result) . " bookings\n";
 while($row = mysql_fetch_assoc($result)) {
+	if($row['cancelled'] == 1) {
+		continue;
+	}
 	foreach($dates as $date) {
+		$dateDash = str_replace('-','/', $date);
 		$rId = $row['room_id'];
 		$bId = $row['booking_id'];
 		if(!isset($avail[$date])) {
@@ -69,7 +76,10 @@ while($row = mysql_fetch_assoc($result)) {
 		if(!isset($avail[$date][$rId])) {
 			$avail[$date][$rId] = array();
 		}
-		if(!isset($bookingForDate[$date][$bId])) {
+		if($row['first_night'] > $dateDash or $row['last_night'] < $dateDash) {
+			continue;
+		}
+		if(!isset($bookingForDate[$date][$bId])) { // check if there is a room change for the date for this booking
 			$avail[$date][$rId][] = $row;
 		}
 	}

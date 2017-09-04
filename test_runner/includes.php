@@ -4,6 +4,7 @@ date_default_timezone_set('Europe/Budapest');
 
 define('ROOT_DIR', '/home/maveric3/dev/test_runner/');
 define('LOG_DIR', '/home/maveric3/logs/dev/');
+define('JSON_DIR', '/home/maveric3/dev/json/');
 
 
 require(ROOT_DIR . '../includes/message.php');
