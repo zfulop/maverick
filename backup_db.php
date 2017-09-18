@@ -1,6 +1,8 @@
 <?php
 
 date_default_timezone_set('Europe/Budapest');
+set_time_limit(180);
+
 
 define('LOG_DIR', '/home/maveric3/logs/');
 

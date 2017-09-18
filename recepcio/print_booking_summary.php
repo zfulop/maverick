@@ -15,7 +15,7 @@ $link = db_connect();
 $descrId = intval($_REQUEST['description_id']);
 
 
-$locationName = constant('LOCATION_NAME_' . strtoupper(LOCATION));
+$locationName = constant('DB_' . strtoupper(LOCATION) . '_NAME');
 
 $bookingDescription = null;
 $sql = "SELECT * FROM booking_descriptions WHERE id=$descrId";

@@ -26,6 +26,8 @@ function givenTheFollowingPricesAreSet($table) {
 	while($row = mysql_fetch_assoc($result)) {
 		$rooms[$row['name']] = $row;
 	}
+	$startDate = null;
+	$endDate = null;
 	foreach($table['rows'] as $row) {
 		$roomTypeId = $row['id'];
 		$roomTypeName = $row['room type'];
@@ -43,6 +45,16 @@ function givenTheFollowingPricesAreSet($table) {
 			if($title == 'room type' or $title == 'id' or $title == '') {
 				continue;
 			}
+			if(is_null($startDate)) {
+				$startDate = $title;
+			} else {
+				$startDate = min($startDate, $title);
+			}
+			if(is_null($endDate)) {
+				$endDate = $title;
+			} else {
+				$endDate = max($endDate, $title);
+			}
 			$priceForDate = trim($row[$title]);
 			$priceDate = str_replace('-','/',$title);
 			if(intval($priceForDate) > 0) {
@@ -57,6 +69,8 @@ function givenTheFollowingPricesAreSet($table) {
 			}
 		}
 	}
+	echo "Extracting price data into a file for period: $startDate - $endDate\n";
+	PriceDao::extractPriceToFile($startDate, $endDate, $link, 'teszt_hostel');
 	mysql_close($link);
 }
 

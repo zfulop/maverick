@@ -17,20 +17,6 @@ if(isset($_REQUEST['room_type_ids']) and is_array($_REQUEST['room_type_ids'])) {
 	$roomTypeIds = array($_REQUEST['room_type_id']);
 }
 $_SESSION['room_price_room_type_ids'] = $roomTypeIds;
-$sql = "select * from room_types where id IN (" . implode(",", $roomTypeIds) . ")";
-$result = mysql_query($sql, $link);
-if(!$result) {
-	trigger_error("Cannot get room type in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
-	set_error("Cannot save price: cannot get room type");
-	mysql_close($link);
-	header("Location: " . $_SERVER['HTTP_REFERER']);
-	return;
-}
-
-$roomTypes = array();
-while($row = mysql_fetch_assoc($result)) {
-	$roomTypes[$row['id']] = $row;
-}
 
 $startDate = $_REQUEST['start_date'];
 $endDate = $_REQUEST['end_date'];
@@ -57,8 +43,9 @@ $startDateDash = str_replace('-', '/', $startDate);
 $endDateDash = str_replace('-', '/', $endDate);
 
 $todaySlash = date('Y/m/d H:i:s');
-$roomTypes = loadRoomTypesWithAvailableBeds($link, $startDate, $endDate);
-$rooms = loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link);
+$roomTypes = RoomDao::getRoomTypes('eng', $link);
+//$rooms = loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link);
+logDebug("Room types loaded getting now the prices");
 $sql = "SELECT * FROM prices_for_date WHERE room_type_id in (" . implode(',', $roomTypeIds) . ") AND date>='$startDateDash' AND date<='$endDateDash'";
 $result = mysql_query($sql, $link);
 if(!$result) {
@@ -73,6 +60,7 @@ while($row = mysql_fetch_assoc($result)) {
 	$priceRows[$row['room_type_id']][$row['date']] = $row;
 }
 
+logDebug("Prices loaded.");
 $newPriceMessage = '';
 $historyMessage = '';
 $historyValues = array();
@@ -80,6 +68,7 @@ $newPriceValues = array();
 $priceSettingSkipped = array();
 foreach($roomTypeIds as $roomTypeId) {
 	$roomType = $roomTypes[$roomTypeId];
+	logDebug("Saving price for room type: " . $roomType['name'] . " number of beds: " . $roomType['num_of_beds'] . ", number of rooms: " . $roomType['num_of_rooms']);
 	for($currDate = $startDate; $currDate <= $endDate; $currDate = date('Y-m-d', strtotime($currDate . ' +1 day'))) {
 		$currDayOfWeek = date('N', strtotime($currDate));
 		if(!in_array($currDayOfWeek, $days)) {
@@ -102,17 +91,25 @@ foreach($roomTypeIds as $roomTypeId) {
 		}
 		if($val > 0) {
 			if(isset($priceRows[$roomTypeId][$dateStr])) {
-				$bookings = getBookings($roomTypeId, $rooms, $currDate, $currDate);
-				$avgNumOfBeds = getAvgNumOfBedsOccupied($bookings, $currDate, $currDate);
-				$occupancy = round($avgNumOfBeds / $roomTypes[$roomTypeId]['available_beds'] * 100);
 				$priceRow = $priceRows[$roomTypeId][$dateStr];
-	
 				$newPricePerRoom = ((isPrivate($roomType) or isApartment($roomType)) ? $val : null);
 				$newPricePerBed = (isDorm($roomType) ? $val : null);
 				if(isSamePrice($newPricePerRoom, $newPricePerBed, $spb, $priceRow)) {
 					continue;
 				}
-
+				$bedsOccupied = 0;
+				logDebug("Resetting price for $dateStr. Getting bookings now to calculate occupancy");
+				foreach(BookingDao::getBookingsForDay($roomTypeId, $currDate, $link) as $booking) {
+					if(isDorm($roomType)) {
+						$bedsOccupied += $booking['num_of_person'];
+					} else {
+						$bedsOccupied += $roomType['num_of_beds'];
+					}
+				}
+				$availBeds = $roomType['num_of_rooms'] * $roomType['num_of_beds'];
+				$occupancy = round($bedsOccupied / $availBeds * 100);
+				logDebug("Occupancy is at " . $occupancy . "%");
+	
 				$historyValues[] = "('" . $priceRow['date'] . "', " .
 						(is_null($priceRow['price_per_room']) ? 'NULL' : $priceRow['price_per_room']) . ", " .
 						(is_null($priceRow['price_per_bed']) ? 'NULL' : $priceRow['price_per_bed']) . ", " .
@@ -138,6 +135,7 @@ foreach($roomTypeIds as $roomTypeId) {
 
 
 set_message("Price setting skipped for dates: " . implode(',', $priceSettingSkipped));
+logDebug("Price setting skipped for dates: " . implode(',', $priceSettingSkipped));
 
 if(count($historyValues) > 0) {
 	$sql = "INSERT INTO prices_for_date_history (date, price_per_room, price_per_bed, room_type_id, price_set_date, price_unset_date, occupancy, surcharge_per_bed) VALUES " . implode(', ', $historyValues);
@@ -165,8 +163,34 @@ if(count($newPriceValues) > 0) {
 
 set_message($newPriceMessage);
 set_message($historyMessage);
+logDebug($newPriceMessage);
+logDebug($historyMessage);
+
+
+$startDateMonth = date('Y-m', strtotime($startDate)) . '-1';
+$endDateMonth = date('Y-m', strtotime($endDate)) . '-1';
+for($currDate = $startDateMonth; $currDate <= $endDateMonth; $currDate = date('Y-m', strtotime($currDate . ' +1 month')) . '-1') {
+	$location = getLoginHotel();
+	$currMonth = substr($currDate, 0, 7);
+	$currMonthDash = str_replace('-', '/', $currMonth);
+	$file = JSON_DIR . $location . '/prices_' . $currMonth . '.json';
+	$sql = "SELECT * FROM prices_for_date WHERE date LIKE '$currMonthDash%'";
+	$result = mysql_query($sql, $link);
+	if(!$result) {
+		trigger_error("Cannot get prices for month: $currMonth in mgmt interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	} else {
+		$prices = array();
+		while($row=mysql_fetch_assoc($result)) {
+			$prices[] = $row;
+		}
+		logDebug("Saving prices for the month of $currMonth to file: $file");
+		$data = json_encode($prices, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+		file_put_contents($file, $data);
+	}
+}
 
 mysql_close($link);
+
 
 
 function isSamePrice($newPricePerRoom, $newPricePerBed, $spb, $priceRow) {
@@ -176,7 +200,7 @@ function isSamePrice($newPricePerRoom, $newPricePerBed, $spb, $priceRow) {
 	if(!is_null($newPricePerBed) and ($newPricePerBed != $priceRow['price_per_bed'])) {
 		return false;
 	}
-	if(!is_null($spb) and ($dpb != $priceRow['surcharge_per_bed'])) {
+	if(!is_null($spb) and ($spb != $priceRow['surcharge_per_bed'])) {
 		return false;
 	}
 	return true;

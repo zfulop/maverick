@@ -132,6 +132,12 @@ if(strpos($_SERVER['HTTP_REFERER'], 'edit_booking.php') === FALSE and strpos($_S
 }
 $cancelUrl = $_SESSION['return_from_edit_booking'];
 
+$defaultGDName = $bookingDescription['name'];
+$defaultGDEmail = $bookingDescription['email'];
+$defaultGDAddress = $bookingDescription['address'];
+$defaultGDNationality = $bookingDescription['nationality'];
+$defaultGDTelephone = $bookingDescription['telephone'];
+
 $extraHeader =<<<EOT
 
 <script src="js/datechooser/date-functions.js" type="text/javascript"></script>
@@ -160,19 +166,21 @@ $extraHeader =<<<EOT
 
 	function addGuestData() {
 		$('gd_id').setValue('');
-		$('gd_name').setValue('');
+		$('gd_name').setValue('$defaultGDName');
 		$('gd_gender').setValue('');
-		$('gd_address').setValue('');
-		$('gd_nationality').setValue('');
-		$('gd_email').setValue('');
+		$('gd_address').setValue('$defaultGDAddress');
+		$('gd_nationality').setValue('$defaultGDNationality');
+		$('gd_email').setValue('$defaultGDEmail');
 		$('gd_bed').setValue('');
-		$('gd_telephone').setValue('');
+		$('gd_telephone').setValue('$defaultGDTelephone');
 		$('gd_deposit').setValue('');
 		$('gd_comment').setValue('');
+		$('gd_id_card_number').setValue('');
+		$('gd_invoice_number').setValue('');
 		$('edit_guest_data_div').show();
 	}
 
-	function editGuestData(guestDataId, name, gender, address, nationality, email, telephone, deposit, roomId, comment, bed) {
+	function editGuestData(guestDataId, name, gender, address, nationality, email, telephone, deposit, roomId, comment, bed, idCardNumber, invoiceNumber) {
 		$('gd_id').setValue(unescape(guestDataId));
 		$('gd_name').setValue(unescape(name));
 		$('gd_gender').setValue(unescape(gender));
@@ -184,6 +192,8 @@ $extraHeader =<<<EOT
 		$('gd_room_id').setValue(unescape(roomId));
 		$('gd_comment').setValue(unescape(comment));
 		$('gd_bed').setValue(unescape(bed));
+		$('gd_id_card_number').setValue(unescape(idCardNumber));
+		$('gd_invoice_number').setValue(unescape(invoiceNumber));
 		$('edit_guest_data_div').show();
 	}
 
@@ -291,6 +301,8 @@ while($row = mysql_fetch_assoc($result)) {
 	$gd_roomName = $rooms[$row['room_id']]['name'];
 	$gd_comment = $row['comment'];
 	$gd_bed = $row['bed'];
+	$gd_idCardNumber = $row['id_card_number'];
+	$gd_invoiceNumber = $row['invoice_number'];
 	$guestData .= "<div style=\"display:none;\" id=\"guest_data_tooltip_$gd_id\">";
 	$guestData .= "<table><tr><td>Name:</td><td>$gd_name</td></tr>";
 	$guestData .= "<tr><td>Gender: </td><td>$gd_gender</td></tr>";
@@ -300,7 +312,10 @@ while($row = mysql_fetch_assoc($result)) {
 	$guestData .= "<tr><td>Tel: </td><td>$gd_telephone</td></tr>";
 	$guestData .= "<tr><td>Deposit: </td><td>$gd_deposit</td></tr>";
 	$guestData .= "<tr><td>Room: </td><td>$gd_roomName (bed: $gd_bed)</td></tr>";
-	$guestData .= "<tr><td>Comment: </td><td>$gd_comment</td></tr></table>";
+	$guestData .= "<tr><td>Comment: </td><td>$gd_comment</td></tr>";
+	$guestData .= "<tr><td>Bed: </td><td>$gd_bed</td></tr>";
+	$guestData .= "<tr><td>ID Card: </td><td>$gd_idCardNumber</td></tr>";
+	$guestData .= "<tr><td>Invoice: </td><td>$gd_invoiceNumber</td></tr></table>";
 	$guestData .= "</div>";
 	$editParams = "$gd_id, escape(\"" . js_encode($gd_name) . 
 			'"), escape("' . js_encode($gd_gender) . 
@@ -310,8 +325,8 @@ while($row = mysql_fetch_assoc($result)) {
 			'"), escape("' . js_encode($gd_telephone) . 
 			'"), escape("' . js_encode($gd_deposit) . '"), ' . $gd_roomId . 
 			', escape("' . js_encode($gd_comment) . 
-			'"), escape("' . js_encode($gd_bed) . '")';
-	$guestData .= "<div id=\"guest_data_div_$gd_id\"><table><tr><td style=\"width: 130px; overflow: none;\"><a href=\"#\" onmouseout=\"UnTip();\" onmouseover=\"TagToTip('guest_data_tooltip_$gd_id');\">$gd_name</a></td><td><input type=\"button\" value=\"Edit\" onclick='editGuestData($editParams);'></td><td><input type=\"button\" value=\"Remove\" onclick=\"window.location='remove_guest_data.php?booking_description_id=$descrId&id=$gd_id&name=$gd_name';\"></td></tr></table></div>";
+			'"), escape("' . js_encode($gd_bed) . '"), escape("' . js_encode($gd_idCardNumber) . '"), escape("' . js_encode($gd_invoiceNumber) . '")';
+	$guestData .= "<div id=\"guest_data_div_$gd_id\"><table><tr><td style=\"width: 130px; overflow: none;\"><a href=\"#\" onmouseout=\"UnTip();\" onmouseover=\"TagToTip('guest_data_tooltip_$gd_id');\">$gd_name</a></td><td><input type=\"button\" value=\"Edit\" onclick='editGuestData($editParams);'></td><td><!-- input type=\"button\" value=\"Remove\" onclick=\"window.location='remove_guest_data.php?booking_description_id=$descrId&id=$gd_id&name=$gd_name';\" --></td></tr></table></div>";
 }
 
 $payments = array();
@@ -486,6 +501,8 @@ echo <<<EOT
 						<tr><td>Deposit: </td><td><input name="deposit" id="gd_deposit"></td></tr>
 						<tr><td>Room: </td><td><select name="room_id" id="gd_room_id">$roomsHtmlOptions</select></td></tr>
 						<tr><td>Bed: </td><td><input name="bed" id="gd_bed"></td></tr>
+						<tr><td>ID Card: </td><td><input name="id_card_number" id="gd_id_card_number"></td></tr>
+						<tr><td>Invoice: </td><td><input name="invoice_number" id="gd_invoice_number"></td></tr>
 						<tr><td>Comment: </td><td><textarea name="comment" id="gd_comment"></textarea></td></tr>
 					</table>
 					<input type="submit" value="Save guest data">

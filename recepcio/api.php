@@ -80,7 +80,7 @@ function _loadRooms() {
 
 	$now = time();
 
-	PriceDao::loadPriceForDate($now, $now, $link);
+	PriceDao::loadPriceForDate($now, $now, $location);
 
 	$from = date('Y-m-d');
 	$to = $from;
@@ -170,7 +170,7 @@ function loadAvailability() {
 		
 	$link = db_connect($location);
 
-	$minMax = getMinMaxStay($fromDate, $toDate, $link);
+	$minMax = getMinMaxStay($fromDate, $toDate);
 	if(!is_null($minMax) and $minMax['min_stay'] > $nights) {
 		mysql_close($link);
 		return array('error' => 'FOR_SELECTED_DATE_MIN_STAY ' . $minMax['min_stay']);
@@ -180,12 +180,12 @@ function loadAvailability() {
 		return array('error' => 'FOR_SELECTED_DATE_MAX_STAY ' . $minMax['max_stay']);
 	}
 
-	PriceDao::loadPriceForDate($arriveDateTs, $lastNightTs, $link);
+	PriceDao::loadPriceForDate($arriveDateTs, $lastNightTs, $location);
 
 	logDebug("Loading special offers for period");
 	$retVal = array();
 	$specialOffers = array();
-	foreach(loadSpecialOffers(null, $lastNight, $link, $lang) as $soId => $so) {
+	foreach(loadSpecialOffersFromFile(null, $lastNight, $link, $lang) as $soId => $so) {
 		if($so['visible'] == 1) {
 			$specialOffers[$soId] = $so;
 		}
@@ -306,7 +306,7 @@ function loadAvailability() {
 	$retVal['rooms'] = array();
 	foreach($roomTypes as $roomTypeId => $roomType) {
 		if(is_null($filterRoomIds) or in_array($roomTypeId, $filterRoomIds)) {
-			matchSpecialOffer($roomType, $roomTypeId, $nights, $arriveDate, $specialOffers, $link);
+			matchSpecialOffer($roomType, $roomTypeId, $nights, $arriveDate, $specialOffers);
 			$retVal['rooms'][] = $roomType;
 		}
 	}
@@ -326,6 +326,24 @@ function sortOffersByPercent($so1, $so2) {
 	}
 	return 0;
 }
+
+function loadSpecialOffersFromFile($firstNight, $lastNight, $link, $lang) {
+	$filePath = JSON_DIR . $location . '/special_offers_' . $lang . '.json';
+	logDebug("\t\tLoad  special offers from file: $filePath");
+	$spcialOffers = array();
+	if(file_exists($filePath)) {
+		$json = file_get_contents($filePath);
+		$specialOffers = json_decode($json, true);
+	} else {
+		logDebug("\t\tFile does not exist, extracting from DB and saving it into the file");
+		$specialOffers  = SpecialOfferDao::getAllSpecialOffers($link, $eng);
+		$json = json_encode($specialOffers, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+		logDebug("Saving special offers data to $filePath");
+		file_put_contents($filePath, $json);
+	}
+	return SpecialOfferDao::getSpecialOffersFromArray($firstNight, $lastNight, $specialOffers)
+}
+
 
 function sortAvailabilityRooms($room1, $room2) {
 	// Available rooms first, then not available rooms
@@ -462,7 +480,7 @@ function fillPriceForAvailability($arriveTs, $nights, $roomType, &$specialOffers
 	}
 
 	if(!is_null($specialOffers)) {
-		list($discount, $selectedSo) = findSpecialOffer($specialOffers, $roomType, $nights, date('Y-m-d', $arriveTs), 1);
+		list($discount, $selectedSo) = SpecialOfferDao::findSpecialOffer($specialOffers, $roomType, $nights, date('Y-m-d', $arriveTs), 1);
 		// apply special offer
 		$discountedPayment = $roomType['price'];
 		if($discount > 0) {
@@ -492,21 +510,28 @@ function sortRoomsByAvailOrder($rt1, $rt2) {
 	}
 }
 
-function matchSpecialOffer(&$roomType, $roomTypeId, $nights, $arriveDate, $specialOffers, $link) {
+function matchSpecialOffer(&$roomType, $roomTypeId, $nights, $arriveDate, $specialOffers) {
 	$so = null;
 	$specialOfferForOneMoreDay = null;
-	list($discount, $so) = findSpecialOffer($specialOffers, $roomType, $nights, $arriveDate, $roomType['num_of_beds']);
-	list($discountPlus1, $specialOfferForOneMoreDay) = findSpecialOffer($specialOffers, $roomType, $nights+1, $arriveDate, $roomType['num_of_beds']);
+	list($discount, $so) = SpecialOfferDao::findSpecialOffer($specialOffers, $roomType, $nights, $arriveDate, $roomType['num_of_beds']);
+	list($discountPlus1, $specialOfferForOneMoreDay) = SpecialOfferDao::findSpecialOffer($specialOffers, $roomType, $nights+1, $arriveDate, $roomType['num_of_beds']);
 	$roomType['special_offer'] = $so;
 	$roomType['special_offer_for_one_more_day'] = $specialOfferForOneMoreDay;
 }
 
-function getMinMaxStay($fromDate, $toDate, $link) {
-	$sql = "SELECT * FROM min_max_stay WHERE (from_date IS NULL OR from_date<='$fromDate') AND (to_date IS NULL OR to_date>='$fromDate')";
-	$result = mysql_query($sql, $link);
-	if(mysql_num_rows($result) > 0) {
-		$row = mysql_fetch_assoc($result);
-		return $row;
+function getMinMaxStay($fromDate, $toDate) {
+	$filePath = JSON_DIR . $location . '/min_max_stay.json';
+	if(!file_exists($filePath)) {
+		logError("min max stay file does not exist: $filePath");
+		return array();
+	}
+	
+	logDebug("File exists: $filePath. Loading the min max stay file");
+	$json = file_get_contents($filePath);
+	foreach(json_decode($json, true) as $minMaxStay) {
+		if((is_null($minMaxStay['from_date']) or $minMaxStay['from_date'] <= $fromDate) and (is_null($minMaxStay['to_date']) or $minMaxStay['to_date'] >= $fromDate)) {
+			return $minMaxStay;
+		}
 	}
 	return null;
 }
@@ -762,7 +787,7 @@ function doBooking() {
 	$link = db_connect($location);
 	mysql_query('START TRANSACTION', $link);
 	
-	$specialOffers = loadSpecialOffers(null,$lastNight, $link, $lang);
+	$specialOffers = SpecialOfferDao::getSpecialOffers(null, $lastNight, $link, $lang);
 	logDebug("There are " . count($specialOffers) . " special offers valid between $arriveDate and $lastNight");
 	$rooms = loadRooms(date('Y', $arriveDateTs), date('m', $arriveDateTs), date('d', $arriveDateTs), date('Y', $lastNightTs), date('m', $lastNightTs), date('d', $lastNightTs), $link, $lang);
 	$roomTypesData = loadRoomTypes($link, $lang);

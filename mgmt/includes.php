@@ -2,7 +2,7 @@
 
 date_default_timezone_set('Europe/Budapest');
 
-define('ROOT_DIR', '/home/zolika/roomcaptain_mgmt/');
+define('ROOT_DIR', '/home/maveric3/mgmt/');
 
 require(ROOT_DIR . 'includes/config.php');
 require(ROOT_DIR . '../includes/message.php');
@@ -15,6 +15,7 @@ require(ROOT_DIR . '../includes/db.php');
 require(ROOT_DIR . '../includes/audit.php');
 require(ROOT_DIR . '../includes/login.php');
 require(ROOT_DIR . '../includes/logger.php');
+require(ROOT_DIR . '../includes/dao.php');
 
 set_error_handler('log4phpErrorHandler');
 

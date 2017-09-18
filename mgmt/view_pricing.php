@@ -315,6 +315,9 @@ foreach($roomTypes as $roomTypeId => $roomType) {
 		if(isApartment($roomType)) {
 			$room = findRoom($rooms, $roomTypeId);
 			$spbValue = getSurchargePerBed($currYear, $currMonth, $currDay, $room);
+			if($spbValue < 1) {
+				$spbValue = $roomType['surcharge_per_bed'];
+			}
 			$spbHtml = ", <input name=\"spb$roomTypeId|$currYear-$currMonth-$currDay\" value=\"$spbValue\" style=\"float: none; display: inline; font-size=70%; width: 25px; height: 20px;\" >%";
 		}
 		echo <<<EOT

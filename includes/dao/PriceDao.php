@@ -124,27 +124,56 @@ class PriceDao {
 		return $pricedao_priceForDate[$dateStr][$roomTypeId];
 	}
 
-
-
+	
 	/**
+	 * Preloads the price data from the price file into memory so subsequent uses would be faster. If the 
 	 */
-	public static function loadPriceForDate($startTs, $endTs, $link) {
+	public static function loadPriceForDate($startTs, $endTs, $location) {
 		global $pricedao_priceForDate;
-		$startDate = date('Y/m/d', $startTs);
-		$endDate = date('Y/m/d', $startTs);
-		$sql = "SELECT * FROM prices_for_date WHERE date>='$startDate' and date<='$endDate'";
-		$result = mysql_query($sql, $link);
-		if(!$result) {
-			trigger_error("Cannot get prices. Error: " . mysql_error($link) . " (SQL: $sql)");
-			throw new Exception("Cannot load prices: " . mysql_error($link));
-		}
-		while($row = mysql_fetch_assoc($result)) {
-			$pricedao_priceForDate[$row['date']][$row['room_type_id']] = $row;
+		$startMonth = date('Y-m', $startTs) . '-1';
+		$endMonth = date('Y-m', $endTs) . '-1';
+		for($currDate = $startDateMonth; $currDate <= $endDateMonth; $currDate = date('Y-m', strtotime($currDate . ' +1 month')) . '-1') {
+			$currMonth = substr($currDate, 0, 7);
+			$file = JSON_DIR . $location . '/prices_' . $currMonth . '.json';
+			if(!file_exists($file)) {
+				logError("Error when loading price data from file, file does not exists: $file");
+				continue;
+			}
+			$data = json_decode(file_get_contents($file), true);
+			foreach($data as $price) {
+				$pricedao_priceForDate[$price['date']][$price['room_type_id']] = $price;
+			}
 		}
 	}
 
+	/**
+	 * Extract the price data from the DB into a file for the API to use rather than using the DB.
+	 */
+	public static function extractPriceToFile($startDate, $endDate, $link, $location) {
+		logDebug("Extracting price data from DB into file for the period: $startDate, $endDate");
+		$startDateMonth = date('Y-m', strtotime($startDate)) . '-1';
+		$endDateMonth = date('Y-m', strtotime($endDate)) . '-1';
+		for($currDate = $startDateMonth; $currDate <= $endDateMonth; $currDate = date('Y-m', strtotime($currDate . ' +1 month')) . '-1') {
+			$currMonth = substr($currDate, 0, 7);
+			$currMonthDash = str_replace('-', '/', $currMonth);
+			$file = JSON_DIR . $location . '/prices_' . $currMonth . '.json';
+			$sql = "SELECT * FROM prices_for_date WHERE date LIKE '$currMonthDash%'";
+			$result = mysql_query($sql, $link);
+			if(!$result) {
+				trigger_error("Cannot get prices for month: $currMonth in mgmt interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+			} else {
+				$prices = array();
+				while($row=mysql_fetch_assoc($result)) {
+					$prices[] = $row;
+				}
+				logDebug("Saving prices for the month of $currMonth to file: $file. There are " . count($prices) . " price record for the month");
+				$data = json_encode($prices, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+				file_put_contents($file, $data);
+			}
+		}
+	}
+}
 
 	
 
-}
 ?>

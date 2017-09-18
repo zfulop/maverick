@@ -139,6 +139,29 @@ set_message($newPriceMessage);
 set_message($historyMessage);
 
 
+$startDateMonth = date('Y-m', strtotime($startDate)) . '-1';
+$endDateMonth = date('Y-m', strtotime($endDate)) . '-1';
+for($currDate = $startDateMonth; $currDate <= $endDateMonth; $currDate = date('Y-m', strtotime($currDate . ' +1 month')) . '-1') {
+	$location = getLoginHotel();
+	$currMonth = substr($currDate, 0, 7);
+	$currMonthDash = str_replace('-', '/', $currMonth);
+	$file = JSON_DIR . $location . '/prices_' . $currMonth . '.json';
+	$sql = "SELECT * FROM prices_for_date WHERE date LIKE '$currMonthDash%'";
+	$result = mysql_query($sql, $link);
+	if(!$result) {
+		trigger_error("Cannot get prices for month: $currMonth in mgmt interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+	} else {
+		$prices = array();
+		while($row=mysql_fetch_assoc($result)) {
+			$prices[] = $row;
+		}
+		logDebug("Saving prices for the month of $currMonth to file: $file");
+		$data = json_encode($prices, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+		file_put_contents($file, $data);
+	}
+}
+
+
 mysql_close($link);
 
 

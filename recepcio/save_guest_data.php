@@ -22,11 +22,13 @@ $deposit = mysql_real_escape_string($_REQUEST['deposit'], $link);
 $roomId = $_REQUEST['room_id'];
 $comment = mysql_real_escape_string($_REQUEST['comment'], $link);
 $bed = $_REQUEST['bed'];
+$idCardNumber = mysql_real_escape_string($_REQUEST['id_card_number'], $link);
+$invoiceNumber = mysql_real_escape_string($_REQUEST['invoice_number'], $link);
 
 if($id > 0) {
-	$sql = "UPDATE booking_guest_data SET name='$name', address='$address', email='$email', telephone='$telephone', nationality='$nationality', gender='$gender', deposit='$deposit', room_id=$roomId, comment='$comment', bed='$bed' WHERE id=$id";
+	$sql = "UPDATE booking_guest_data SET name='$name', address='$address', email='$email', telephone='$telephone', nationality='$nationality', gender='$gender', deposit='$deposit', room_id=$roomId, comment='$comment', bed='$bed', id_card_number='$idCardNumber', invoice_number='$invoiceNumber' WHERE id=$id";
 } else {
-	$sql = "INSERT INTO booking_guest_data (booking_description_id, name, address, email, telephone, nationality, gender, deposit, room_id, comment, bed) VALUES ('$bookingDescrId', '$name', '$address', '$email', '$telephone', '$nationality', '$gender',  '$deposit', $roomId, '$comment', '$bed')";
+	$sql = "INSERT INTO booking_guest_data (booking_description_id, name, address, email, telephone, nationality, gender, deposit, room_id, comment, bed, id_card_number, invoice_number) VALUES ('$bookingDescrId', '$name', '$address', '$email', '$telephone', '$nationality', '$gender',  '$deposit', $roomId, '$comment', '$bed', '$idCardNumber', '$invoiceNumber')";
 }
 if(!mysql_query($sql, $link)) {
 	trigger_error("Could not save guest data: " . mysql_error($link) . " (SQL: $sql)");

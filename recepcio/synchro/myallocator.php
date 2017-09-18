@@ -358,7 +358,7 @@ header('Content-Type: text/html');
 
 $link = db_connect();
 $rooms = loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link);
-PriceDao::loadPriceForDate(strtotime("$startYear-$startMonth-$startDay"), strtotime("$endYear-$endMonth-$endDay"), $link);
+PriceDao::loadPriceForDate(strtotime("$startYear-$startMonth-$startDay"), strtotime("$endYear-$endMonth-$endDay"), getLoginHotel());
 
 echo "Period begining: $startYear-$startMonth-$startDay<br>\n";
 echo "Period ending: $endYear-$endMonth-$endDay<br>\n";

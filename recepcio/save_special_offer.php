@@ -125,6 +125,18 @@ set_message('Special offer saved');
 mysql_query("COMMIT", $link);
 mysql_close($link);
 
+$dir = JSON_DIR . getLoginHotel();
+logDebug("Deleting extracted special offers from folder: $dir");
+
+$files = glob($dir . '/special_offer*');
+foreach($files as $file) {
+	logDebug("\t$file");
+	unlink($file);
+}
+
+set_message("Extracted files containing special offers removed");
+
+
 function isValidDate($date) {
 	if(strlen(trim($date)) == 10) {
 		return true;

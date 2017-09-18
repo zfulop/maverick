@@ -115,7 +115,28 @@ class BookingDao {
 		}
 		return $rcs;
 	}
-	
+
+	/**
+	 * Returns the list of bookings that are active (checked in) on a particular date and is booked for the room tpye.
+	 * If the room type id is null the function will return all bookings for the day.
+	 */
+	public static function getBookingsForDay($roomTypeId, $day, $link) {
+		$day = str_replace('-', '/', $day);
+		$sql = "SELECT b.* FROM bookings b INNER JOIN booking_descriptions bd ON b.description_id=bd.id WHERE bd.first_night<='$day' AND bd.last_night>='$day'";
+		if(!is_null($roomTypeId)) {
+			$sql .= " AND b.original_room_type_id=$roomTypeId";
+		}
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("Cannot get bookings for date: $day. Error: " . mysql_error($link) . " (SQL: $sql)");
+			return null;
+		}
+		$bookings = array();
+		while($row = mysql_fetch_assoc($result)) {
+			$bookings[] = $row;
+		}
+		return $bookings;
+	}
 }
 
 

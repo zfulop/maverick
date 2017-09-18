@@ -13,6 +13,7 @@ $hostels = array('lodge','hostel');
 
 $output = array();
 
+set_time_limit(180);
 
 foreach($hostels as $hostel) {
 	echo "Processing $hostel\n";

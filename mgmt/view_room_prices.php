@@ -90,6 +90,9 @@ for($i = 1; $i <= 12; $i++) {
 			$val = $type == 'DORM' ? $prices[$dateStr]['price_per_bed'] : $prices[$dateStr]['price_per_room'];
 			$val2 = $prices[$dateStr]['surcharge_per_bed'];
 		}
+		if($val2 == '' or $val2 === 0 or is_null($val2)) {
+			$val2 = $roomType['surcharge_per_bed'];
+		}
 		echo "<input style=\"width: 20px; font-size: 9px;\" name=\"$dateStr\" value=\"$val\">";
 		if($type == 'APARTMENT') {
 			echo "<br><input style=\"width: 20px; font-size: 9px;\" name=\"spb_$dateStr\" value=\"$val2\">";

@@ -27,7 +27,7 @@ $link = db_connect($location);
 $startDateDash = str_replace('-', '/', $startDate);
 $endDateDash = str_replace('-', '/', $endDate);
 
-$sql = "SELECT bd.first_night, bd.last_night, bd.cancelled, r.id AS room_id, r.name AS room_name, rt.id AS room_type_id, rt.name AS room_type_name, bd.name AS booking_name, bd.id AS booking_description_id, b.booking_type, b.num_of_person, bd.confirmed, bd.checked_in, bd.paid, b.id AS booking_id, 1 as is_room_change FROM booking_descriptions bd INNER JOIN bookings b ON bd.id=b.description_id INNER JOIN booking_room_changes brc ON b.id=brc.booking_id INNER JOIN rooms r ON brc.new_room_id=r.id INNER JOIN room_types rt ON r.room_type_id=rt.id WHERE bd.last_night>='$startDateDash' AND bd.first_night<='$endDateDash' AND brc.date_of_room_change>='$startDateDash' AND brc.date_of_room_change<='$endDateDash'";
+$sql = "SELECT bd.first_night, bd.last_night, bd.cancelled, r.id AS room_id, r.name AS room_name, rt.id AS room_type_id, rt.name AS room_type_name, bd.name AS booking_name, bd.id AS booking_description_id, b.booking_type, b.num_of_person, bd.confirmed, bd.checked_in, bd.paid, b.id AS booking_id, 1 as is_room_change, brc.date_of_room_change FROM booking_descriptions bd INNER JOIN bookings b ON bd.id=b.description_id INNER JOIN booking_room_changes brc ON b.id=brc.booking_id INNER JOIN rooms r ON brc.new_room_id=r.id INNER JOIN room_types rt ON r.room_type_id=rt.id WHERE bd.last_night>='$startDateDash' AND bd.first_night<='$endDateDash' AND brc.date_of_room_change>='$startDateDash' AND brc.date_of_room_change<='$endDateDash'";
 $result = mysql_query($sql, $link);
 if(!$result) {
 	echo "Cannot get room changes. Error: " . mysql_error($link) . " (SQL: $sql)\n";
@@ -66,10 +66,10 @@ while($row = mysql_fetch_assoc($result)) {
 	if($row['cancelled'] == 1) {
 		continue;
 	}
+	$rId = $row['room_id'];
+	$bId = $row['booking_id'];
 	foreach($dates as $date) {
 		$dateDash = str_replace('-','/', $date);
-		$rId = $row['room_id'];
-		$bId = $row['booking_id'];
 		if(!isset($avail[$date])) {
 			$avail[$date] = array();
 		}
