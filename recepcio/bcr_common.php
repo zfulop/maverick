@@ -54,7 +54,7 @@ function getBcrMessage($bookingDescr, $bcrMessage, $link, &$dict, $location) {
 		return;
 	}
 	$hasServices = (mysql_num_rows($result) > 0);
-	$services = '<table cellpadding="5"><tr><th>' . $dict[$bookingDescr['language']]['NAME'] . '</th><th>' . $dict[$bookingDescr['language']]['OCCASION'] . '</th><th>' . $dict[$bookingDescr['language']]['price'] . '</th></tr>';
+	$services = '<table cellpadding="5"><tr><th>' . $dict[$bookingDescr['language']]['NAME'] . '</th><th>' . $dict[$bookingDescr['language']]['OCCASION'] . '</th><th>' . $dict[$bookingDescr['language']]['PRICE'] . '</th></tr>';
 	while($row = mysql_fetch_assoc($result)) {
 		$amount = intval(convertAmount($row['amount'], $row['currency'], 'EUR', substr($row['time_of_service'], 0, 10)));
 		$prc = intval(convertAmount($row['price'], $row['svcCurr'], 'EUR', substr($row['time_of_service'], 0, 10)));
@@ -75,7 +75,7 @@ function getBcrMessage($bookingDescr, $bcrMessage, $link, &$dict, $location) {
 		return;
 	}
 	$hasPayments = (mysql_num_rows($result) > 0);
-	$payments = '<table cellpadding="5"><tr><th>' . $dict[$bookingDescr['language']]['NAME'] . '</th><th>' . $dict[$bookingDescr['language']]['price'] . '</th></tr>';
+	$payments = '<table cellpadding="5"><tr><th>' . $dict[$bookingDescr['language']]['NAME'] . '</th><th>' . $dict[$bookingDescr['language']]['PRICE'] . '</th></tr>';
 	while($row = mysql_fetch_assoc($result)) {
 		$amount = intval(convertAmount($row['amount'], $row['currency'], 'EUR', substr($row['time_of_payment'], 0, 10)));
 		$amount = intval(convertAmount($amount, 'EUR', $currency, substr($row['time_of_payment'], 0, 10)));
