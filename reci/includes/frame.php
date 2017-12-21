@@ -10,6 +10,7 @@ function html_start($title = "Maverick Reception", $extraHeader = '', $showMenu 
 	$booking = ROOT_URL . 'view_booking.php';
 	$exchangeRates = ROOT_URL . 'view_exchange_rates.php';
 	$cashRegister = ROOT_URL . 'view_cash_register.php';
+	$guestbook = ROOT_URL . 'view_guestbook.php';
 
 	$tooltipJs = ROOT_URL . 'js/wz_tooltip.js';
 
@@ -74,6 +75,7 @@ EOT;
 		<a href="$actualities" style="float: left; font-size: 14px; padding-left: 20px; padding-right: 20px;">Availability</a>
 		<a href="$booking" style="float: left; font-size: 14px; padding-right: 20px;">Booking</a>
 		<a href="$cashRegister" style="float: left; font-size: 14px; padding-right: 20px;">Cash Register</a></li>
+		<a href="$guestbook" style="float: left; font-size: 14px; padding-right: 20px;">Guestbook</a></li>
 	</div>
 </div>
 <div style="height: 60px;">

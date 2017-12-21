@@ -23,7 +23,7 @@ if(!mysql_query($sql, $link)) {
 	set_error('Cannot save payment');
 } else {
 	set_message('Payment saved');
-	audit(AUDIT_PAYMENT_ADDED, $_REQUEST, 0, $descrId, $link);
+	audit(AUDIT_PAYMENT_ADDED, $_REQUEST, 0, $id, $link);
 }
 
 mysql_close($link);

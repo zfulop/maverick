@@ -5,8 +5,6 @@ $location = $argv[1];
 $startDate = $argv[2];
 $endDate = $argv[3];
 
-echo "Start: $startDate, End: $endDate\n";
-
 $configFile = '../../includes/config/' . $location . '.php';
 if(!file_exists($configFile)) {
 	echo "invalid location parameter";
@@ -14,6 +12,8 @@ if(!file_exists($configFile)) {
 }
 require($configFile);
 require('../includes.php');
+
+echo "Start: $startDate, End: $endDate\n";
 
 $dates = array();
 echo "Dates: \n";

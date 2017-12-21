@@ -132,7 +132,7 @@ class PriceDao {
 		global $pricedao_priceForDate;
 		$startMonth = date('Y-m', $startTs) . '-1';
 		$endMonth = date('Y-m', $endTs) . '-1';
-		for($currDate = $startDateMonth; $currDate <= $endDateMonth; $currDate = date('Y-m', strtotime($currDate . ' +1 month')) . '-1') {
+		for($currDate = $startMonth; $currDate <= $endMonth; $currDate = date('Y-m', strtotime($currDate . ' +1 month')) . '-1') {
 			$currMonth = substr($currDate, 0, 7);
 			$file = JSON_DIR . $location . '/prices_' . $currMonth . '.json';
 			if(!file_exists($file)) {

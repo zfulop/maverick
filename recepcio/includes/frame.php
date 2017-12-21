@@ -35,6 +35,7 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 	$schedule = ROOT_URL . 'view_schedule.php';
 	$roomImages = ROOT_URL . 'view_room_images.php';
 	$roomHighlights = ROOT_URL . 'view_room_highlights.php';
+	$guestbook = ROOT_URL . 'view_guestbook.php';
 
 	$tooltipJs = ROOT_URL . 'js/wz_tooltip.js';
 
@@ -118,6 +119,7 @@ EOT;
 				<li><a href="$blacklist" style="font-size: 14px; padding-right: 20px;">Blacklisted guests</a></li>
 				<li><a href="$roomsToClean" style="font-size: 14px; padding-right: 20px;">Rooms to clean</a></li>
 				<li><a href="$schedule" style="font-size: 14px; padding-right: 20px;">View reception/cleaner schedule</a></li>
+				<li><a href="$guestbook" style="font-size: 14px; padding-right: 20px;">View guestbook</a></li>
 			</ul>
 		</div>
 		<a href="#" style="float: left; font-size: 14px; padding-right: 20px;" id="moneyMainMenu" onclick="showMenu('moneyMenu', this);return false;">Money</a>

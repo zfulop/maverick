@@ -15,6 +15,8 @@ require('includes/db.php');
 require('includes/audit.php');
 require('includes/exchange.php');
 require('includes/mail.php');
+require('includes/BookingDao.php');
+require('includes/PaymentDao.php');
 
 //set_error_handler('printOutErrorHandler');
 set_error_handler('sessionErrorHandler');

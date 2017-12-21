@@ -137,6 +137,78 @@ class BookingDao {
 		}
 		return $bookings;
 	}
+
+	/**
+	 * Gets the previous bookings in the given date interval for the guestbook where booking_descriptions.cancelled = 0
+	 * @param $from <= last_night
+	 * @param $to   => first_night
+	 */
+	public static function getPreviousGuestBookings($from,$to,$link)
+	{
+
+		$from = substr(str_replace('.','/',$from),0,10);
+		$to = substr(str_replace('.','/',$to),0,10);
+		$from = mysql_real_escape_string(str_replace('-','/',$from));
+		$to = mysql_real_escape_string(str_replace('-','/',$to));
+
+		//itt csak a booking guest idkat gyujtjuk le, kesobb minden adatot lekerunk
+		$sql ="select bgd.id as booking_guest_id
+        from booking_descriptions bd 
+        join booking_guest_data bgd on (bgd.booking_description_id = bd.id)
+        join rooms r on (r.id = bgd.room_id)
+        where bd.last_night >= '$from' and bd.first_night <= '$to'
+        and bd.cancelled = 0
+        ";
+
+
+		$booking_desc_day_ids = array();
+		$booking_guest_ids = array();
+		$result = mysql_query($sql, $link);
+		$guestbook_data = array();
+		if(!$result) {
+			trigger_error("No data in given interval");
+			return array(array(),array());
+		}
+
+		//ez a datum szerinti lekerdezes
+		while($row = mysql_fetch_assoc($result)) {
+			$booking_guest_ids[] = $row['booking_guest_id'];
+		}
+
+		//meghatarozzuk a minimum es maximum booking guest data id kat, ezek alapjan lesz a guestbook data lekerve
+		$min_bg_id = min($booking_guest_ids);
+		$max_bg_id = max($booking_guest_ids);
+
+		//levalogatjuk azokat a sorokat, amik lyukakkent szerepelnek a mostani listaban
+
+
+		$sql ="select bgd.id as booking_guest_id, bd.id as booking_description_id,  (case when bgd.`name`='' then bd.name else bgd.name end) as name, 
+               (case when bgd.`nationality`='' then bd.nationality else bgd.nationality end) as nationality,
+               bd.first_night, bd.num_of_nights, 
+               date(bd.first_night) as check_in,
+               DATE(DATE_ADD(bd.last_night, INTERVAL 1 DAY)) as check_out,
+               bd.last_night, bd.checked_in, bd.cancelled, bd.confirmed, coalesce(r.name,'No room') as room_name,
+               bgd.id_card_number, bgd.invoice_number 
+        from booking_descriptions bd 
+        join booking_guest_data bgd on (bgd.booking_description_id = bd.id)
+        left outer join rooms r on (r.id = bgd.room_id)
+        where bgd.id between $min_bg_id and $max_bg_id
+        and bd.cancelled = 0
+        order by bd.first_night, bgd.id ";
+
+		$result = mysql_query($sql, $link);
+
+		while($row = mysql_fetch_assoc($result)) {
+
+			//megjegyezzuk a toltelek sorokat, amik az ID folytonossag miatt kell bekeruljenek
+			if (in_array($row['booking_guest_id'],$booking_guest_ids)) $row['in_interval'] = 'Yes'; // ez egy datum intervallum szerint lekert sor
+			else $row['in_interval'] = 'No';
+
+			$guestbook_data[] = $row;
+		}
+
+		return $guestbook_data;
+	}
 }
 
 

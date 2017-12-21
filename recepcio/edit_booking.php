@@ -3,6 +3,9 @@
 require("includes.php");
 require("room_booking.php");
 
+if(!defined('COUNTRIES_FILE')) {
+	define('COUNTRIES_FILE', '../includes/countries.txt');
+}
 
 if(!checkLogin(SITE_RECEPTION)) {
 	return;

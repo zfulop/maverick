@@ -72,7 +72,7 @@ class SpecialOfferDao {
 		$discount = 0;
 		$selectedSo = null;
 		foreach($specialOffers as $so) {
-			if(doesSpecialOfferApply($so, $roomType, $nights, $arriveDate, $numOfBeds) and $so['discount_pct'] > $discount ) {
+			if(SpecialOfferDao::doesSpecialOfferApply($so, $roomType, $nights, $arriveDate, $numOfBeds) and $so['discount_pct'] > $discount ) {
 				$discount = $so['discount_pct'];
 				$selectedSo = $so;
 			}
@@ -80,26 +80,26 @@ class SpecialOfferDao {
 		return array($discount, $selectedSo);
 	}
 
-	function doesSpecialOfferApply(&$specialOffer, &$roomType, $nights, $arriveDate, $numOfBedsInRoom = null) {
+	public static function doesSpecialOfferApply(&$specialOffer, &$roomType, $nights, $arriveDate, $numOfBedsInRoom = null) {
 		if(is_null($specialOffer) or is_null($roomType)) {
 			return false;
 		}
 
-		// logDebug("Checking if special offer applies to arrive date: $arriveDate, nights: $nights, roomType: " . $roomType['name'] . '[' . $roomType['id'] . '], special offer: ' . $specialOffer['name']);
-		if(!is_null($specialOffer['room_type_ids']) and strpos($specialOffer['room_type_ids'],$roomType['id']) === false) {
-			// logDebug("this special ofer is not applicable for this room type");
+		//logDebug("Checking if special offer applies to arrive date: $arriveDate, nights: $nights, roomType: " . $roomType['name'] . '[' . $roomType['id'] . '], special offer: ' . $specialOffer['name']);
+		if(!is_null($specialOffer['room_type_ids']) and (strpos($specialOffer['room_type_ids'],"" . $roomType['id']) === false)) {
+			//logDebug("this special offer is not applicable for this room type (" . $roomType['id'] . "). Valid room types: " . $specialOffer['room_type_ids']);
 			return false;
 		}
 
 		if(!is_null($specialOffer['nights']) and $nights < $specialOffer['nights']) {
-			// logDebug("this special ofer is applicable for at least " . $specialOffer['nights'] . " nights only");
+			//logDebug("this special ofer is applicable for at least " . $specialOffer['nights'] . " nights only");
 			return false;
 		}
 
 		if(!is_null($specialOffer['valid_num_of_days_before_arrival'])) {
 			$cutoffDate = date('Y-m-d', strtotime(date('Y-m-d') . ' +' . $specialOffer['valid_num_of_days_before_arrival'] . ' day'));
 			if($arriveDate > $cutoffDate) {
-				// logDebug("this special ofer is applicable for atmost  " . $specialOffer['valid_num_of_days_before_arrival'] . " days before arrival");
+				//logDebug("this special ofer is applicable for atmost  " . $specialOffer['valid_num_of_days_before_arrival'] . " days before arrival");
 				return false;
 			}
 		}
@@ -107,12 +107,12 @@ class SpecialOfferDao {
 		if(!is_null($specialOffer['early_bird_day_count'])) {
 			$cutoffDate = date('Y-m-d', strtotime(date('Y-m-d') . ' +' . $specialOffer['early_bird_day_count'] . ' day'));
 			if($arriveDate < $cutoffDate) {
-				// logDebug("this special ofer is applicable for at least  " . $specialOffer['valid_num_of_days_before_arrival'] . " days before arrival");
+				//logDebug("this special ofer is applicable for at least  " . $specialOffer['valid_num_of_days_before_arrival'] . " days before arrival");
 				return false;
 			}
 		}
 
-		// logDebug("this special offer applies for arrive date: $arriveDate, nights: $nights, roomType: " . $roomType['name'] . '[' . $roomType['id'] . '], special offer: ' . $specialOffer['name']);
+		//logDebug("this special offer applies for arrive date: $arriveDate, nights: $nights, roomType: " . $roomType['name'] . '[' . $roomType['id'] . '], special offer: ' . $specialOffer['name']);
 		return true;
 	}
 

@@ -336,7 +336,11 @@ EOT;
 		if(isset($bookings[$descrId])) {
 			foreach($bookings[$descrId] as $oneBooking) {
 				$roomTotal += $oneBooking['room_payment'];
-				$roomName = $rooms[$oneBooking['room_id']]['name'];
+				if(!isset($rooms[$oneBooking['room_id']])) {
+					$roomName = 'no room found for id: ' . $oneBooking['room_id'];
+				} else {
+					$roomName = $rooms[$oneBooking['room_id']]['name'];
+				}
 				foreach($roomChanges as $bookingId => $changes) {
 					foreach($changes as $oneRoomChange) {
 						if($oneRoomChange['booking_id'] == $oneBooking['id'] and $oneRoomChange['date_of_room_change'] == $yesterday) {
@@ -553,7 +557,11 @@ foreach($checkedin as $bookingDescr) {
 		$roomCol = '';
 		foreach($bookings[$id] as $oneBooking) {
 			$roomName = '';
-			$roomName = $rooms[$oneBooking['room_id']]['name'];
+			if(!isset($rooms[$oneBooking['room_id']])) {
+				$roomName = 'no room found for id: ' . $oneBooking['room_id'];
+			} else {
+				$roomName = $rooms[$oneBooking['room_id']]['name'];
+			}
 			foreach($roomChanges as $bookingId => $changes) {
 				foreach($changes as $oneRoomChange) {
 					if($oneRoomChange['booking_id'] == $oneBooking['id'] and $oneRoomChange['date_of_room_change'] == $yesterday) {

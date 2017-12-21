@@ -72,7 +72,7 @@ function getTableRow(&$booking, &$room) {
 	}
 	$lnight = $booking['last_night'];
 	$numOfPerson = $booking['num_of_person'];
-	$numOfExtraBeds = $booking['num_of_extra_beds'];
+	$numOfExtraBeds = $booking['extra_beds'];
 	$roomName = $room['name'];
 	$roomTypeName = $room['room_type_name'];
 	$balance = $booking['room_payment'];

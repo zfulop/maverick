@@ -1,4 +1,4 @@
-<?php
+/loa<?php
 
 // Enable user error handling
 libxml_use_internal_errors(true);
@@ -62,7 +62,13 @@ class MyAllocatorBooker extends Booker {
 				$roomIds = getRoomIds($rooms, $oneRoomMap['roomTypeId']);
 				$roomsProvidingAvaialability = array();
 				foreach($roomIds as $roomId) {
-					if(is_null($roomData) and (($rooms[$roomId]['room_type_id'] == $oneRoomMap['roomTypeId']) or in_array($rooms[$roomId]['room_type_id'], $oneRoomMap['roomTypeId']))) {
+					$arr = array();
+					if(is_array($oneRoomMap['roomTypeId'])) {
+						$arr = $oneRoomMap['roomTypeId'];
+					} else {
+						$arr[] = $oneRoomMap['roomTypeId'];
+					}
+					if(is_null($roomData) and in_array($rooms[$roomId]['room_type_id'], $arr)) {
 						$roomData = $rooms[$roomId];
 					}
 					if(!isset($rooms[$roomId])) {

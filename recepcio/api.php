@@ -170,7 +170,7 @@ function loadAvailability() {
 		
 	$link = db_connect($location);
 
-	$minMax = getMinMaxStay($fromDate, $toDate);
+	$minMax = getMinMaxStay($fromDate, $toDate, $location);
 	if(!is_null($minMax) and $minMax['min_stay'] > $nights) {
 		mysql_close($link);
 		return array('error' => 'FOR_SELECTED_DATE_MIN_STAY ' . $minMax['min_stay']);
@@ -185,7 +185,7 @@ function loadAvailability() {
 	logDebug("Loading special offers for period");
 	$retVal = array();
 	$specialOffers = array();
-	foreach(loadSpecialOffersFromFile(null, $lastNight, $link, $lang) as $soId => $so) {
+	foreach(loadSpecialOffersFromFile(null, $lastNight, $link, $lang, $location) as $soId => $so) {
 		if($so['visible'] == 1) {
 			$specialOffers[$soId] = $so;
 		}
@@ -195,26 +195,26 @@ function loadAvailability() {
 
 	$roomTypesData = _loadRooms();
 	foreach($roomTypesData as $roomTypeId => $rt) {
-		logDebug("\tFor room type: " . $rt['rt_name'] . "($roomTypeId) there are " . $rt['num_of_rooms'] . " rooms of this type [" . implode(",", $rt['rooms_providing_availability']) . "]");
+		// logDebug("\tFor room type: " . $rt['rt_name'] . "($roomTypeId) there are " . $rt['num_of_rooms'] . " rooms of this type [" . implode(",", $rt['rooms_providing_availability']) . "]");
 		if(RoomDao::isDorm($rt)) {
-			logDebug("\t\tmax num of available beds: " . $rt['num_of_rooms'] * $rt['num_of_beds']);
+			// logDebug("\t\tmax num of available beds: " . $rt['num_of_rooms'] * $rt['num_of_beds']);
 			$roomTypesData[$roomTypeId]['num_of_beds_avail'] = $rt['num_of_rooms'] * $rt['num_of_beds'];
 		} else {
 			$roomTypesData[$roomTypeId]['num_of_rooms_avail'] = $rt['num_of_rooms'];
-			logDebug("\t\tmax num of available rooms: " . $rt['num_of_rooms']);
+			// logDebug("\t\tmax num of available rooms: " . $rt['num_of_rooms']);
 		}
 	}
 	
-	logDebug("Checking occupancy based on saved bookings for the selected period");
+	// logDebug("Checking occupancy based on saved bookings for the selected period");
 	for($currDate = $arriveDate; $currDate <= $lastNight; $currDate = date('Y-m-d', strtotime($currDate . ' +1 day'))) {
-		logDebug("\tChecking date $currDate");
+		// logDebug("\tChecking date $currDate");
 		$roomsProvidingAvailability = array();
 		$numOfRooms = array();
 		$numOfBeds = array();
 		$originalRoomTypes = array();
 		$roomAlreadyHasBooking = array();
 		foreach($roomTypesData as $rtId => $roomType) {
-			logDebug("\t\tFor room type: " . $roomType['rt_name'] . "($rtId) the rooms providing availability: " . implode(",", $roomType['rooms_providing_availability']));
+			// logDebug("\t\tFor room type: " . $roomType['rt_name'] . "($rtId) the rooms providing availability: " . implode(",", $roomType['rooms_providing_availability']));
 			$roomsProvidingAvailability[$rtId] = $roomType['rooms_providing_availability'];
 			$numOfRooms[$rtId] = $roomType['num_of_rooms'];
 			$numOfBeds[$rtId] = $roomType['num_of_rooms'] * $roomType['num_of_beds'];
@@ -222,7 +222,7 @@ function loadAvailability() {
 		}
 		foreach(loadBookingsPerRoomFromExtractedFile($currDate, $location) as $roomId => $bookings) {
 			foreach($bookings as $oneBooking) {
-				logDebug("\t\tChecking booking for room: $roomId, num_of_person: " . $oneBooking['num_of_person'] . ' booking type: ' . $oneBooking['booking_type']);
+				// logDebug("\t\tChecking booking for room: $roomId, num_of_person: " . $oneBooking['num_of_person'] . ' booking type: ' . $oneBooking['booking_type']);
 				if($oneBooking['booking_type'] == 'BED') {
 					$numOfBeds[$oneBooking['room_type_id']] -= $oneBooking['num_of_person'];
 				} else {
@@ -234,16 +234,16 @@ function loadAvailability() {
 					}
 					$roomTypesToDecrease = array();
 					foreach($roomsProvidingAvailability as $rtId => $roomIds) {
-						logDebug("\t\t\tFor room type: $rtId the rooms providing availability are: [" . implode(",", $roomIds) . "]");
+						// logDebug("\t\t\tFor room type: $rtId the rooms providing availability are: [" . implode(",", $roomIds) . "]");
 						if(in_array($roomId, $roomIds)) {
-							logDebug("\t\t\tDecreasing availability for room type: $rtId"); 
+							// logDebug("\t\t\tDecreasing availability for room type: $rtId"); 
 							$roomTypesToDecrease[] = $rtId;
 						}
 					}
 					foreach($roomTypesToDecrease as $rtId) {
 						$roomsProvidingAvailability[$rtId] = remove_element_from_array($roomsProvidingAvailability[$rtId], $roomId);
 						$numOfRooms[$rtId] -= 1;
-						logDebug("\t\t\tRemoving availability from room type: $rtId. After removal it has " . $numOfRooms[$rtId] . " rooms");
+						// logDebug("\t\t\tRemoving availability from room type: $rtId. After removal it has " . $numOfRooms[$rtId] . " rooms");
 					}
 				}
 			}
@@ -263,8 +263,8 @@ function loadAvailability() {
 			}
 			$roomId = $roomsProvidingAvailability[$roomTypeId][0];
 			if(!RoomDao::isDorm($roomType) and in_array($roomId, $originalRoomTypes[$roomTypeId])) {
-				logDebug("\t\tFor room type: " . $roomType['rt_name'] . "($roomTypeId) and date: $currDate there is only one room available ($roomId) and that room's original room type is this room type");
-				logDebug("\t\tRemoving availability from the additional room types that this room has"); 
+				// logDebug("\t\tFor room type: " . $roomType['rt_name'] . "($roomTypeId) and date: $currDate there is only one room available ($roomId) and that room's original room type is this room type");
+				// logDebug("\t\tRemoving availability from the additional room types that this room has"); 
 				$roomTypesToDecrease = array();
 				foreach($roomsProvidingAvailability as $rtId => $roomIds) {
 					if($roomTypeId != $rtId and in_array($roomId, $roomIds)) {
@@ -275,7 +275,7 @@ function loadAvailability() {
 				foreach($roomTypesToDecrease as $rtId) {
 					$roomsProvidingAvailability[$rtId] = remove_element_from_array($roomsProvidingAvailability[$rtId], $roomId);
 					$numOfRooms[$rtId] -= 1;
-					logDebug("\t\t\tRemoving availability from room type: $rtId. After removal it has " . $numOfRooms[$rtId] . " rooms");
+					// logDebug("\t\t\tRemoving availability from room type: $rtId. After removal it has " . $numOfRooms[$rtId] . " rooms");
 				}
 			}
 		}
@@ -283,10 +283,10 @@ function loadAvailability() {
 		foreach(array_keys($roomTypesData) as $roomTypeId) {
 			$roomType = $roomTypesData[$roomTypeId];
 			if(RoomDao::isDorm($roomType)) {
-				logDebug("\t\tFor today for DORM room type: " . $roomType['name'] . "($roomTypeId) the number of available beds: " . $numOfBeds[$roomTypeId] . ". The number of available beds so far: " . $roomType['num_of_beds_avail']); 
+				// logDebug("\t\tFor today for DORM room type: " . $roomType['name'] . "($roomTypeId) the number of available beds: " . $numOfBeds[$roomTypeId] . ". The number of available beds so far: " . $roomType['num_of_beds_avail']); 
 				$roomTypesData[$roomTypeId]['num_of_beds_avail'] = min($roomType['num_of_beds_avail'], $numOfBeds[$roomTypeId]);
 			} else {
-				logDebug("\t\tFor today for PRIVATE/APARTMENT room type: " . $roomType['rt_name'] . "($roomTypeId) the number of available rooms: " . $numOfRooms[$roomTypeId] . ". The number available rooms so far: " . $roomType['num_of_rooms_avail']); 
+				// logDebug("\t\tFor today for PRIVATE/APARTMENT room type: " . $roomType['rt_name'] . "($roomTypeId) the number of available rooms: " . $numOfRooms[$roomTypeId] . ". The number available rooms so far: " . $roomType['num_of_rooms_avail']); 
 				$roomTypesData[$roomTypeId]['num_of_rooms_avail'] = min($roomType['num_of_rooms_avail'], $numOfRooms[$roomTypeId]);
 			}
 		}
@@ -327,7 +327,7 @@ function sortOffersByPercent($so1, $so2) {
 	return 0;
 }
 
-function loadSpecialOffersFromFile($firstNight, $lastNight, $link, $lang) {
+function loadSpecialOffersFromFile($firstNight, $lastNight, $link, $lang, $location) {
 	$filePath = JSON_DIR . $location . '/special_offers_' . $lang . '.json';
 	logDebug("\t\tLoad  special offers from file: $filePath");
 	$spcialOffers = array();
@@ -336,12 +336,12 @@ function loadSpecialOffersFromFile($firstNight, $lastNight, $link, $lang) {
 		$specialOffers = json_decode($json, true);
 	} else {
 		logDebug("\t\tFile does not exist, extracting from DB and saving it into the file");
-		$specialOffers  = SpecialOfferDao::getAllSpecialOffers($link, $eng);
+		$specialOffers  = SpecialOfferDao::getAllSpecialOffers($link, $lang);
 		$json = json_encode($specialOffers, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 		logDebug("Saving special offers data to $filePath");
 		file_put_contents($filePath, $json);
 	}
-	return SpecialOfferDao::getSpecialOffersFromArray($firstNight, $lastNight, $specialOffers)
+	return SpecialOfferDao::getSpecialOffersFromArray($firstNight, $lastNight, $specialOffers);
 }
 
 
@@ -519,7 +519,7 @@ function matchSpecialOffer(&$roomType, $roomTypeId, $nights, $arriveDate, $speci
 	$roomType['special_offer_for_one_more_day'] = $specialOfferForOneMoreDay;
 }
 
-function getMinMaxStay($fromDate, $toDate) {
+function getMinMaxStay($fromDate, $toDate, $location) {
 	$filePath = JSON_DIR . $location . '/min_max_stay.json';
 	if(!file_exists($filePath)) {
 		logError("min max stay file does not exist: $filePath");
