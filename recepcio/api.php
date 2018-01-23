@@ -25,7 +25,7 @@ logDebug("API action: $action");
 
 $retVal = null;
 if($action == 'rooms') {
-	$retVal = _loadRooms();
+	$retVal = _loadRooms(null, null);
 } elseif($action == 'availability') {
 	$retVal = loadAvailability();
 } elseif($action == 'services') {
@@ -58,7 +58,7 @@ return;
 
 
 
-function _loadRooms() {
+function _loadRooms($from, $to) {
 	if(!checkMissingParameters(array('location','lang','currency'))) {
 		return null;
 	}
@@ -69,7 +69,7 @@ function _loadRooms() {
 	$currency = getParameter('currency');
 	
 	$filePath = JSON_DIR . $location . '/rooms_' . $lang . '_' . $currency . '.json';
-	if(file_exists($filePath)) {
+	if(file_exists($filePath) and (is_null($from) or $from == date('Y-m-d'))) {
 		logDebug("File exists: $filePath. Loading the file instead of loading all data from the db");
 		$json = file_get_contents($filePath);
 		return json_decode($json, true);
@@ -80,16 +80,20 @@ function _loadRooms() {
 
 	$now = time();
 
-	PriceDao::loadPriceForDate($now, $now, $location);
-
-	$from = date('Y-m-d');
-	$to = $from;
 	if(hasParameter('from') and hasParameter('to')) {
 		$from = getParameter('from');
 		$to = getParameter('to');
 	}
-	$roomTypesData = RoomDao::getRoomTypesWithRooms($lang, $from, $to, $link);
+	if(is_null($from)) {
+		$from = date('Y-m-d');
+	}
+	if(is_null($to)) {
+		$to = $from;
+	}
 
+	PriceDao::loadPriceForDate(strtotime($from), strtotime($to), $location);
+
+	$roomTypesData = RoomDao::getRoomTypesWithRooms($lang, $from, $to, $link);
 	enrichWithImageAndPrice($roomTypesData, $lang, $currency, $link);
 
 	logDebug("Rooms loaded. There are " . count($roomTypesData) . " room types");
@@ -193,7 +197,7 @@ function loadAvailability() {
 	usort($specialOffers, 'sortOffersByPercent');
 	$retVal['special_offers'] = $specialOffers;
 
-	$roomTypesData = _loadRooms();
+	$roomTypesData = _loadRooms($fromDate, $toDate);
 	foreach($roomTypesData as $roomTypeId => $rt) {
 		// logDebug("\tFor room type: " . $rt['rt_name'] . "($roomTypeId) there are " . $rt['num_of_rooms'] . " rooms of this type [" . implode(",", $rt['rooms_providing_availability']) . "]");
 		if(RoomDao::isDorm($rt)) {
@@ -834,6 +838,20 @@ function doBooking() {
 		}
 	}
 
+	// Save IFA
+	$ifaMultiplier = 0.034;
+	logDebug("Using IFA multiplier of $ifaMultiplier");
+	$roomPrice = 0;
+	foreach($bookings as $roomId => $oneRoomBooked) {
+		$dprice = convertAmount($oneRoomBooked['discounted_price'], 'EUR', $currency, $today);
+		$roomPrice += $dprice;
+	}
+	$ifa = $roomPrice * $ifaMultiplier;
+	$ifaComment = 'IFA multiplier: ' . $ifaMultiplier;
+	$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($descriptionId, $ifa, '$currency', '$now', '$ifaComment', 'IFA / City Tax')";
+	mysql_query($sql, $link);
+
+	
 	$_SESSION['login_user'] = 'website';
 	audit(AUDIT_CREATE_BOOKING, array('booking_data' => $toBook, 'room_change_data' => $roomChanges), $bookingIds[0], $descriptionId, $link);
 	mysql_query('COMMIT', $link);

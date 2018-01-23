@@ -110,7 +110,7 @@ if(in_array('CIO', $tablesSelected)) {
 	}
 	$archSql = str_replace("cash_out", constant('DB_' . strtoupper($_SESSION['login_hotel']) . '_ARCHIVE_DBNAME') . '.cash_out', $sql);
 	$archSql = str_replace("c_1", "c_2", $archSql);
-	$unionSql = $sql . " UNION ALL " . $archSql;
+	$unionSql = "select c.* from ($sql UNION ALL $archSql) as c ORDER BY c.time_of_payment";
 	$result = mysql_query($unionSql, $link);
 	if(!$result) {
 		trigger_error("Cannot get cashout for report: " . mysql_error($link) . " (SQL: $unionSql)", E_USER_ERROR);

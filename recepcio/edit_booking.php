@@ -56,10 +56,8 @@ if(!$result) {
 	header('Location: ' . $_SERVER['HTTP_REFERER']);
 	return;
 }
-$roomsHtmlOptions = '';
 while($row = mysql_fetch_assoc($result)) {
 	$rooms[$row['id']] = $row;
-	$roomsHtmlOptions .= '<option value="' . $row['id'] . '">' . $row['rt_name'] . ' - ' . $row['name'] . '</option>';
 }
 
 $bookingDescription = null;
@@ -104,10 +102,16 @@ if(mysql_num_rows($result) < 1) {
 }
 
 $bookingIds = array();
+$roomsHtmlOptions = '';
+$roomIncluded = array();
 while($row = mysql_fetch_assoc($result)) {
 	$row['room_name'] = $rooms[$row['room_id']]['name'];
 	$bookings[] = $row;
 	$bookingIds[] = $row['id'];
+	if(!in_array($row['room_id'], $roomIncluded)) {
+		$roomIncluded[] = $row['room_id'];
+		$roomsHtmlOptions .= '<option value="' . $row['room_id'] . '">' . $rooms[$row['room_id']]['rt_name'] . ' - ' . $rooms[$row['room_id']]['name'] . '</option>';
+	}
 }
 
 $roomChanges = array();

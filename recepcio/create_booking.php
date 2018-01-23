@@ -146,6 +146,21 @@ if($deposit > 0) {
 }
 
 $bookingIds = saveBookings($toBook, $roomChanges, $startDate, $endDate, $rooms, $roomTypes, $specialOffers, $descriptionId, $link);
+
+// Get room price
+$sql = "SELECT SUM(room_payment) FROM bookings WHERE id IN (" . implode(',', $bookingIds) . ")";
+$result = mysql_query($sql, $link);
+$roomPrice = mysql_result($result, 0);
+
+// Save IFA
+$ifaMultiplier = 0.034;
+logDebug("Using IFA multiplier of $ifaMultiplier");
+$ifa = $roomPrice * $ifaMultiplier;
+$ifaComment = 'IFA multiplier: ' . $ifaMultiplier;
+$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($descriptionId, $ifa, 'EUR', '$nowTime', '$ifaComment', 'IFA / City Tax')";
+mysql_query($sql, $link);
+
+	
 audit(AUDIT_CREATE_BOOKING, array('booking_data' => $toBook, 'room_change_data' => $roomChanges), $bookingIds[0], $descriptionId, $link);
 
 

@@ -166,8 +166,8 @@ class BookingDao {
 		$result = mysql_query($sql, $link);
 		$guestbook_data = array();
 		if(!$result) {
-			trigger_error("No data in given interval");
-			return array(array(),array());
+			trigger_error("Cannot get previous guest booking. Error: "  . mysql_error($link) . " SQL: $sql");
+			return null;
 		}
 
 		//ez a datum szerinti lekerdezes
@@ -187,7 +187,7 @@ class BookingDao {
                bd.first_night, bd.num_of_nights, 
                date(bd.first_night) as check_in,
                DATE(DATE_ADD(bd.last_night, INTERVAL 1 DAY)) as check_out,
-               bd.last_night, bd.checked_in, bd.cancelled, bd.confirmed, coalesce(r.name,'No room') as room_name,
+               bd.last_night, bd.checked_in, bd.cancelled, bd.confirmed, bgd.room_id, coalesce(r.name,'No room') as room_name,
                bgd.id_card_number, bgd.invoice_number 
         from booking_descriptions bd 
         join booking_guest_data bgd on (bgd.booking_description_id = bd.id)
@@ -197,7 +197,10 @@ class BookingDao {
         order by bd.first_night, bgd.id ";
 
 		$result = mysql_query($sql, $link);
-
+		if(!$result) {
+			trigger_error("Cannot get guestdata for bookings. Error: " . mysql_error($link) . " (SQL: $sql)");
+			return null;
+		}
 		while($row = mysql_fetch_assoc($result)) {
 
 			//megjegyezzuk a toltelek sorokat, amik az ID folytonossag miatt kell bekeruljenek
@@ -209,7 +212,56 @@ class BookingDao {
 
 		return $guestbook_data;
 	}
+
+	/**
+	 * Returns the room changes for the booking description ids (if specified) and the dates (if specified). If any of the parameters are
+	 * null or an empty array the filter will omit that parameter
+	 * @param $bdids				The array of booking description ids for which we want the room changes. This can be a number as well if we want to search for one.
+	 * @param $dateOfRoomChanges	The array of dates for which we want the room changes. Thist can be a string if we are interested only in one value.
+	 */
+	public static function getRoomChanges($bdIds, $dateOfRoomChanges, $link) {
+		$dateClause = '';
+		if(!is_null($dateOfRoomChanges)) {
+			if(!is_array($dateOfRoomChanges)) {
+				$dateOfRoomChanges = array($dateOfRoomChanges);
+			}
+			array_walk($dateOfRoomChanges, array('BookingDao', 'changeDateToSlashes'));
+			$dateClause = "brc.date_of_room_change IN ('" . implode("','", $dateOfRoomChanges) . "')";
+		}
+		$bdidClause = '';
+		if(!is_null($bdIds)) {
+			if(!is_array($bdIds)) {
+				$bdIds = array($bdIds);
+			}
+			$bdidClause = "bd.id IN (" . implode(',',$bdIds) . ")" ;
+		}
+		$sql = "SELECT bd.id AS booking_description_id, b.id AS booking_id, b.room_id, brc.new_room_id 
+				FROM booking_descriptions bd 
+				INNER JOIN bookings b ON b.description_id=bd.id
+				INNER JOIN booking_room_changes brc ON (brc.booking_id=b.id)
+				WHERE $bdidClause " . (strlen($bdidClause) > 0 ? ' AND ' : '') . $dateClause;
+	
+		logDebug("Getting room changes: $sql");
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("Cannot get room changes for bookings. Error: " . mysql_error($link) . " (SQL: $sql)");
+			return null;
+		}
+		$roomChanges = array();
+		while($row = mysql_fetch_assoc($result)) {
+			$roomChanges[] = $row;
+		}
+
+		return $roomChanges;
+	}
+
+	public static function changeDateToSlashes(&$date) {
+		$date = str_replace('-','/',$date);
+	}
+	
 }
+
+
 
 
 ?>

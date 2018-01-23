@@ -28,7 +28,7 @@ $booking_description_amounts = array();
 $from_date = "";
 $to_date = "";
 
-if ($_POST['submit']=='Previous bookings'){
+if(isset($_POST['submit']) and $_POST['submit']=='Previous bookings'){
 
     if (!empty($_POST['from_date'])) $from_date = $_POST['from_date'];
     else $error .= "Please provide from date<br>";
@@ -43,8 +43,12 @@ if ($_POST['submit']=='Previous bookings'){
         //kiszedjuk a booking data tombbol a booking description id - check in date tombot
         //ez alapjan lesz lekerve a payment data
         $booking_desc_day_ids = array();
+        $bdids = array();
         foreach ($guestbook_data as $cid=>$curr_row){
             $curr_booking_desc_id = $curr_row['booking_description_id'];
+			if(!isset($bdids[$curr_booking_desc_id])) {
+				$bdids[] = $curr_booking_desc_id;
+			}
             $booking_desc_day_ids[$curr_booking_desc_id]['day'] = $curr_row['check_in'];
         }
 
@@ -56,11 +60,18 @@ if ($_POST['submit']=='Previous bookings'){
         $payments = PaymentDao::getPayments($payment_filters,'HUF',$link);
 
         //osszefuzzuk a payment adatokat
-        foreach($guestbook_data as $cid=>$curr_row){
+        foreach($guestbook_data as &$curr_row){
             $curr_booking_desc_id = $curr_row['booking_description_id'];
-            $guestbook_data[$cid]['payments'] = $payments[$curr_booking_desc_id];
-        }
+			if(isset($payments[$curr_booking_desc_id])) {
+				$curr_row['payments'] = $payments[$curr_booking_desc_id];
+			} else {
+				$curr_row['payments'] = 0;
+			}
+		}
 
+		$roomChanges = BookingDao::getRoomChanges($bdids, $from_date, $link);
+		logDebug("Room changes: " . print_r($roomChanges, true));
+		$rooms = RoomDao::getRooms($link);
 
         if (!empty($guestbook_data)){
 
@@ -68,7 +79,13 @@ if ($_POST['submit']=='Previous bookings'){
             //ehhez csoportositjuk a booking_description_id alapjan, es ossze szamoljuk, hogy hany person volt ott.
 
             $booking_description_amounts = array();
-            foreach($guestbook_data as $bid=>$curr_data){
+            foreach($guestbook_data as $curr_data){
+				$roomChange = findRoomChange($curr_data, $roomChanges);
+				if(!is_null($roomChange)) {
+					$new_room_id = $roomChange['new_room_id'];
+					logDebug("There is a room change for date: $from_date, guest: " . $curr_data['name'] . ', room: ' . $curr_data['room_name'] . ' new room: ' . $rooms[$new_room_id]['name']);
+					$curr_data['room_name'] = $rooms[$new_room_id]['name'];
+				}
                 $curr_bd_id = $curr_data['booking_description_id'];
                 if (empty($booking_description_amounts[$curr_bd_id])){
                     $booking_description_amounts[$curr_bd_id]['payments']  = $curr_data['payments'];    //ez mar Ft
@@ -230,4 +247,19 @@ echo "<table border='1' style='width:100%'>
     }
 
     echo "</table>";
+}
+
+
+function findRoomChange($guestData, &$roomChanges) {
+	$bdId = $guestData['booking_description_id'];
+	$roomId = $guestData['room_id'];
+	$retVal = null;
+	logDebug("Searching room change for bd id: $bdId and room id: $roomId");
+	foreach($roomChanges as $rc) {
+		if($rc['booking_description_id'] == $bdId and $rc['room_id'] == $roomId) {
+			$retVal = $rc;
+			break;
+		}
+	}
+	return $retVal;
 }
