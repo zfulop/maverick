@@ -139,26 +139,32 @@ logDebug("Price setting skipped for dates: " . implode(',', $priceSettingSkipped
 
 if(count($historyValues) > 0) {
 	$sql = "INSERT INTO prices_for_date_history (date, price_per_room, price_per_bed, room_type_id, price_set_date, price_unset_date, occupancy, surcharge_per_bed) VALUES " . implode(', ', $historyValues);
+	logDebug("Creating history items with SQL: $sql");
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot create room prices history in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 	} else {
 		set_message('price history saved (' . count($historyValues) . ' rows inserted)');
+		logDebug('price history saved (' . count($historyValues) . ' rows inserted)');
 	}
 } else {
 	set_message('No historical data saved');
+	logDebug('No historical data saved');
 }
 
 if(count($newPriceValues) > 0) {
 	$sql = "INSERT INTO prices_for_date (room_type_id, date, price_per_room, price_per_bed, price_set_date, surcharge_per_bed) VALUES " . implode(', ', $newPriceValues);
+	logDebug("Creating new prices with SQL: $sql");
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot create new room prices in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
 	} else {
 		set_message('new prices saved (' . count($newPriceValues) . ' rows inserted)');
+		logDebug('new prices saved (' . count($newPriceValues) . ' rows inserted)');
 	}
 } else {
 	set_message('No price data saved');
+	logDebug('No price data saved');
 }
 
 set_message($newPriceMessage);
