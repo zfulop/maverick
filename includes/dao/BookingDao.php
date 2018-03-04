@@ -188,10 +188,14 @@ class BookingDao {
                date(bd.first_night) as check_in,
                DATE(DATE_ADD(bd.last_night, INTERVAL 1 DAY)) as check_out,
                bd.last_night, bd.checked_in, bd.cancelled, bd.confirmed, bgd.room_id, coalesce(r.name,'No room') as room_name,
-               bgd.id_card_number, bgd.invoice_number 
+               bgd.id_card_number, bgd.invoice_number,
+			   rc.name as changed_room_name, rc.id as changed_room_id
         from booking_descriptions bd 
         join booking_guest_data bgd on (bgd.booking_description_id = bd.id)
         left outer join rooms r on (r.id = bgd.room_id)
+		left outer join bookings b on (b.description_id=bd.id and b.room_id=r.id)
+		left outer join booking_room_changes brc on (brc.booking_id=b.id and brc.date_of_room_change=bd.first_night)
+		left outer join rooms rc on (brc.new_room_id=rc.id)
         where bgd.id between $min_bg_id and $max_bg_id
         and bd.cancelled = 0
         order by bd.first_night, bgd.id ";

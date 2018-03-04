@@ -56,5 +56,50 @@ class UserDao {
 		}
 		return $retVal;
 	}
+	/**
+	 * Returns all vacations for a date range. 
+	 * The returned array's key is the login name of the user and the value is the list of vacation requests.
+	 * The fromDate and toDate parameters should have the format of YYYY-MM-DD (or YYYY/MM/DD)
+	 * Ex.:
+	 * {
+	 *  peter: [{id: 1, login: peter, from_date: 2018-02-03, to_date: 2018-02-05}, {id: 2, login: peter, from_date: 2018-03-01, to_date: 2018-03-03}],
+	 *  erik:  [{id: 3, login: eirk, from_date: 2018-05-03, to_date: 2018-05-04}]
+	 * }
+	 */
+	public static function getVacations($fromDate, $toDate, $link) {
+		$fromDate = str_replace("/", "-", $fromDate);
+		$toDate = str_replace("/", "-", $toDate);
+		$sql = "SELECT * FROM vacations WHERE to_date>='$fromDate' AND from_date<='$toDate'" ;
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("Cannot get vacations in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+			return nul;
+		}
+		$vacations = array();
+		if($result) {
+			while($row = mysql_fetch_assoc($result)) {
+				if(!isset($vacations[$row['login']])) {
+					$vacations[$row['login']] = array();
+				}
+				$vacations[$row['login']][] = $row;
+			}
+		}
+		return $vacations;
+	}
+	
+	public static function sortUsersByName($user1, $user2) {
+		if($user1['name'] < $user2['name']) return -1;
+		if($user2['name'] < $user1['name']) return 1;
+		return 0;
+	}
+
+	public static function sortUsersByRoleName($user1, $user2) {
+		if($user1['role'] < $user2['role']) return -1;
+		if($user2['role'] < $user1['role']) return 1;
+		if($user1['name'] < $user2['name']) return -1;
+		if($user2['name'] < $user1['name']) return 1;
+		return 0;
+	}
+	
 }
 ?>

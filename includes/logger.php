@@ -54,8 +54,10 @@ function logDebug($msg) {
 }
 
 function logError($msg) {
-	$logger = Logger::getRootLogger();
-	$logger->error($msg);
+	if(strpos($msg, "connect(): The mysql extension is deprecated") === false) {
+		$logger = Logger::getRootLogger();
+		$logger->error($msg);
+	}
 }
 
 function logInfo($msg) {

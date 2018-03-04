@@ -14,6 +14,7 @@ $SOURCES = array(
 	'exp' => array('Hotel Collect Booking' => 'Expedia - Hotel Collect', 'Expedia Collect Booking' => 'Expedia - Expedia Collect'),
 	'fam' => 'Famous Hostels',
 	'gom' => 'Gomio',
+	'gta' => 'GTA',
 	'hb2' => 'hostelbookers',
 	'hbe' => array('lodge' => array('Liberate' => 'Hotel Beds source', 'Merchant' => 'Hotel Beds - merchant source'), 'hostel' => array('Liberate' => 'hotelbeds', 'Merchant' => 'hotelbeds merchant')),
 	'hc' => 'HC',

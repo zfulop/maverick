@@ -22,7 +22,7 @@ if(isset($_REQUEST['start_date'])) {
 	$_SESSION['av_start_date'] = $_REQUEST['start_date'];
 }
 if(!isset($_SESSION['av_start_date'])) {
-	$_SESSION['av_start_date'] = date('Y-m-d', strtotime(date('Y-m-d') . ' -1 week'));
+	$_SESSION['av_start_date'] = date('Y-m-d', strtotime(date('Y-m-d') . ' -1 day'));
 }
 if(isset($_REQUEST['end_date'])) {
 	$_SESSION['av_end_date'] = $_REQUEST['end_date'];
@@ -34,9 +34,10 @@ if(!isset($_SESSION['av_end_date'])) {
 $avStartDate = $_SESSION['av_start_date'];
 $avEndDate = $_SESSION['av_end_date'];
 
+$spanDays = round((strtotime($avEndDate) - strtotime($avStartDate)) / (60*60*24));
 
-$previousDate = date('Y-m-d', strtotime($avStartDate . ' -2 week')); 
-$nextEndDate = date('Y-m-d', strtotime($avEndDate . ' +2 week'));
+$previousDate = date('Y-m-d', strtotime($avStartDate . " -$spanDays days")); 
+$nextEndDate = date('Y-m-d', strtotime($avEndDate . " +$spanDays days"));
 
 $rooms = loadRooms(	substr($avStartDate,0,4), substr($avStartDate,5,2), substr($avStartDate,8,2), 
 					substr($avEndDate,0,4), substr($avEndDate,5,2), substr($avEndDate,8,2),  $link);
@@ -342,7 +343,7 @@ echo <<<EOT
 </div>
 
 
-<h2 style="margin-top: 60px;"><a class="next_month_btn" href="view_availability.php?start_date=$previousDate&end_date=$avStartDate" title="Previous 2 weeks">&lt;</a> Room availability for: $avStartDate - $avEndDate <a class="next_month_btn" href="view_availability.php?start_date=$avEndDate&end_date=$nextEndDate" title="Next 2 weeks">&gt;</a></h2>
+<h2 style="margin-top: 60px;"><a class="next_month_btn" href="view_availability.php?start_date=$previousDate&end_date=$avStartDate" title="Previous $spanDays days">&lt;</a> Room availability for: $avStartDate - $avEndDate <a class="next_month_btn" href="view_availability.php?start_date=$avEndDate&end_date=$nextEndDate" title="Next $spanDays days">&gt;</a></h2>
 <div style="float:left;">Font size: </div>
 <form style="float: left; margin-bottom: 5px;">
 	<input type="button" value="+" onclick="increaseFontSize();" style="font-size: 14px; font-weight: bold;"> <input type="button" value="-" onclick="decreaseFontSize();" style="font-size: 14px; font-weight: bold;">

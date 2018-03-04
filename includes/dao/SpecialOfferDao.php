@@ -46,13 +46,27 @@ class SpecialOfferDao {
 		$endDate = str_replace('/','-',$endDate);
 		
 		$retVal = array();
+		logDebug("Special offer matching, startDate: $startDate, endDate: $endDate");
 		foreach($specialOffers as $soId => $so) {
 			if(SpecialOfferDao::isSpecialOfferWithinDates($startDate, $endDate, $so)) {
-				$retVal[$soId] = $so;
+				logDebug("\tDates before: " . print_r($so['dates'], true));
+				$retVal[$soId] = SpecialOfferDao::modifyDates($so, $startDate, $endDate);
+				logDebug("\tDates after: " . print_r($retVal[$soId]['dates'], true));
 			}
 		}
 
 		return $retVal;
+	}
+
+	public static function modifyDates($specialOffer, $startDate, $endDate) {
+		$dates = array();
+		foreach($specialOffer['dates'] as $oneDate) {
+			if(($oneDate['start_date'] <= $startDate) and ($oneDate['end_date'] >= $endDate)) {
+				$dates[] = $oneDate;
+			}
+		}
+		$specialOffer['dates'] = $dates;
+		return $specialOffer;
 	}
 
 	public static function isSpecialOfferWithinDates($startDate, $endDate, $specialOffer) {

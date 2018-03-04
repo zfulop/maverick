@@ -23,34 +23,13 @@ $currentMonthEnd = $currentMonth . '-' . $currentMonthNumDays;
 $prevMonth = date('Y-m', strtotime($currentMonthStart . ' -1 month'));
 $nextMonth = date('Y-m', strtotime($currentMonthStart . ' +1 month'));
 
-$sql = "SELECT * FROM vacations WHERE to_date>='$currentMonthStart' AND from_date<='$currentMonthEnd'" ;
-$result = mysql_query($sql, $link);
-if(!$result) {
-	trigger_error("Cannot get vacations in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
-}
-$vacations = array();
-if($result) {
-	while($row = mysql_fetch_assoc($result)) {
-		if(!isset($vacations[$row['login']])) {
-			$vacations[$row['login']] = array();
-		}
-		$vacations[$row['login']][] = $row;
-	}
-}
+$vacations = UserDao::getVacations($currentMonthStart, $currentMonthEnd, $link);
 
-
-$sql = "SELECT * FROM users WHERE role='RECEPTION' ORDER BY name";
-$result = mysql_query($sql, $link);
-if(!$result) {
-	trigger_error("Cannot get receptionists in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
-}
-$receptionists = array();
-$recOptions = '';
-if($result) {
-	while($row = mysql_fetch_assoc($result)) {
-		$receptionists[] = $row;
-		$recOptions .= '<option value="' . $row['username'] . '">' . $row['name'] . '</option>';
-	}
+$users = UserDao::getUsers($link);
+usort($users, array("UserDao", "sortUsersByName"));
+$usersOptions = '';
+foreach($users as $row) {
+	$usersOptions .= '<option value="' . $row['username'] . '">' . $row['name'] . ' [' . $row['role'] . ']</option>';
 }
 
 mysql_close($link);
@@ -68,7 +47,7 @@ echo <<<EOT
 
 <form action="save_vacation.php" id="rec_form" accept-charset="utf-8" method="POST" style="display: none;">
 <fieldset>
-<label>Receptionist</label><select name="login">$recOptions</select><br>
+<label>Receptionist</label><select name="login">$usersOptions</select><br>
 <label>1st day</label><input name="start_date" size="10" id="start_date"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'start_date', 'chooserSpanSD', 2013, 2025, 'Y-m-d', false);"> 
 			<div id="chooserSpanSD" class="dateChooser select-free" style="display: none; visibility: hidden; width: 160px;"></div><br>
 <label>Last day</label><input name="end_date" size="10" id="end_date"><img src="js/datechooser/calendar.gif" onclick="showChooser(this, 'end_date', 'chooserSpanED', 2013, 2025, 'Y-m-d', false);"> 
@@ -89,15 +68,21 @@ echo <<<EOT
 
 EOT;
 
-echo "	<tr><th>Receptionist</th>";
-for($i = 1; $i <= $currentMonthNumDays; $i++) {
-	echo "<th>$i</th>";
-}
-echo "</tr>\n";
-
-foreach($receptionists as $row) {
+$prevRole = '';
+usort($users, array("UserDao", "sortUsersByRoleName"));
+foreach($users as $row) {
+	if($prevRole != $row['role']) {
+		echo "<tr><th colspan=\"" . ($currentMonthNumDays + 1) . "\">" . $row['role'] . "</th></tr>\n"; 
+		echo "	<tr><th>Name</th>";
+		for($i = 1; $i <= $currentMonthNumDays; $i++) {
+			echo "<th>$i</th>";
+		}
+		echo "</tr>\n";
+		$prevRole = $row['role'];
+	}
 	$login = $row['username'];
 	$name = $row['name'];
+	$role = $row['role'];
 	echo "<tr><th>$name</th>";
 	for($i = 1; $i <= $currentMonthNumDays; $i++) {
 		$currDate = $currentMonth . '-' . ($i < 10 ? '0' : '') . $i;

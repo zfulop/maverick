@@ -1,13 +1,13 @@
 <?php
 
-error_reporting(E_ALL);
-ini_set('display_errors',1);
+//error_reporting(E_ALL);
+//ini_set('display_errors',1);
 
 
 require("includes.php");
 
-error_reporting(E_ALL);
-ini_set('display_errors',1);
+//error_reporting(E_ALL);
+//ini_set('display_errors',1);
 
 
 if(!checkLogin(SITE_RECEPTION)) {
@@ -80,12 +80,6 @@ if(isset($_POST['submit']) and $_POST['submit']=='Previous bookings'){
 
             $booking_description_amounts = array();
             foreach($guestbook_data as $curr_data){
-				$roomChange = findRoomChange($curr_data, $roomChanges);
-				if(!is_null($roomChange)) {
-					$new_room_id = $roomChange['new_room_id'];
-					logDebug("There is a room change for date: $from_date, guest: " . $curr_data['name'] . ', room: ' . $curr_data['room_name'] . ' new room: ' . $rooms[$new_room_id]['name']);
-					$curr_data['room_name'] = $rooms[$new_room_id]['name'];
-				}
                 $curr_bd_id = $curr_data['booking_description_id'];
                 if (empty($booking_description_amounts[$curr_bd_id])){
                     $booking_description_amounts[$curr_bd_id]['payments']  = $curr_data['payments'];    //ez mar Ft
@@ -128,7 +122,13 @@ if(isset($_POST['submit']) and $_POST['submit']=='Previous bookings'){
 
         fputcsv($temp_csv, $csv_header);
 
+		$prev_gdid = -1;
         foreach($guestbook_data as $bid=>$curr_data){
+			// If a guest data is in the list twice (or more) show only one
+			if($prev_gdid == $curr_data['booking_guest_id']) {
+				continue;
+			}
+			$prev_gdid = $curr_data['booking_guest_id'];
 
             $name_parts = explode(' ',trim($curr_data['name']));
             $first_name = $name_parts[0];
@@ -148,7 +148,7 @@ if(isset($_POST['submit']) and $_POST['submit']=='Previous bookings'){
             $curr_csv_row[] = $curr_data['id_card_number'];
             $curr_csv_row[] = $curr_data['check_in'];
             $curr_csv_row[] = $curr_data['check_out'];
-            $curr_csv_row[] = $curr_data['room_name'];
+            $curr_csv_row[] = ($curr_data['changed_room_name'] != null ? $curr_data['changed_room_name'] : $curr_data['room_name']);
             $curr_csv_row[] = $curr_data['invoice_number'];
             $curr_csv_row[] = $curr_amount;
             $curr_csv_row[] = $curr_IFA;

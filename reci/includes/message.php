@@ -1,6 +1,6 @@
 <?php
 
-define('DEBUG', true);
+define('DEBUG', false);
 
 function set_error($msg) {
 	$_SESSION['error'][] = $msg;
@@ -12,6 +12,14 @@ function set_warning($msg) {
 
 function set_message($msg) {
 	$_SESSION['message'][] = $msg;
+}
+
+function logDebug($msg) {
+	set_debug($msg);
+}
+
+function logError($msg) {
+	set_error($msg);
 }
 
 function set_debug($msg) {

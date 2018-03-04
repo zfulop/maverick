@@ -189,7 +189,7 @@ function loadAvailability() {
 	logDebug("Loading special offers for period");
 	$retVal = array();
 	$specialOffers = array();
-	foreach(loadSpecialOffersFromFile(null, $lastNight, $link, $lang, $location) as $soId => $so) {
+	foreach(loadSpecialOffersFromFile($arriveDate, $lastNight, $link, $lang, $location) as $soId => $so) {
 		if($so['visible'] == 1) {
 			$specialOffers[$soId] = $so;
 		}
@@ -486,11 +486,17 @@ function fillPriceForAvailability($arriveTs, $nights, $roomType, &$specialOffers
 	if(!is_null($specialOffers)) {
 		list($discount, $selectedSo) = SpecialOfferDao::findSpecialOffer($specialOffers, $roomType, $nights, date('Y-m-d', $arriveTs), 1);
 		// apply special offer
-		$discountedPayment = $roomType['price'];
 		if($discount > 0) {
-			$discountedPayment = $discountedPayment * (100 - $discount) / 100;
+			$discountedPayment = $roomType['price'] * (100 - $discount) / 100;
 			$roomType['price_without_discount'] = $roomType['price'];
 			$roomType['price'] = $discountedPayment;
+			if(isApartment($roomType)) {
+				for($i=2; $i<= $roomType['num_of_beds']; $i++) {
+					$discountedPayment = $roomType['price_' . $i] * (100 - $discount) / 100;
+					$roomType['price_' . $i . '_without_discount'] = $roomType['price_' . $i];
+					$roomType['price_' . $i] = $discountedPayment;
+				}
+			}
 		}
 	}
 	
@@ -842,7 +848,7 @@ function doBooking() {
 	$ifaMultiplier = 0.034;
 	logDebug("Using IFA multiplier of $ifaMultiplier");
 	$roomPrice = 0;
-	foreach($bookings as $roomId => $oneRoomBooked) {
+	foreach($toBook as $roomId => $oneRoomBooked) {
 		$dprice = convertAmount($oneRoomBooked['discounted_price'], 'EUR', $currency, $today);
 		$roomPrice += $dprice;
 	}

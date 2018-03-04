@@ -41,7 +41,11 @@ function sessionErrorHandler($errno, $errstr, $errfile, $errline, $errcontext) {
 
 // error handler function
 function log4phpErrorHandler($errno, $errstr, $errfile, $errline, $errcontext) {
-	logError("[$errno] $errstr ($errfile:$errline)");
+	if(strpos('The mysql extension is deprecated and will be removed in the future', $errstr) > 0) {
+		// Dont print out the mysql deprecation error
+	} else {
+		logError("[$errno] $errstr ($errfile:$errline)");
+	}
 }
 
 

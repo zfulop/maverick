@@ -1,13 +1,13 @@
 <?php
 
-error_reporting(E_ALL);
-ini_set('display_errors',1);
+//error_reporting(E_ALL);
+//ini_set('display_errors',1);
 
 
 require("includes.php");
 
-error_reporting(E_ALL);
-ini_set('display_errors',1);
+//error_reporting(E_ALL);
+//ini_set('display_errors',1);
 
 
 $link = db_connect();
@@ -24,7 +24,7 @@ $booking_description_amounts = array();
 $from_date = "";
 $to_date = "";
 
-if ($_POST['submit']=='Previous bookings'){
+if(isset($_POST['submit']) and $_POST['submit']=='Previous bookings'){
 
     if (!empty($_POST['from_date'])) $from_date = $_POST['from_date'];
     else $error .= "Please provide from date<br>";
@@ -39,8 +39,12 @@ if ($_POST['submit']=='Previous bookings'){
         //kiszedjuk a booking data tombbol a booking description id - check in date tombot
         //ez alapjan lesz lekerve a payment data
         $booking_desc_day_ids = array();
+        $bdids = array();
         foreach ($guestbook_data as $cid=>$curr_row){
             $curr_booking_desc_id = $curr_row['booking_description_id'];
+			if(!isset($bdids[$curr_booking_desc_id])) {
+				$bdids[] = $curr_booking_desc_id;
+			}
             $booking_desc_day_ids[$curr_booking_desc_id]['day'] = $curr_row['check_in'];
         }
 
@@ -52,11 +56,18 @@ if ($_POST['submit']=='Previous bookings'){
         $payments = PaymentDao::getPayments($payment_filters,'HUF',$link);
 
         //osszefuzzuk a payment adatokat
-        foreach($guestbook_data as $cid=>$curr_row){
+        foreach($guestbook_data as &$curr_row){
             $curr_booking_desc_id = $curr_row['booking_description_id'];
-            $guestbook_data[$cid]['payments'] = $payments[$curr_booking_desc_id];
-        }
+			if(isset($payments[$curr_booking_desc_id])) {
+				$curr_row['payments'] = $payments[$curr_booking_desc_id];
+			} else {
+				$curr_row['payments'] = 0;
+			}
+		}
 
+		$roomChanges = BookingDao::getRoomChanges($bdids, $from_date, $link);
+		logDebug("Room changes: " . print_r($roomChanges, true));
+		$rooms = RoomDao::getRooms($link);
 
         if (!empty($guestbook_data)){
 
@@ -64,7 +75,7 @@ if ($_POST['submit']=='Previous bookings'){
             //ehhez csoportositjuk a booking_description_id alapjan, es ossze szamoljuk, hogy hany person volt ott.
 
             $booking_description_amounts = array();
-            foreach($guestbook_data as $bid=>$curr_data){
+            foreach($guestbook_data as $curr_data){
                 $curr_bd_id = $curr_data['booking_description_id'];
                 if (empty($booking_description_amounts[$curr_bd_id])){
                     $booking_description_amounts[$curr_bd_id]['payments']  = $curr_data['payments'];    //ez mar Ft
@@ -107,7 +118,13 @@ if ($_POST['submit']=='Previous bookings'){
 
         fputcsv($temp_csv, $csv_header);
 
+		$prev_gdid = -1;
         foreach($guestbook_data as $bid=>$curr_data){
+			// If a guest data is in the list twice (or more) show only one
+			if($prev_gdid == $curr_data['booking_guest_id']) {
+				continue;
+			}
+			$prev_gdid = $curr_data['booking_guest_id'];
 
             $name_parts = explode(' ',trim($curr_data['name']));
             $first_name = $name_parts[0];
@@ -127,7 +144,7 @@ if ($_POST['submit']=='Previous bookings'){
             $curr_csv_row[] = $curr_data['id_card_number'];
             $curr_csv_row[] = $curr_data['check_in'];
             $curr_csv_row[] = $curr_data['check_out'];
-            $curr_csv_row[] = $curr_data['room_name'];
+            $curr_csv_row[] = ($curr_data['changed_room_name'] != null ? $curr_data['changed_room_name'] : $curr_data['room_name']);
             $curr_csv_row[] = $curr_data['invoice_number'];
             $curr_csv_row[] = $curr_amount;
             $curr_csv_row[] = $curr_IFA;
@@ -226,4 +243,19 @@ echo "<table border='1' style='width:100%'>
     }
 
     echo "</table>";
+}
+
+
+function findRoomChange($guestData, &$roomChanges) {
+	$bdId = $guestData['booking_description_id'];
+	$roomId = $guestData['room_id'];
+	$retVal = null;
+	logDebug("Searching room change for bd id: $bdId and room id: $roomId");
+	foreach($roomChanges as $rc) {
+		if($rc['booking_description_id'] == $bdId and $rc['room_id'] == $roomId) {
+			$retVal = $rc;
+			break;
+		}
+	}
+	return $retVal;
 }
