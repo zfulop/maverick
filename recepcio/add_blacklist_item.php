@@ -11,11 +11,11 @@ if(!checkLogin(SITE_RECEPTION)) {
 
 $link = db_connect();
 
-$name = mysql_escape_string($_REQUEST['name'], $link);
-$email = mysql_escape_string($_REQUEST['email'], $link);
-$source = mysql_escape_string($_REQUEST['source'], $link);
+$name = mysql_real_escape_string($_REQUEST['name'], $link);
+$email = mysql_real_escape_string($_REQUEST['email'], $link);
+$source = mysql_real_escape_string($_REQUEST['source'], $link);
 $today = date('Y-m-d');
-$reason = mysql_escape_string($_REQUEST['reason'], $link);
+$reason = mysql_real_escape_string($_REQUEST['reason'], $link);
 
 
 $sql = "INSERT INTO blacklist (name,email,source,reason,date_of_entry) VALUES ('$name', '$email','$source','$reason','$today')";
@@ -24,6 +24,7 @@ if(!mysql_query($sql, $link)) {
 	set_error('Cannot save blacklist item');
 } else {
 	set_message('Blacklist item saved');
+	logDebug("Saving blacklist item: $sql");
 	audit(AUDIT_ADD_BLACKLIST_ITEM, $_REQUEST, 0, 0, $link);
 }
 

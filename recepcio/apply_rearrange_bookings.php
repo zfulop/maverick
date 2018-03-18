@@ -53,6 +53,7 @@ foreach($_SESSION['rearrange_room_changes'] as $bookingId => $changes) {
 
 		$sql[] = "INSERT INTO booking_room_changes (booking_id, date_of_room_change, new_room_id) VALUES ($bookingId, '$dateOfChange', $newRoomId)";
 		$msg .= "<li>$dateOfChange - " . $rooms[$newRoomId]['name'] . "</li>";
+		audit(AUDIT_REARRANGE_BOOKING, array('date_of_room_change' => $dateOfChange, 'new_room_id' => $newRoomId), $bookingId, $oneBooking['description_id'], $link);
 	}
 	$msg .= "</ul>";
 	$message[] = $msg;
