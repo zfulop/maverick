@@ -18,16 +18,7 @@ if(count($_SESSION['rearrange_room_changes']) < 1) {
 $link = db_connect();
 
 
-$rooms = array();
-$sql = "SELECT * FROM rooms";
-$result = mysql_query($sql, $link);
-if(!$result) {
-	trigger_error("Cannot get rooms: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
-} else {
-	while($row = mysql_fetch_assoc($result)) {
-		$rooms[$row['id']] = $row;
-	}
-}
+$rooms = RoomDao::getRooms($link);
 
 
 $sql = "SELECT bookings.*, booking_descriptions.name, booking_descriptions.first_night, booking_descriptions.last_night  FROM bookings INNER JOIN booking_descriptions ON bookings.description_id=booking_descriptions.id WHERE bookings.id IN (" . implode(',', array_keys($_SESSION['rearrange_room_changes'])) . ")";
@@ -53,7 +44,7 @@ foreach($_SESSION['rearrange_room_changes'] as $bookingId => $changes) {
 
 		$sql[] = "INSERT INTO booking_room_changes (booking_id, date_of_room_change, new_room_id) VALUES ($bookingId, '$dateOfChange', $newRoomId)";
 		$msg .= "<li>$dateOfChange - " . $rooms[$newRoomId]['name'] . "</li>";
-		audit(AUDIT_REARRANGE_BOOKING, array('date_of_room_change' => $dateOfChange, 'new_room_id' => $newRoomId), $bookingId, $oneBooking['description_id'], $link);
+		audit(AUDIT_REARRANGE_BOOKING, array('date_of_room_change' => $dateOfChange, 'new_room_id' => $newRoomId, 'new_room_name' => $rooms[$newRoomId]['name']), $bookingId, $oneBooking['description_id'], $link);
 	}
 	$msg .= "</ul>";
 	$message[] = $msg;

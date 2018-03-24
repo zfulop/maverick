@@ -197,7 +197,7 @@ EOT;
 			logDebug($debugLine);
 		}
 		$availTable .=  "</table>\n";
-		if(!isset($_REQUEST['test_runner_response'])) {
+		if(!isset(getParameter('test_runner_response'))) {
 			echo $availTable;
 		}
 	}
@@ -343,12 +343,12 @@ EOT;
 
 
 
-$startYear = $_REQUEST['start_year'];
-$startMonth = $_REQUEST['start_month'];
-$startDay = $_REQUEST['start_day'];
-$endYear = $_REQUEST['end_year'];
-$endMonth = $_REQUEST['end_month'];
-$endDay = $_REQUEST['end_day'];
+$startYear = getParameter('start_year');
+$startMonth = getParameter('start_month');
+$startDay = getParameter('start_day');
+$endYear = getParameter('end_year');
+$endMonth = getParameter('end_month');
+$endDay = getParameter('end_day');
 
 
 if(strlen($startDay) == 1)
@@ -373,8 +373,8 @@ echo "Period ending: $endYear-$endMonth-$endDay<br>\n";
 $booker = new MyAllocatorBooker();
 $booker->init();
 
-if(isset($_REQUEST['save_file'])) {
-	$booker->setSaveFile($_REQUEST['save_file']);
+if(isset(getParameter('save_file'))) {
+	$booker->setSaveFile(getParameter('save_file'));
 }
 
 
@@ -414,6 +414,21 @@ function removeAdditionalAvailability($room, $date, &$roomDataToSend) {
 			}
 		}
 	}
+}
+
+
+function getParameter($parameterName) {
+	if(isset($argv)) {
+		for($i = 1; $i < (count($argv)-1); $i++) {
+			if($argv[$i] == ('-' . $parameterName)) {
+				return $argv[$i+1];
+			}
+		}
+	}
+	if(isset($_REQUEST) and isset($_REQUEST[$parameterName])) {
+		return $_REQUEST[$parameterName];
+	}
+	return null;
 }
 
 
