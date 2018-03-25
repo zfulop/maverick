@@ -38,6 +38,8 @@ if($action == 'rooms') {
 	$retVal = loadRoomCalendarAvailability();
 } elseif($action == 'room_highlights') {
 	$retVal = loadRoomHighlights();
+} elseif($action == 'room_highlights_with_special_offers') {
+	$retVal = loadRoomHighlightsWithSpecialOffers();
 } elseif($action == 'confirm_booking') {
 	$retVal = getBookingToConfirm();
 } elseif($action == 'confirm_booking_submit') {
@@ -585,6 +587,23 @@ function loadServices() {
 }
 
 
+function loadRoomHighlightsWithSpecialOffers() {
+	$location = getParameter('location');
+	$lang = getParameter('lang');
+
+	$today = date('Y-m-d');
+
+	$link = db_connect($location);
+
+	$roomHighlights = loadRoomHighlights();
+	$specialOffers = loadSpecialOffersFromFile(null, $today, $link, $lang, $location);
+	
+	$retVal = array('room_highlights' => $roomHighlights, 'special_offers' => $specialOffers);
+	
+	mysql_close($link);
+	return $retVal;
+}
+
 
 function loadRoomHighlights() {
 	if(!checkMissingParameters(array('location','lang','currency'))) {
@@ -602,11 +621,10 @@ function loadRoomHighlights() {
 		$json = file_get_contents($filePath);
 		return json_decode($json, true);
 	}
-	
-	
-	$link = db_connect($location);
 
 	$today = date('Y-m-d');
+	$link = db_connect($location);	
+
 	$roomTypesData = RoomDao::getRoomTypesWithRooms($lang, $today, $today, $link);
 	enrichWithImageAndPrice($roomTypesData, $lang, $currency, $link);
 

@@ -197,7 +197,7 @@ EOT;
 			logDebug($debugLine);
 		}
 		$availTable .=  "</table>\n";
-		if(!isset(getParameter('test_runner_response'))) {
+		if(!is_null(getParameter('test_runner_response'))) {
 			echo $availTable;
 		}
 	}
@@ -373,7 +373,7 @@ echo "Period ending: $endYear-$endMonth-$endDay<br>\n";
 $booker = new MyAllocatorBooker();
 $booker->init();
 
-if(isset(getParameter('save_file'))) {
+if(!is_null(getParameter('save_file'))) {
 	$booker->setSaveFile(getParameter('save_file'));
 }
 
@@ -418,6 +418,7 @@ function removeAdditionalAvailability($room, $date, &$roomDataToSend) {
 
 
 function getParameter($parameterName) {
+	global $argv;
 	if(isset($argv)) {
 		for($i = 1; $i < (count($argv)-1); $i++) {
 			if($argv[$i] == ('-' . $parameterName)) {
