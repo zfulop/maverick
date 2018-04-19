@@ -85,5 +85,6 @@ mysql_close($link);
 
 echo "Sending mail with content: $content\n";
 sendMail(CONTACT_EMAIL, LOCATION, /*'zfulop@zolilla.com'*/'sfulop@mavericklodges.com', 'FS', LOCATION . " - Daily stats", $content);
+sendMail(CONTACT_EMAIL, LOCATION, /*'zfulop@zolilla.com'*/'ipalma@wannasherpa.com', 'FS', LOCATION . " - Daily stats", $content);
 
 ?>

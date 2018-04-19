@@ -61,7 +61,7 @@ class SpecialOfferDao {
 	public static function modifyDates($specialOffer, $startDate, $endDate) {
 		$dates = array();
 		foreach($specialOffer['dates'] as $oneDate) {
-			if(($oneDate['start_date'] <= $startDate) and ($oneDate['end_date'] >= $endDate)) {
+			if(SpecialOfferDao::__isSpecialOfferDateWithinDates($startDate, $endDate, $oneDate)) {
 				$dates[] = $oneDate;
 			}
 		}
@@ -71,12 +71,16 @@ class SpecialOfferDao {
 
 	public static function isSpecialOfferWithinDates($startDate, $endDate, $specialOffer) {
 		foreach($specialOffer['dates'] as $soDate) {
-			if($soDate['end_date'] > $endDate and (is_null($startDate) or $soDate['start_date'] <= $startDate)) {
+			if(SpecialOfferDao::__isSpecialOfferDateWithinDates($startDate, $endDate, $soDate)) {
 				return true;
 			}
 		}
 		
 		return false;
+	}
+	
+	private static function __isSpecialOfferDateWithinDates($startDate, $endDate, $specialOfferDate) {
+		return $specialOfferDate['end_date'] > $endDate and (is_null($startDate) or $specialOfferDate['start_date'] <= $startDate);
 	}
 
 	/**

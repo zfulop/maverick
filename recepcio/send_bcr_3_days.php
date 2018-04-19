@@ -64,11 +64,29 @@ function sendBcr($row, $location, $link, &$dict) {
 	$mailMessage = getBcrMessage($row, $bcrMessage, $link, $dict, $location);
 
 	$inlineAttachments = array(	
-		'logo' => EMAIL_IMG_DIR . 'logo-' . $location . '.jpg',
+		'logo' => EMAIL_IMG_DIR . 'logo-white-' . $location . '.png',
 		'airport' => EMAIL_IMG_DIR . 'airport.jpg',
 		'bullet' => EMAIL_IMG_DIR . 'bullet.jpg',
 		'map' => EMAIL_IMG_DIR . 'map-' . $location . '.jpg',
-		'railwaystation' => EMAIL_IMG_DIR . 'railwaystation.jpg'
+		'railwaystation' => EMAIL_IMG_DIR . 'railwaystation.jpg',
+		'railwaystation' => EMAIL_IMG_DIR . 'railwaystation.jpg',
+		'5star_award_footer_2015' => EMAIL_IMG_DIR . '5star_award_footer_2015.png',
+		'5star_award_footer_2016' => EMAIL_IMG_DIR . '5star_award_footer_2016.png',
+		'booking_award_footer_2016' => EMAIL_IMG_DIR . 'booking_award_footer_2016.png',
+		'bullet' =>  EMAIL_IMG_DIR . 'bullet.jpg',
+		'facebook' =>  EMAIL_IMG_DIR . 'facebook.png',
+		'famous_hostels' =>  EMAIL_IMG_DIR . 'famous_hostels.png',
+		'gplus' =>  EMAIL_IMG_DIR . 'gplus.png',
+		'hostelbookers_award_footer_2012' =>  EMAIL_IMG_DIR . 'hostelbookers_award_footer_2012.png',
+		'hostelbookers_award_footer_2013' =>  EMAIL_IMG_DIR . 'hostelbookers_award_footer_2013.png',
+		'hostelbookers_award_footer_2015' =>  EMAIL_IMG_DIR . 'hostelbookers_award_footer_2015.png',
+		'insta' =>  EMAIL_IMG_DIR . 'insta.png',
+		'reservation' =>  EMAIL_IMG_DIR . 'reservation.jpg',
+		'tripadvisor_award_footer_2012' =>  EMAIL_IMG_DIR . 'tripadvisor_award_footer_2012.png',
+		'tripadvisor_award_footer_2013' =>  EMAIL_IMG_DIR . 'tripadvisor_award_footer_2013.png',
+		'tripadvisor_award_footer_2014' =>  EMAIL_IMG_DIR . 'tripadvisor_award_footer_2014.png',
+		'tripadvisor_award_footer_2015' =>  EMAIL_IMG_DIR . 'tripadvisor_award_footer_2015.png',
+		'tripadvisor_award_footer_2016' =>  EMAIL_IMG_DIR . 'tripadvisor_award_footer_2016.png'
 	);
 
 	$locationName = $dict[$row['language']]['LOCATION_NAME_' . strtoupper($location)];
