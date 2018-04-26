@@ -3,7 +3,6 @@
 $hostel = $argv[1];
 
 
-
 $configFile = '../includes/config/' . $hostel . '.php';
 if(file_exists($configFile)) {
 	require($configFile);
@@ -53,61 +52,25 @@ if(!$result) {
 mysql_close($link);
 
 
-function sendBcr($row, $location, $link, &$dict) {
-	$descrId = $row['id'];
-	$email = $row['email'];
-	$name = $row['name'];
-	$fnight = $row['first_night'];
+function sendBcr($bookingDescr, $location, $link, &$dict) {
+	$lang = $bookingDescr['language'];
+	$descrId = $bookingDescr['id'];
+	$email = $bookingDescr['email'];
+	$name = $bookingDescr['name'];
+	$fnight = $bookingDescr['first_night'];
 	
 	if($email == '') {
+		echo "ERROR: cannot send email to $name $fnight beause email not specified\n";
 		return;
 	}
 	
-	$mailMessage = getBcrMessage($row, $dict[$row['language']]['BCR_MESSAGE_ONE_WEEK'], $link, $dict, $location);
-	$inlineAttachments = array(	
-		'logo' => EMAIL_IMG_DIR . 'logo-' . $location . '.jpg',
-		'airport' => EMAIL_IMG_DIR . 'airport.jpg',
-		'bullet' => EMAIL_IMG_DIR . 'bullet.jpg',
-		'map' => EMAIL_IMG_DIR . 'map-' . $location . '.jpg',
-		'railwaystation' => EMAIL_IMG_DIR . 'railwaystation.jpg'
-	);
-
-	$locationName = $dict[$row['language']]['LOCATION_NAME_' . strtoupper($location)];
-	$subject = str_replace('LOCATION', $locationName, $dict[$row['language']]['BCR_MESSAGE_ONE_WEEK_SUBJECT']);
-	
-	$result = sendMail(CONTACT_EMAIL, $locationName, 
-		$email, $name, $subject, $mailMessage, $inlineAttachments);
+	$result = sendBcrMessage($bookingDescr, $dict[$lang]['BCR_MESSAGE_ONE_WEEK_SUBJECT'], $dict[$lang]['BCR_MESSAGE_ONE_WEEK'], $link, $dict, $location);
 
 	echo "BCR Email sent from " . CONTACT_EMAIL . " to $name $email $fnight [result: $result]\n";
 
-	mysql_query('START TRANSACTION', $link);
+	BookingDao::updateBcr($descrId, $email, $link);
 
-	$today=date('Y/m/d');
-	$sql = "UPDATE booking_descriptions SET bcr_sent='$today' WHERE id=$descrId";
-	$result = mysql_query($sql, $link);
-	if(!$result) {
-		trigger_error("Cannot set BCR sent in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
-		echo "Cannot set BCR sent for booking when sending BCR\n";
-		mysql_query("rollback", $link);
-		return;
-	}
-
-	$sql = "DELETE FROM bcr WHERE booking_description_id=$descrId";
-	mysql_query($sql, $link);
-
-	$today = date('Y-m-d');
-	$sql = "INSERT INTO bcr (booking_description_id, mail_sent, email) VALUES ($descrId, '$today', '$email')";
-	$result = mysql_query($sql, $link);
-	if(!$result) {
-		trigger_error("Cannot set BCR sent in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
-		echo "Cannot create BCR record when sending BCR\n";
-		mysql_query("rollback", $link);
-		return;
-	}
-
-	mysql_query('COMMIT', $link);
-
-	audit(AUDIT_BCR_SENT, array('hostel' => $location, 'lang' => $row['language']), 0, $descrId, $link);
+	audit(AUDIT_BCR_SENT, array('hostel' => $location, 'lang' => $lang), 0, $descrId, $link);
 }
 
 

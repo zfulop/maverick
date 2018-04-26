@@ -87,8 +87,13 @@ if(!isset($bookingData['PropertyId'])) {
 
 require('../includes/config/myallocator.php');
 $location = $myallocatorPropertyMap[$propertyId];
- 
-require('../includes/config/' . $location . '.php');
+
+$configFile = '../includes/config/' . $location . '.php';
+if(!file_exists($configFile)) {
+	logError("Invalid request received: " . print_r($_REQUEST, true));
+	return;
+}
+require($configFile);
 require('./includes.php');
 
 logDebug ("Start processing incoming booking request");

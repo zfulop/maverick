@@ -21,8 +21,8 @@
         </td>
     </tr>
     <tr>
-        <td colspan='2' style="padding: 0px; background: #610668; color: #fff; font-weight: bold; height: 60px; padding-left: 20px; padding-right: 15px;">
-		    {bcrMessage}
+        <td colspan='2' style="background: #610668; color: #fff; font-weight: bold; height: 60px; padding: 20px;">
+		    {bcr_message}
 			{BELOW_FIND_BOOKING_INFO}
         </td>
     </tr>
@@ -33,134 +33,89 @@
             <!----- RESERVATIONS DETAILS ----------------------------------------------------------------------------------------------------------->
             <div style="margin-bottom: 10px; padding-left: 10px;">
                 <div style="float: left; min-width: 200px;  color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{NAME}</div>
-                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px;">{booker_name}</div>
+                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; font-size: 14px;">{booker_name}</div>
                 <div style='clear: both'></div>
             </div>
             
             <div style="margin-bottom: 10px; padding-left: 10px;">
                 <div style="float: left; min-width: 200px; color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{EMAIL}</div>
-                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px;">{booker_email}</div>
+                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; font-size: 14px;">{booker_email}</div>
                 <div style='clear: both'></div>
             </div>
             
             <div style="margin-bottom: 10px; padding-left: 10px;">
                 <div style="float: left; min-width: 200px; color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{PHONE}</div>
-                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px;">{booker_phone}</div>
+                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; font-size: 14px;">{booker_phone}</div>
                 <div style='clear: both'></div>
             </div>
             
             <div style="margin-bottom: 10px; padding-left: 10px;">
                 <div style="float: left; min-width: 200px;  color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{ADDRESS_TITLE}</div>
-                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px;">{booker_address}</div>
+                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; font-size: 14px;">{booker_address}</div>
                 <div style='clear: both'></div>
             </div>
             
             <div style="margin-bottom: 10px; padding-left: 10px;">
                 <div style="float: left; min-width: 200px;  color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{NATIONALITY}</div>
-                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px;">{booker_nationality}</div>
+                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; font-size: 14px;">{booker_nationality}</div>
                 <div style='clear: both'></div>
             </div>
             
             <div style="margin-bottom: 10px; padding-left: 10px;">
                 <div style="float: left; min-width: 200px;  color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{DATE_OF_ARRIVAL}</div>
-                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px;">{booker_arrival_date}</div>
+                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; font-size: 14px;">{booker_arrival_date}</div>
                 <div style='clear: both'></div>
             </div>
             
             <div style="margin-bottom: 10px; padding-left: 10px;">
                 <div style="float: left; min-width: 200px;  color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{DATE_OF_DEPARTURE}</div>
-                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px;">{booker_departure_date}</div>
+                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; font-size: 14px;">{booker_departure_date}</div>
                 <div style='clear: both'></div>
             </div>
             
             <div style="margin-bottom: 10px; padding-left: 10px;">
                 <div style="float: left; min-width: 200px;  color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{NUMBER_OF_NIGHTS}</div>
-                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px;">{booker_number_of_nights}</div>
+                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; font-size: 14px;">{booker_number_of_nights}</div>
                 <div style='clear: both'></div>
             </div>
             
             <div style="margin-bottom: 10px; padding-left: 10px;">
                 <div style="float: left; min-width: 200px;  color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{comment}</div>
-                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px;">{booker_comment}</div>
+                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; font-size: 14px;">{booker_comment}</div>
                 <div style='clear: both'></div>
             </div>
             
         </td>
     </tr>
+
+<!-- BEGIN item_block -->
     <tr>
         <td colspan='2' style="padding: 0px; ">
-			<!----- ROOMS --------------------------------------------------------------------------------------------------------------->
-
-			<div style="margin-bottom: 10px; padding-left: 10px;">
-                <div style="float: left; min-width: 200px;  color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{rooms}</div>
-                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px;">&nbsp;</div>
-                <div style='clear: both'></div>
+			<div style="margin-bottom: 10px; padding-left: 10px; padding-top: 20px;">
+                <div style="color: #727272; font-style: italic; font-weight: bold; font-size: 16px;">{item_title}</div>
             </div>
-
-<!-- BEGIN room -->
-            <hr style="border-bottom: 0px; border-top: 1px solid #b9b9b9;">
+            <hr style="border-bottom: 1px; border-top: 1px solid #b9b9b9;">
+<!-- BEGIN item -->
             <div style=" margin-top: 15px; padding-left: 15px;">
-                <div style="float: left; min-width: 180px; color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{room_name}</div>
-                <!-- div style="float: right; min-width: 50px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px; text-align: right; padding-right: 15px;">{room_price}</div -->
+                <div style="float: left; min-width: 180px; color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{item_name}</div>
+                <div style="float: right; min-width: 50px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px; text-align: right; padding-right: 15px;">{item_price}</div>
                 <div style='clear: both'></div>
             </div>
-<!-- END room -->
-
+<!-- END item -->
+            <hr style="border-bottom: 1px; border-top: 1px solid #b9b9b9;">
         </td>
 	</tr>
-<!--
-    <tr>
-        <td colspan='2' style="padding: 0px; ">
-			<!----- SERVICES --------------------------------------------------------------------------------------------------------------->
+<!-- END item_block -->
 
-			<div style="margin-bottom: 10px; padding-left: 10px;">
-                <div style="float: left; min-width: 200px;  color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{SERVICES}</div>
-                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px;">&nbsp;</div>
-                <div style='clear: both'></div>
-            </div>
-
-<!-- BEGIN service -->
-            <hr style="border-bottom: 0px; border-top: 1px solid #b9b9b9;">
-            <div style=" margin-top: 15px; padding-left: 15px;">
-                <div style="float: left; min-width: 180px; color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{service_name}</div>
-                <div style="float: right; min-width: 50px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px; text-align: right; padding-right: 15px;">{service_price}</div>
-                <div style='clear: both'></div>
-            </div>
-<!-- END service -->
-
-        </td>
-	</tr>
-    <tr>
--->
-<!--
-        <td colspan='2' style="padding: 0px; ">
-			<!----- PAYMENTS --------------------------------------------------------------------------------------------------------------->
-
-			<div style="margin-bottom: 10px; padding-left: 10px;">
-                <div style="float: left; min-width: 200px;  color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{PAYMENT}</div>
-                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px;">&nbsp;</div>
-                <div style='clear: both'></div>
-            </div>
-
-<!-- BEGIN payment -->
-            <hr style="border-bottom: 0px; border-top: 1px solid #b9b9b9;">
-            <div style=" margin-top: 15px; padding-left: 15px;">
-                <div style="float: left; min-width: 180px; color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{payment_name}</div>
-                <div style="float: right; min-width: 50px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px; text-align: right; padding-right: 15px;">{payment_price}</div>
-                <div style='clear: both'></div>
-            </div>
-<!-- END payment -->
-
-        </td>
-	</tr>
--->
     <tr>
         <td colspan='2' style="padding: 0px; ">
 
 			<!----- TOTAL --------------------------------------------------------------------------------------------------------------->
             <div style="background: #b9b9b9; min-height: 55px;  margin-top: 10px; margin-bottom: 10px;">
                 <div style="float: left; min-width: 140px;  color: #fff; font-style: italic; text-transform: uppercase; font-size: 12x; padding-left: 15px; padding-top: 25px;">{TOTAL_PRICE}</div>
-                <div style="float: right; min-width: 130px; color: #fff; font-weight: bold; text-transform: uppercase; font-size: 32px; padding-top: 10px; text-align: right; padding-right: 15px;">{booker_total_price}</div>
+<!-- BEGIN total_payment -->
+                <div style="float: right; min-width: 130px; color: #fff; font-weight: bold; font-size: 32px; padding-top: 10px; text-align: right; padding-right: 15px;">{booker_totalprice}</div>
+<!-- END total_payment -->
                 <div style='clear: both'></div>
             </div>
             
@@ -170,8 +125,7 @@
     <!----- Advise to travel ------------------------------------------------------------------------------------------------------------->
     <tr>
         <td colspan='2' style="padding: 0px;">
-                <div style="color: #fff; font-weight: bold; font-size: 20px; padding-top: 10px; text-align: left; padding-right: 15px;">{ADVISE_TO_TRAVEL}</div>
-
+                <div style="color: #252525; font-weight: bold; font-size: 14px; padding-top: 10px; text-align: left; padding-right: 15px;">{ADVISE_TO_TRAVEL}</div>
         </td>
     </tr>
 
@@ -204,8 +158,8 @@
 								<td width="15"></td>
 								<td width="6" bgcolor="#959595"></td>
 								<td width="10"></td>
-								<td>
-									<font face="arial" color="#252525" style="font-size: 14px;">{fromTrainStationInstructions}</font>
+								<td width="100%">
+									<font face="arial" color="#252525" style="font-size: 14px;">{fromTrainStationInstr}</font>
 								</td>
 							</tr>
 						</table>
@@ -227,7 +181,7 @@
 								<td width="15"></td>
 								<td width="6" bgcolor="#959595"></td>
 								<td width="10"></td>
-								<td><font face="arial" color="#252525" style="font-size: 14px;">{fromAirportInstructions}</font></td>
+								<td width="100%"><font face="arial" color="#252525" style="font-size: 14px;">{fromAirportInstr}</font></td>
 							</tr>
 						</table>
 					</td>
@@ -240,7 +194,7 @@
 								<td width="15"></td>
 								<td width="6" bgcolor="#959595"></td>
 								<td width="10"></td>
-								<td><font face="arial" color="#252525" style="font-size: 14px;">{fromAirportInstructions2}</font></td>
+								<td width="100%"><font face="arial" color="#252525" style="font-size: 14px;">{fromAirportInstr2}</font></td>
 							</tr>
 						</table>
 					</td>

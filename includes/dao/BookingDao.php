@@ -262,7 +262,39 @@ class BookingDao {
 	public static function changeDateToSlashes(&$date) {
 		$date = str_replace('-','/',$date);
 	}
-	
+
+	/**
+	 * When a BCR email is sent (one week ahead of arrivel to confirm reservation) to a guest, this method is called
+	 * to record the fact that the email was sent out.
+	 */
+	public static function updateBcr($descrId, $email, $link) {
+		mysql_query('START TRANSACTION', $link);
+
+		$today=date('Y/m/d');
+		$sql = "UPDATE booking_descriptions SET bcr_sent='$today' WHERE id=$descrId";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("Cannot set BCR sent in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+			echo "Cannot set BCR sent for booking when sending BCR\n";
+			mysql_query("rollback", $link);
+			return;
+		}
+
+		$sql = "DELETE FROM bcr WHERE booking_description_id=$descrId";
+		mysql_query($sql, $link);
+
+		$today = date('Y-m-d');
+		$sql = "INSERT INTO bcr (booking_description_id, mail_sent, email) VALUES ($descrId, '$today', '$email')";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("Cannot set BCR sent in admin interface: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+			echo "Cannot create BCR record when sending BCR\n";
+			mysql_query("rollback", $link);
+			return;
+		}
+
+		mysql_query('COMMIT', $link);
+	}
 }
 
 
