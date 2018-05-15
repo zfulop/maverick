@@ -14,6 +14,10 @@ require($configFile);
 require('../includes/country_alias.php');
 require('includes.php');
 require('room_booking.php');
+require('bcr.php');
+
+session_start();
+$_SESSION['login_hotel'] = getParameter('location');
 
 if(!hasParameter('action')) {
 	echo "'action' parameter missing";
@@ -181,7 +185,7 @@ function loadAvailability() {
 		mysql_close($link);
 		return array('error' => 'FOR_SELECTED_DATE_MIN_STAY ' . $minMax['min_stay']);
 	}
-	if(!is_null($minMax) and !is_null($minMax['max_stay']) and  $minMax['max_stay'] < $_SESSION['nights']) {
+	if(!is_null($minMax) and !is_null($minMax['max_stay']) and  $minMax['max_stay'] < $nights) {
 		mysql_close($link);
 		return array('error' => 'FOR_SELECTED_DATE_MAX_STAY ' . $minMax['max_stay']);
 	}
@@ -625,7 +629,7 @@ function loadRoomHighlights() {
 	$today = date('Y-m-d');
 	$link = db_connect($location);	
 
-	$roomTypesData = RoomDao::getRoomTypesWithRooms($lang, $today, $today, $link);
+	$roomTypesData = RoomDao::getRoomTypes($lang, $link);
 	enrichWithImageAndPrice($roomTypesData, $lang, $currency, $link);
 
 	$roomHighlights = RoomDao::getRoomHighlights($link);
@@ -770,6 +774,8 @@ function doBooking() {
 		return null;
 	}
 
+	$now = date('Y-m-d H:i:s');
+	$today = date('Y-m-d');
 	$location = getParameter('location');
 	$lang = getParameter('lang');
 	$currency = getParameter('currency');
@@ -850,7 +856,6 @@ function doBooking() {
 		}
 		$price =  $services[$id]['price'] * $occasion;
 		$serviceCurrency = $services[$id]['currency'];
-		$now = date('Y-m-d H:i:s');
 		$type = $services[$id]['service_charge_type'];
 		$serviceComment = mysql_real_escape_string("$title for $occasion occasions. $serviceComment", $link);
 		$sql = "INSERT INTO service_charges (booking_description_id, amount, currency, time_of_service, comment, type) VALUES ($descriptionId, $price, '$serviceCurrency', '$now', '$serviceComment', '$type')";
@@ -879,518 +884,33 @@ function doBooking() {
 	$_SESSION['login_user'] = 'website';
 	audit(AUDIT_CREATE_BOOKING, array('booking_data' => $toBook, 'room_change_data' => $roomChanges), $bookingIds[0], $descriptionId, $link);
 	mysql_query('COMMIT', $link);
+
+	$sql = "SELECT * FROM booking_descriptions WHERE id=$descriptionId";
+	$result = mysql_query($sql, $link);
+	$savedBookingDescr = mysql_fetch_assoc($result);
+
+	mysql_close($link);
+	$link = db_connect($location);
 	
+	// function sendBcrMessage($bookingDescr, $subject, $bcrMessage, $link, &$dict, $location) {
+	$texts = loadWebsiteTexts();
+	$texts[$lang] = $texts;
+	$locationName = $texts['LOCATION_NAME_' . strtoupper($location)];
+	$subject = str_replace('LOCATION', $locationName, $texts['BOOKING_CONFIRMATION_EMAIL_SUBJECT']);
+	$bcr = new BCR($savedBookingDescr, $location, $texts, $link);
+	$bcr->sendBcrMessage($subject, '');
+	if($result != 'SUCCESS') {
+		logError("Cannot send email to guest for confirming booking: $result");
+	}
+	$bcr->sendBookingMessageToReception();
+	
+	// sendEmailForBooking($name, $email, $phone, $address, $nationality, $arriveDate, $departureDate, $nights, $comment, $toBook, $bookedServices, $roomTypesData, $services, $descriptionId);
+
 	mysql_close($link);
 
-	sendEmailForBooking($name, $email, $phone, $address, $nationality, $arriveDate, $departureDate, $nights, $comment, $toBook, $bookedServices, $roomTypesData, $services, $descriptionId);
 	return array('success'=> true);
 }
 
-function sendEmailForBooking($nameValue, $emailValue, $phoneValue, $addressValue, $nationalityValue, $dateOfArriveValue, $dateOfDepartureValue, $numberOfNightsValue, $commentValue, $bookings, $bookedServices, &$roomTypesData, &$services, $descriptionId) {
-	$texts = loadWebsiteTexts();
-	$location = getParameter('location');
-	$lang = getParameter('lang');
-	$currency = getParameter('currency');
-	$today = date('Y-m-d');
-	
-	$nameTitle = $texts['NAME'];
-	$emailTitle = $texts['EMAIL'];
-	$addressTitle = $texts['ADDRESS_TITLE'];
-	$nationalityTitle = $texts['NATIONALITY'];
-	$dateOfArriveTitle = $texts['DATE_OF_ARRIVAL'];
-	$dateOfDepartureTitle = $texts['DATE_OF_DEPARTURE'];
-	$numberOfNightsTitle = $texts['NUMBER_OF_NIGHTS'];
-	$commentTitle = $texts['comment'];
-	$roomsTitle = $texts['rooms'];
-	$extraServicesTitle = $texts['EXTRA_SERVICES'];
-	$totalPrice = $texts['TOTAL_PRICE'];
-	$adviseToTravel = $texts['ADVISE_TO_TRAVEL'];
-	$fromTrainStation = $texts['RAILWAY_STATIONS'];
-	$fromTrainStationInstructions = $texts['RAILWAY_STATIONS_TO_' . strtoupper($location)];
-	$fromAirport = $texts['FROM_AIRPORT'];
-	$fromAirportInstructions = $texts['AIRPORT_TO_' . strtoupper($location)];
-	$fromAirportInstructions2 = $texts['AIRPORT_TO_' . strtoupper($location) . '_2'];
-	$important = $texts['IMPORTANT'];
-	$importantNotice = $texts['IMPORTANT_NOTICE_WHEN_ARRIVE_' . strtoupper($location)];
-	$importantHtml = '';
-	if(strlen($importantNotice) > 0) {
-		$importantHtml = <<<EOT
-                <tr>
-                  <td>
-                    <font face="arial" color="#252525" style="font-size: 25px; line-height: 1.2;">
-                      $important
-                    </font>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="20"></td></tr>
-                <tr>
-                  <td>
-                    <font face="arial" color="#252525" style="font-size: 14px;">
-                      $importantNotice
-                    </font>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="35"></td></tr>
-
-EOT;
-	}
-	$payment = $texts['PAYMENT'];
-	$paymentDescription = $texts['PAYMENT_DESCRIPTION'];
-	$actualExchangeRate = $texts['ACTUAL_EXCHANGE_RATE'];
-	$policy = $texts['POLICY'];
-	$belowFindBookingInfo = $texts['BELOW_FIND_BOOKING_INFO'];
-	$mailMessage = <<<EOT
-<html>
-<head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
-  
-</head>
-<body>
-  <table width="100%" cellspacing="0" border="0" cellpadding="0" bgcolor="#ffffff">
-    <tr>
-      <td align="center">
-        <table width="600" cellspacing="0" border="0" cellpadding="0">
-          <tr>
-            <td width="40" bgcolor="#1d0328"></td>
-            <td width="520" height="120" bgcolor="#1d0328" valign="middle">
-              <img width="130" height="64" src="cid:logo" style="display: block;">
-            </td>
-            <td width="40" bgcolor="#1d0328"></td>
-          </tr>
-          <tr>
-            <td colspan="3" height="10" bgcolor="#f7fac1"></td>
-          </tr>
-          <tr>
-            <td></td>
-            <td>
-              <table width="100%" cellspacing="0" border="0" cellpadding="0">
-                <!-- space --><tr><td height="35"></td></tr>
-                <tr>
-                  <td>
-                    <font face="arial" color="#252525" style="font-size: 25px; line-height: 1.2;">
-                      $belowFindBookingInfo
-                    </font>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="25"></td></tr>
-                <tr>
-                  <td>
-                    <table width="100%" cellspacing="0" border="0" cellpadding="0">
-                      <tr>
-                        <td width="15"></td>
-                        <td width="590">
-                          <table width="100%" cellspacing="0" border="0" cellpadding="0">
-
-EOT;
-	$mailMessage .= getEmailRow("$nameTitle:", $nameValue);
-	$mailMessage .= getEmailRow("$emailTitle:", $emailValue);
-	$mailMessage .= getEmailRow("$addressTitle:", $addressValue);
-	$mailMessage .= getEmailRow("$nationalityTitle:", $nationalityValue);
-	$mailMessage .= getEmailRow("$dateOfArriveTitle:", $dateOfArriveValue);
-	$mailMessage .= getEmailRow("$dateOfDepartureTitle:", $dateOfDepartureValue);
-	$mailMessage .= getEmailRow("$numberOfNightsTitle:", $numberOfNightsValue);
-	$mailMessage .= getEmailRow("$commentTitle:", $commentValue);
-
-	$mailMessage .= <<<EOT
-                            <tr>
-                              <td valign="top"><font face="arial" color="#252525" style="font-size: 14px;">$roomsTitle:</font></td>
-							  <td colspan="2">&nbsp;</td>
-                            </tr>
-
-EOT;
-
-	$total = 0;
-	$dtotal = 0;
-
-	foreach($bookings as $roomId => $oneRoomBooked) {
-		$roomTypeId = $oneRoomBooked['room_type_id'];
-		$roomType = $roomTypesData[$roomTypeId];
-		$type = $roomType['type'] == 'DORM' ? $texts['BED'] : $texts['ROOM'];
-		$name = $roomType['name'];
-//		if(isClientFromHU() and $roomType['num_of_beds'] > 4) {
-//			$name = str_replace('5', '4', $name);
-//		}
-		$numOfGuests = $oneRoomBooked['num_of_person'];
-		$numNightsForNumPerson = sprintf($texts['NUM_NIGHTS_FOR_NUM_PERSON'], $numberOfNightsValue, $numOfGuests);
-		$price = convertAmount($oneRoomBooked['price'], 'EUR', $currency, $today);
-		$dprice = convertAmount($oneRoomBooked['discounted_price'], 'EUR', $currency, $today);
-		$dtotal += $dprice;
-		$total += $price;
-		if($price != $dprice) {
-			$pctOff = sprintf($texts['PERCENT_OFF'], (100 - $dprice/($price/100)));
-			$price = "<span style=\"text-decoration:line-through\">" . formatMoney($price, $currency) . "</span> " . $pctOff . " " . formatMoney($dprice, $currency);
-		} else {
-			$price = formatMoney($dprice, $currency);
-		}
-		$mailMessage .= <<<EOT
-
-                            <tr>
-                              <td valign="top"><font face="arial" color="#252525" style="font-size: 14px;">&nbsp;</font></td>
-							  <td>
-                                <font face="arial" color="#252525" style="font-size: 14px;">
-                                  <b>
-                                    $name [$type]<br>
-                                    $numNightsForNumPerson
-                                  </b>
-                                </font>
-							  </td>
-							  <td style="text-align:right">
-                                $price
-                              </td>
-                            </tr>
-
-EOT;
-	}
-	if(count($bookedServices) > 0) {
-		$mailMessage .= <<<EOT
-							<!-- space --><tr><td colspan="2" height="10"></td></tr>
-                            <tr>
-                              <td valign="top"><font face="arial" color="#252525" style="font-size: 14px;">$extraServicesTitle:</font></td>
-							  <td colspan="2">&nbsp;</td>
-                            </tr>
-
-EOT;
-	}
-
-	$totalServicePrice = 0;
-	foreach($bookedServices as $service) {
-		$id = $service['serviceId'];
-		if(!isset($services[$id])) {
-			logError("The booking contains a service with id: $id tha tis not in the DB. Ignoring.");
-		}		
-		$title = $services[$id]['title'];
-		$forNumOfOccasion = sprintf($texts['FOR_NUM_OF_OCCASIONS'], $service['occasion'], $services[$id]['unit_name']);
-		$serviceCurrency = $services[$id]['currency'];
-		$price = convertAmount($services[$id]['price'], $serviceCurrency, 'EUR', $today) * $service['occasion'];
-		$totalServicePrice += $price;
-		$price = formatMoney(convertAmount($price, 'EUR', $currency, $today), $currency);
-		$mailMessage .= <<<EOT
-
-                            <tr>
-                              <td valign="top"><font face="arial" color="#252525" style="font-size: 14px;">&nbsp;</font></td>
-							  <td>
-                                <font face="arial" color="#252525" style="font-size: 14px;">
-                                  <b>
-                                    $title<br>
-                                    $forNumOfOccasion
-                                  </b>
-                                </font>
-							  </td>
-							  <td style="text-align:right">
-                                $price
-                              </td>
-                            </tr>
-
-EOT;
-	}
-
-	$totalServicePrice = convertAmount($totalServicePrice, 'EUR', $currency, $today);
-	$total += $totalServicePrice;
-	$dtotal += $totalServicePrice;
-	if($total != $dtotal) {
-		//$pctOff = sprintf(PERCENT_OFF, ($dtotal/($total/100)));
-		//$total = formatMoney($dtotal, $currency) . " <span style=\"text-decoration:line-through\">" . formatMoney($total, $currency) . "</span> " . $pctOff;
-		$total = formatMoney($dtotal, $currency);
-	} else {
-		$total = formatMoney($total, $currency);
-	}
-	$mailMessage .= <<<EOT
-
-
-                          </table>
-                        </td>
-                        <td width="15"></td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-                <tr>
-                  <td bgcolor="#f7fac1">
-                    <table width="100%" cellspacing="0" border="0" cellpadding="0">
-                      <tr><td colspan="3" height="1" bgcolor="#959595"></td></tr>
-                      <tr>
-                        <td width="15" height="50"></td>
-                        <td width="160">
-                          <font face="arial" color="#252525" style="font-size: 14px;">
-                            $totalPrice:
-                          </font>
-                        </td>
-                        <td>
-                          <font face="arial" color="#252525" style="font-size: 23px;">
-                            $total
-                          </font>
-                        </td>
-                      </tr>
-                      <tr><td colspan="3" height="4" bgcolor="#959595"></td></tr>
-                    </table>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="70"></td></tr>
-
-                <tr>
-                  <td>
-                    <font face="arial" color="#252525" style="font-size: 25px; line-height: 1.2;">
-                      $adviseToTravel
-                    </font>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="20"></td></tr>
-              </table>
-            </td>
-            <td></td>
-          </tr>
-          <tr>
-            <td colspan="3">
-              <img width="600" height="317" src="cid:map" style="display: block;">
-            </td>
-          </tr>
-          <tr>
-            <td></td>
-            <td>
-              <table width="100%" cellspacing="0" border="0" cellpadding="0">
-                <!-- space --><tr><td height="20"></td></tr>
-                <tr>
-                  <td>
-                    <img width="49" height="49" src="cid:railwaystation">
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="10"></td></tr>
-                <tr>
-                  <td>
-                    <font face="arial" color="#252525" style="font-size: 14px;">
-                      <b>$fromTrainStation</b>
-                    </font>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="10"></td></tr>
-                <tr>
-                  <td>
-                    <table width="100%" cellspacing="0" border="0" cellpadding="0">
-                      <tr>
-                        <td width="15"></td>
-                        <td width="6" bgcolor="#959595"></td>
-                        <td width="10"></td>
-                        <td>
-                          <font face="arial" color="#252525" style="font-size: 14px;">
-                            $fromTrainStationInstructions
-                          </font>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="20"></td></tr>
-                <tr>
-                  <td>
-                    <img width="54" height="55" src="cid:airport">
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="10"></td></tr>
-                <tr>
-                  <td>
-                    <font face="arial" color="#252525" style="font-size: 14px;">
-                      <b>$fromAirport</b>
-                    </font>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="10"></td></tr>
-                <tr>
-                  <td>
-                    <table width="100%" cellspacing="0" border="0" cellpadding="0">
-                      <tr>
-                        <td width="15"></td>
-                        <td width="6" bgcolor="#959595"></td>
-                        <td width="10"></td>
-                        <td>
-						  <font face="arial" color="#252525" style="font-size: 14px;">
-                            $fromAirportInstructions
-                          </font>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="20"></td></tr>
-                <tr>
-                  <td>
-                    <table width="100%" cellspacing="0" border="0" cellpadding="0">
-                      <tr>
-                        <td width="15"></td>
-                        <td width="6" bgcolor="#959595"></td>
-                        <td width="10"></td>
-                        <td>
-                          <font face="arial" color="#252525" style="font-size: 14px;">
-                            $fromAirportInstructions2
-                          </font>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="35"></td></tr>
-$importantHtml
-                <tr>
-                  <td>
-                    <font face="arial" color="#252525" style="font-size: 25px; line-height: 1.2;">
-                      $payment
-                    </font>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="20"></td></tr>
-                <tr>
-                  <td>
-                    <font face="arial" color="#252525" style="font-size: 14px;">
-                      $paymentDescription <br>
-                      $actualExchangeRate:
-                      <a href="http://www.cib.hu/maganszemelyek/arfolyamok/arfolyamok">
-                        <font color="#101010">
-                          http://www.cib.hu/maganszemelyek/arfolyamok/arfolyamok
-                        </font>
-                      </a>
-                    </font>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="35"></td></tr>
-                <tr>
-                  <td>
-                    <font face="arial" color="#252525" style="font-size: 25px; line-height: 1.2;">
-                      $policy
-                    </font>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="20"></td></tr>
-                <tr>
-                  <td>
-                    <table width="100%" cellspacing="0" border="0" cellpadding="0">
-
-EOT;
-	$idx = 1;
-	while(isset($texts['POLICY_' . strtoupper($location) . '_' . $idx])) {
-		$policyIdx = $texts['POLICY_' . strtoupper($location) . '_' . $idx];
-		$mailMessage .= <<<EOT
-                      <tr>
-                        <td width="15" valign="top"><img width="5" height="17" src="cid:bullet"></td>
-                        <td>
-                          <font face="arial" color="#252525" style="font-size: 14px; line-height: 1.2;">
-                            $policyIdx
-                          </font>
-                        </td>
-                      </tr>
-                      <!-- space --><tr><td height="10"></td></tr>
-
-EOT;
-		$idx += 1;
-	}
-	$mailMessage .= <<<EOT
-                    </table>
-                  </td>
-                </tr>
-                <!-- space --><tr><td height="35"></td></tr>
-              </table>
-            </td>
-            <td></td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-
-EOT;
-
-	$inlineAttachments = array(	
-		'logo' => EMAIL_IMG_DIR . 'logo-' . $location . '.jpg',
-		'airport' => EMAIL_IMG_DIR . 'airport.jpg',
-		'bullet' => EMAIL_IMG_DIR . 'bullet.jpg',
-		'map' => EMAIL_IMG_DIR . 'map-' . $location . '.jpg',
-		'railwaystation' => EMAIL_IMG_DIR . 'railwaystation.jpg'
-	);
-
-	$locationName = $texts['LOCATION_NAME_' . strtoupper($location)];
-	$subject = str_replace('LOCATION', $locationName, $texts['BOOKING_CONFIRMATION_EMAIL_SUBJECT']);
-	$result = MaverickMailer::send(CONTACT_EMAIL, $locationName, $emailValue, $nameValue, $subject, $mailMessage, $inlineAttachments);
-	if(!is_null($result)) {
-		logError("Cannot send email: $result");
-	}
-
-	$editBookingUrl = "http://reception.roomcaptain.com/edit_booking.php?description_id=$descriptionId";
-	$recepcioMessage = <<<EOT
-Booking arrived (<a href="$editBookingUrl">edit</a>)<br>
-
-<table>	
-<tr><td>Name: </td><td>$nameValue</td></tr>
-<tr><td>Emai: </td><td>$emailValue</td></tr>
-<tr><td>Phone: </td><td>$phoneValue</td></tr>
-<tr><td>Nationality: </td><td>$nationalityValue</td></tr>
-<tr><td>Address: </td><td>$addressValue</td></tr>
-<tr><td>Arrival: </td><td>$dateOfArriveValue</td></tr>
-<tr><td>Departure: </td><td>$dateOfDepartureValue</td></tr>
-<tr><td>Num of nights: </td><td>$numberOfNightsValue</td></tr>
-<tr><td>Comment: </td><td>$commentValue</td></tr>
-</table>
-
-Rooms:
-<table cellpadding="10" cellspacing="5">
-<tr><th>Name</th><th>Type</th><th>Number of guests</th><th>Price</th></tr>
-
-EOT;
-
-	$total = 0;
-	foreach($bookings as $roomId => $oneRoomBooked) {
-		$roomTypeId = $oneRoomBooked['room_type_id'];
-		$roomType = $roomTypesData[$roomTypeId];
-		$type = $roomType['type'] == 'DORM' ? "Bed" : "Room";
-		$name = $roomType['name'];
-		$numOfGuests = $oneRoomBooked['num_of_person'];
-		$price = $oneRoomBooked['price'];
-		$dprice = $oneRoomBooked['discounted_price'];
-		$total += $dprice;
-		if($price != $dprice) {
-			$price = "<span style=\"text-decoration:line-through\">" . formatMoney($price, 'EUR') . "</span> " . formatMoney($dprice, 'EUR');
-		} else {
-			$price = formatMoney($price, 'EUR');
-		}
-		$recepcioMessage .= "<tr><td>$name</td><td>$type</td><td>$numOfGuests</td><td>$price</td></tr>\n";
-	}
-	$recepcioMessage .= "</table><br>\n";
-	if(count($bookedServices) > 0) {
-		$recepcioMessage .= "Services:<br><table>\n";
-		$recepcioMessage .= "<tr><th>Name</th><th>Occasions</th><th>Price(total)</th></tr>\n";
-	}
-	foreach($bookedServices as $service) {
-		$id = $service['serviceId'];
-		if(!isset($services[$id])) {
-			logError("The booking contains a service with id: $id tha tis not in the DB. Ignoring.");
-		}		
-		$title = $services[$id]['title'];
-		$occasion = $service['occasion'];
-		$serviceCurrency = $services[$id]['currency'];
-		$price = convertAmount($services[$id]['price'], $serviceCurrency, 'EUR', $today);
-		$total += $price;
-		$price = formatMoney($price, 'EUR');
-		$recepcioMessage .= "<tr><td>$title</td><td>$occasion</td><td>$price</td></tr>\n";
-	}
-	$recepcioMessage .= "</table><br>\n";
-	$recepcioMessage .= "Total: $total euro<br>\n";
-
-	$result = MaverickMailer::send(CONTACT_EMAIL, $locationName, CONTACT_EMAIL, $locationName, "Booking arrived from website", $recepcioMessage);
-	if(!is_null($result)) {
-		logError("Cannot send email: $result");
-	}
-
-}
-
-function getEmailRow($title, $value) {
-	$retVal = <<<EOT
-                            <tr>
-                              <td width="160"><font face="arial" color="#252525" style="font-size: 14px;">$title</font></td>
-                              <td colspan="2" width="430"><font face="arial" color="#252525" style="font-size: 14px;">$value</font></td>
-                            </tr>
-                            <!-- space --><tr><td colspan="2" height="10"></td></tr>
-
-EOT;
-	return $retVal;
-}
 
 // Loads the dictionary for the website
 function loadWebsiteTexts() {
@@ -1399,7 +919,7 @@ function loadWebsiteTexts() {
 	}
 	$location = getParameter('location');
 	$lang = getParameter('lang');
-	$link = db_connect($location);
+	$link = db_connect($location, true);
 
 	$sql = "SELECT * FROM lang_text WHERE lang='$lang' AND table_name='website'";
 	$result = mysql_query($sql, $link);

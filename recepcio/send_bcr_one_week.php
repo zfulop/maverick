@@ -9,7 +9,7 @@ if(file_exists($configFile)) {
 }
 
 require("includes.php");
-require("bcr_common.php");
+require("bcr.php");
 
 $_SESSION['login_user'] = 'bcr';
 
@@ -63,8 +63,9 @@ function sendBcr($bookingDescr, $location, $link, &$dict) {
 		echo "ERROR: cannot send email to $name $fnight beause email not specified\n";
 		return;
 	}
-	
-	$result = sendBcrMessage($bookingDescr, $dict[$lang]['BCR_MESSAGE_ONE_WEEK_SUBJECT'], $dict[$lang]['BCR_MESSAGE_ONE_WEEK'], $link, $dict, $location);
+
+	$bcr = new BCR($bookingDescr, $location, $dict, $link);
+	$result = $bcr->sendBcrMessage($dict[$lang]['BCR_MESSAGE_ONE_WEEK_SUBJECT'], $dict[$lang]['BCR_MESSAGE_ONE_WEEK']);
 
 	echo "BCR Email sent from " . CONTACT_EMAIL . " to $name $email $fnight [result: $result]\n";
 

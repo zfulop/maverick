@@ -8,7 +8,7 @@ if(file_exists($configFile)) {
 }
 
 require("includes.php");
-require("bcr_common.php");
+require("bcr.php");
 
 $link = db_connect($hostel);
 
@@ -72,8 +72,9 @@ function sendBcr($bookingDescr, $location, $link, &$dict) {
 		echo "ERROR: cannot send email to $name $fnight beause email not specified\n";
 		return;
 	}
-	
-	$result = sendBcrMessage($bookingDescr, $subject, $bcrMessage, $link, $dict, $location);
+
+	$bcr = new BCR($bookingDescr, $location, $dict, $link);
+	$result = $bcr->sendBcrMessage($subject, $bcrMessage);
 
 	if($confirmed) {
 		echo "Confirmed email sent to $name $email $fnight  [result: $result]\n";

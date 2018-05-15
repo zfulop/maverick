@@ -10,7 +10,7 @@
         <td style="width: 50%; padding: 0px;">
              <div style='background: #3f3f3f; height: 110px; text-align: right; padding-right: 15px; padding-top: 10px; font-size: 25px;'>
                  <a style='color: #fff; text-decoration: none; margin-right: 5px;' href="https://www.facebook.com/mavericklodges"><img src='cid:facebook'></a>
-                 <a style='color: #fff; text-decoration: none; margin-right: 5px;' href="https://plus.google.com/+MaverickHostel"><img src='cid:gplus'></a>
+                 <a style='color: #fff; text-decoration: none; margin-right: 5px;' href="{googlePlusLink}"><img src='cid:gplus'></a>
                  <a style='color: #fff; text-decoration: none;' href="https://www.instagram.com/mavericklodges/?hl=en"><img src='cid:insta'></a>
              </div>
         </td>
@@ -129,15 +129,48 @@
         </td>
     </tr>
 
+	
     <!----- MAP ------------------------------------------------------------------------------------------------------------->
     <tr>
-        <td colspan='2' style="padding: 0px;">
-		      <img style="max-width: 100%; margin-top: 30px;" src="cid:map">
+        <td colspan="2" style="padding: 0px;">
+            <img src="cid:map" style="max-width: 100%; margin-top: 30px;">
         </td>
     </tr>
 
-    <!----- Getting here --------------------------------------------------------------------------------------------------------->
+	
+    <!----- Attractions, food, getting here, activites ---------------------------------------------------------------------->
+    <tr>
+        <td colspan="2" style="padding: 0px; padding-top: 10px;">
+            <div style="width: 58%; height: 155px; float: left;background-position: center; background-size: cover;  background-repeat: no-repeat;  height: 155px; margin-bottom: 1%; background-image: url(https://mavericklodges.com/wp-content/uploads/newsletter-cta1.png?v2)">
+                <div style="text-align: center;  color: #fff; padding-top: 65px;">
+                    <a href="https://mavericklodges.com/visit-budapest-attractions-top-25-list/" style="color: #fff; padding: 10px; font-size: 14px; background: rgba(97,6,104,0.7); font-weight: bold; text-decoration: none; border-radius: 5px; box-sizing: border-box">Top attractions</a>
+                </div>
+            </div>
+            <div style="width: 41%; height: 155px; float: right;background-position: center; background-size: cover;  background-repeat: no-repeat;  height: 155px; margin-bottom: 1%; background-image: url(https://mavericklodges.com/wp-content/uploads/newsletter-cta2.png?v2)">
+                <div style="text-align: center; padding-top: 65px; color: #fff">
+                    <a href="https://mavericklodges.com/hungarian-food-budapest-food-eat/" style="color: #fff; padding: 10px; font-size: 14px; background: rgba(97,6,104,0.7); font-weight: bold; text-decoration: none; border-radius: 5px;">Eat good</a>
+                </div>
+            </div>
+            <div style="clear: both"></div>
+            
+             
+            <div style="width: 41%; height: 155px; float: left; background-position: center; background-size: cover;  background-repeat: no-repeat;  height: 155px; margin-bottom: 1%; background-image: url(https://mavericklodges.com/wp-content/uploads/newsletter-cta3.png?v2)">
+                <div style="text-align: center; padding-top: 65px; color: #fff">
+                    <a href="https://mavericklodges.com/things-know-travel-budapest/" style="color: #fff; padding: 10px; font-size: 14px; background: rgba(97,6,104,0.7); font-weight: bold; text-decoration: none; border-radius: 5px;">Before arrival</a>
+                </div>
+            </div>
+            <div style="width: 58%; height: 155px; float: right; background-position: center; background-size: cover;  background-repeat: no-repeat;  height: 155px; margin-bottom: 1%; background-image: url(https://mavericklodges.com/wp-content/uploads/newsletter-cta4.png?v2)">
+                <div style="text-align: center; padding-top:65px; color: #fff">
+                    <a href="https://mavericklodges.com/activities/" style="color: #fff; padding: 10px; font-size: 14px; background: rgba(97,6,104,0.7); font-weight: bold; text-decoration: none; border-radius: 5px;">Cool activities</a>
+                </div>
+            </div>
+            <div style="clear: both"></div>
+            
+        </td>
+    </tr>
+    
 
+    <!----- Getting here --------------------------------------------------------------------------------------------------------->
     <tr>
         <td colspan='2' style="padding: 0px;">
 		
@@ -152,18 +185,7 @@
 				</tr>
 				<!-- space --><tr><td height="10"></td></tr>
 				<tr>
-					<td>
-						<table width="100%" cellspacing="0" border="0" cellpadding="0">
-							<tr>
-								<td width="15"></td>
-								<td width="6" bgcolor="#959595"></td>
-								<td width="10"></td>
-								<td width="100%">
-									<font face="arial" color="#252525" style="font-size: 14px;">{fromTrainStationInstr}</font>
-								</td>
-							</tr>
-						</table>
-					</td>
+					<td><font face="arial" color="#252525" style="font-size: 14px;">{trainStationInstr}</font></td>
 				</tr>
 				<!-- space --><tr><td height="20"></td></tr>
 				<tr>
@@ -175,29 +197,11 @@
 				</tr>
 				<!-- space --><tr><td height="10"></td></tr>
 				<tr>
-					<td>
-						<table width="100%" cellspacing="0" border="0" cellpadding="0">
-							<tr>
-								<td width="15"></td>
-								<td width="6" bgcolor="#959595"></td>
-								<td width="10"></td>
-								<td width="100%"><font face="arial" color="#252525" style="font-size: 14px;">{fromAirportInstr}</font></td>
-							</tr>
-						</table>
-					</td>
+					<td><font face="arial" color="#252525" style="font-size: 14px;">{airportInstr}</font></td>
 				</tr>
 				<!-- space --><tr><td height="20"></td></tr>
 				<tr>
-					<td>
-						<table width="100%" cellspacing="0" border="0" cellpadding="0">
-							<tr>
-								<td width="15"></td>
-								<td width="6" bgcolor="#959595"></td>
-								<td width="10"></td>
-								<td width="100%"><font face="arial" color="#252525" style="font-size: 14px;">{fromAirportInstr2}</font></td>
-							</tr>
-						</table>
-					</td>
+					<td><font face="arial" color="#252525" style="font-size: 14px;">{airportInstr2}</font></td>
 				</tr>
 				<!-- space --><tr><td height="35"></td></tr>
 				<tr>

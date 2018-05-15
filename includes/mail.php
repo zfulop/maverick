@@ -40,7 +40,7 @@ class MaverickMailer {
 					logDebug("parse current block: $key");
 				}
 			} else {
-				logDebug('Setting variable: ' . $key .  ' to value: ' . $value);
+//				logDebug('Setting variable: ' . $key .  ' to value: ' . $value);
 				$tpl->setVariable($key, $value);
 			}
 		}

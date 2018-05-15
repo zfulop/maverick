@@ -10,7 +10,7 @@ $SOURCES = array(
 	'ago' => 'Agoda',
 	'air' => 'AirBnb',
 	'bnw' => 'BookNow - Tripadvisor',
-	'boo' => 'booking.com',
+	'boo' => array('Channel' => 'booking.com - booking collect', 'Property' => 'booking.com'),
 	'exp' => array('Hotel Collect Booking' => 'Expedia - Hotel Collect', 'Expedia Collect Booking' => 'Expedia - Expedia Collect'),
 	'fam' => 'Famous Hostels',
 	'gom' => 'Gomio',
@@ -1349,6 +1349,9 @@ function getSource($location, &$bookingData) {
 	$source = (isset($bookingData['Channel']) and isset($SOURCES[$bookingData['Channel']])) ? $SOURCES[$bookingData['Channel']] : '';
 	if(is_array($source) and ($bookingData['Channel'] == 'exp')) {
 		$source = $source[$bookingData['ChannelSpecific']['PaymentType']];
+	}
+	if(is_array($source) and ($bookingData['Channel'] == 'boo')) {
+		$source = (isset($source[$bookingData['PaymentCollect']]) ? $source[$bookingData['PaymentCollect']] : 'booking.com');
 	}
 	if(is_array($source) and ($bookingData['Channel'] == 'hbe')) {
 		if(isset($bookingData['OrderSource'])) {
