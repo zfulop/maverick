@@ -16,7 +16,6 @@ require('includes.php');
 require('room_booking.php');
 require('bcr.php');
 
-session_start();
 $_SESSION['login_hotel'] = getParameter('location');
 
 if(!hasParameter('action')) {
@@ -183,11 +182,11 @@ function loadAvailability() {
 	$minMax = getMinMaxStay($fromDate, $toDate, $location);
 	if(!is_null($minMax) and $minMax['min_stay'] > $nights) {
 		mysql_close($link);
-		return array('error' => 'FOR_SELECTED_DATE_MIN_STAY ' . $minMax['min_stay']);
+		return array('error' => 'FOR_SELECTED_DATE_MIN_STAY_' . $minMax['min_stay']);
 	}
 	if(!is_null($minMax) and !is_null($minMax['max_stay']) and  $minMax['max_stay'] < $nights) {
 		mysql_close($link);
-		return array('error' => 'FOR_SELECTED_DATE_MAX_STAY ' . $minMax['max_stay']);
+		return array('error' => 'FOR_SELECTED_DATE_MAX_STAY_' . $minMax['max_stay']);
 	}
 
 	PriceDao::loadPriceForDate($arriveDateTs, $lastNightTs, $location);
@@ -898,7 +897,7 @@ function doBooking() {
 	$locationName = $texts['LOCATION_NAME_' . strtoupper($location)];
 	$subject = str_replace('LOCATION', $locationName, $texts['BOOKING_CONFIRMATION_EMAIL_SUBJECT']);
 	$bcr = new BCR($savedBookingDescr, $location, $texts, $link);
-	$bcr->sendBcrMessage($subject, '');
+	$bcr->sendBcrMessage($subject, '', 'booking_confirmation.tpl');
 	if($result != 'SUCCESS') {
 		logError("Cannot send email to guest for confirming booking: $result");
 	}

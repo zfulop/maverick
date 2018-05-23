@@ -74,7 +74,7 @@ function sendBcr($bookingDescr, $location, $link, &$dict) {
 	}
 
 	$bcr = new BCR($bookingDescr, $location, $dict, $link);
-	$result = $bcr->sendBcrMessage($subject, $bcrMessage);
+	$result = $bcr->sendBcrMessage($subject, $bcrMessage, 'bcr.tpl');
 
 	if($confirmed) {
 		echo "Confirmed email sent to $name $email $fnight  [result: $result]\n";

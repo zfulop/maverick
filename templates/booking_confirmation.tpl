@@ -79,6 +79,12 @@
                 <div style='clear: both'></div>
             </div>
             
+            <div style="margin-bottom: 10px; padding-left: 10px;">
+                <div style="float: left; min-width: 200px;  color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{comment}</div>
+                <div style="float: left; min-width: 200px; color: #000; font-weight: bold; font-size: 14px;">{booker_comment}</div>
+                <div style='clear: both'></div>
+            </div>
+            
         </td>
     </tr>
 
@@ -92,6 +98,7 @@
 <!-- BEGIN item -->
             <div style=" margin-top: 15px; padding-left: 15px;">
                 <div style="float: left; min-width: 180px; color: #727272; font-style: italic; font-weight: bold; font-size: 14px;">{item_name}</div>
+                <div style="float: right; min-width: 50px; color: #000; font-weight: bold; text-transform: uppercase; font-size: 14px; text-align: right; padding-right: 15px;">{item_price}</div>
                 <div style='clear: both'></div>
             </div>
 <!-- END item -->
@@ -99,6 +106,21 @@
         </td>
 	</tr>
 <!-- END item_block -->
+
+    <tr>
+        <td colspan='2' style="padding: 0px; ">
+
+			<!----- TOTAL --------------------------------------------------------------------------------------------------------------->
+            <div style="background: #b9b9b9; min-height: 55px;  margin-top: 10px; margin-bottom: 10px;">
+                <div style="float: left; min-width: 140px;  color: #fff; font-style: italic; text-transform: uppercase; font-size: 12x; padding-left: 15px; padding-top: 25px;">{TOTAL_PRICE}</div>
+<!-- BEGIN total_payment -->
+                <div style="float: right; min-width: 130px; color: #fff; font-weight: bold; font-size: 32px; padding-top: 10px; text-align: right; padding-right: 15px;">{booker_totalprice}</div>
+<!-- END total_payment -->
+                <div style='clear: both'></div>
+            </div>
+            
+        </td>
+    </tr>
     
     <!----- Advise to travel ------------------------------------------------------------------------------------------------------------->
     <tr>

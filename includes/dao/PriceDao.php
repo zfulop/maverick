@@ -113,11 +113,11 @@ class PriceDao {
 		}
 
 		if(!isset($pricedao_priceForDate[$dateStr])) {
-			// logError("No price set for date: $dateStr");
+			logError("No price set for date: $dateStr");
 			return null;
 		}
 		if(!isset($pricedao_priceForDate[$dateStr][$roomTypeId])) {
-			// logError("No price set for date: $dateStr and room type id: $roomTypeId");
+			logError("No price set for date: $dateStr and room type id: $roomTypeId");
 			return null;
 		}
 

@@ -65,7 +65,7 @@ function sendBcr($bookingDescr, $location, $link, &$dict) {
 	}
 
 	$bcr = new BCR($bookingDescr, $location, $dict, $link);
-	$result = $bcr->sendBcrMessage($dict[$lang]['BCR_MESSAGE_ONE_WEEK_SUBJECT'], $dict[$lang]['BCR_MESSAGE_ONE_WEEK']);
+	$result = $bcr->sendBcrMessage($dict[$lang]['BCR_MESSAGE_ONE_WEEK_SUBJECT'], $dict[$lang]['BCR_MESSAGE_ONE_WEEK'], 'bcr.tpl');
 
 	echo "BCR Email sent from " . CONTACT_EMAIL . " to $name $email $fnight [result: $result]\n";
 
