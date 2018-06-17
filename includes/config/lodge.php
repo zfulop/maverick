@@ -90,7 +90,13 @@ $myallocatorRoomMap = array(
 			'roomName' => 'Family Room',
 			'roomTypeId' => 79,
 			'remoteRoomId' => '107489'
+		),
+		array(
+			'roomName' => 'Superior Deluxe Double ensuite',
+			'roomTypeId' => 80,
+			'remoteRoomId' => '145371'
 		)
+
 	)
 );
 

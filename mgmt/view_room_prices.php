@@ -38,8 +38,16 @@ while($row = mysql_fetch_assoc($result)) {
 $type = $roomType['type'];
 
 
+$syncResult = '';
+if(isset($_SESSION['sync_result'])) {
+	$syncResult = 'Sync result: <div style="border: 1px solid black; font-family: Couriel">' . $_SESSION['sync_result'] . "</div>\n";
+	unset($_SESSION['sync_result']);
+}
+
+
 html_start("Room Prices ");
 
+echo $syncResult;
 echo "<h2>" . $roomType['name'] . "</h2>\n";
 echo "<table>\n";
 echo "<tr><td>Price per bed: </td><td>" . $roomType['price_per_bed'] . "</td></tr>\n";
@@ -108,7 +116,7 @@ for($i = 1; $i <= 12; $i++) {
 
 echo <<<EOT
 </table>
-Automatic sync: <input name="sync" type="checkbox" value="true" checked="true" onclick="if(this.checked) { document.getElementById('price_form').target='_blank'; } else { document.getElementById('price_form').target='_self'; }"><br>
+Automatic sync: <input name="sync" type="checkbox" value="true" checked="true"><br>
 <input type="submit" value="Save Prices">
 </form>
 

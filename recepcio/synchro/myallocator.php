@@ -1,10 +1,15 @@
-/loa<?php
+<?php
 
 // Enable user error handling
 libxml_use_internal_errors(true);
 
+if(!is_null(getParameter('login_hotel')) and isset($argv)) {
+	session_start();
+	$_SESSION['login_hotel'] = getParameter('login_hotel');
+}
 
 ini_set('display_errors', 'On');
+
 
 require("../includes.php");
 require('../room_booking.php');
@@ -26,17 +31,18 @@ class MyAllocatorBooker extends Booker {
 	/////////////////////////////////////////////////////////////
 	function update($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, &$rooms) {
 		global $myallocatorRoomMap;
-		echo "<b>myalocator.com synchronization update</b><br>";
-		$location = strtoupper(LOCATION);
+		$location = $_SESSION['login_hotel'];
+		echo "<b>myalocator.com synchronization update for location: $location</b><br>\n";
 		foreach(array_keys($myallocatorRoomMap) as $propertyId) {
 			$this->updateLocation($propertyId, $startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $rooms);
 		}
-		echo "<b>myallocator.com synchronization update finished</b><br><br><br>";
+		echo "<b>myallocator.com synchronization update finished</b><br><br><br>\n";
 	}
 
 	function updateLocation($propertyId, $startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, &$rooms) {
 		global $myallocatorRoomMap;
-		$link = db_connect();
+		$location = $_SESSION['login_hotel'];
+		$link = db_connect($loction);
 		echo "Location is: $propertyId <br>\n";
 		//echo "<!-- " . print_r($rooms, true) . "-->\n";
 		$endTS = strtotime("$endYear-$endMonth-$endDay");
@@ -47,7 +53,7 @@ class MyAllocatorBooker extends Booker {
 		foreach($myallocatorRoomMap[$propertyId] as $oneRoomMap) {
 			$availabilities[$oneRoomMap['roomName']] = array();
 			$prices[$oneRoomMap['roomName']] = array();
-			//echo "Updating price and availability for room: " . $oneRoomMap['roomName'] . "...<br>\n";
+			echo "Updating price and availability for room: " . $oneRoomMap['roomName'] . "...<br>\n";
 
 			$currDate = "$startYear-$startMonth-$startDay";
 			do {
@@ -197,9 +203,7 @@ EOT;
 			logDebug($debugLine);
 		}
 		$availTable .=  "</table>\n";
-		if(!is_null(getParameter('test_runner_response'))) {
-			echo $availTable;
-		}
+		echo $availTable;
 	}
 
 	function shutdown() {

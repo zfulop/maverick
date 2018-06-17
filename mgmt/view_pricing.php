@@ -171,10 +171,16 @@ foreach($roomTypes as $roomTypeId => $oneRoomType) {
 	}
 }
 
-
+$syncResult = '';
+if(isset($_SESSION['sync_result'])) {
+	$syncResult = 'Sync result: <div style="border: 1px solid black; font-family: Couriel">' . $_SESSION['sync_result'] . "</div>\n";
+	unset($_SESSION['sync_result']);
+}
 
 
 echo <<<EOT
+
+$syncResult
 
 <form id="price_btn">
 <input type="button" onclick="document.getElementById('price_form').reset();document.getElementById('price_form').style.display='block'; document.getElementById('price_btn').style.display='none'; return false;" value="Set price for a room type">
@@ -182,7 +188,7 @@ echo <<<EOT
 <br>
 
 
-<form action="save_room_prices.php" target="_blank" method="POST" style="display: none;" id="price_form">
+<form action="save_room_prices.php" method="POST" style="display: none;" id="price_form">
 <table style="border: 1px solid rgb(0,0,0);">
 <tr><th colspan="2">Set price of a room for a date interval.</strong></th></tr>
 <tr><td colspan="2">To delete special price, set the date and leave the price field empty.</td></tr>
@@ -202,7 +208,7 @@ $roomTypesHtmlOptions
 </td></tr>
 <tr><td>Bed or Room Price: </td><td><input name="price" size="4"></td></tr>
 <tr><td>Surcharge per bed (for apartments): </td><td><input name="surcharge_per_bed" size="4"></td></tr>
-<tr><td>Automatic sync: </td><td><input name="sync" id="sync" type="checkbox" value="true" checked="true" onclick="if(this.checked) { document.getElementById('price_form').target='_blank'; } else { document.getElementById('price_form').target='_self'; }"></td></tr>
+<tr><td>Automatic sync: </td><td><input name="sync" id="sync" type="checkbox" value="true" checked="true"></td></tr>
 <tr><td colspan="2">
 	<input type="button" onclick="if(confirm('Are you sure to save the prices?'))submitPriceForm('price_form', 'sync');return false;" value="Set price(s)">
 	<input type="button" onclick="document.getElementById('price_form').style.display='none'; document.getElementById('price_btn').style.display='block'; return false;" value="Cancel">

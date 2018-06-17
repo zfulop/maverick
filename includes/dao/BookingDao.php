@@ -295,6 +295,25 @@ class BookingDao {
 
 		mysql_query('COMMIT', $link);
 	}
+
+	/**
+	 * Retuns the booking descriptions of all the bookings that were create/modified/cancelled after the specified timestamp. 
+	 * The $timestamp must be in a format: YYYY-MM-DD HH:MM:SS
+	 */
+	public static function getBookingsAfterCreationDate($timestamp, $link) {
+		$sql = "SELECT bd.* FROM booking_descriptions bd INNER JOIN audit a ON bd.id=a.booking_description_id WHERE a.type IN ('CREATE_BOOKING','CANCEL_BOOKING','ADD_BOOKING','DELETE_BOOKING') AND a.time_of_event>='$timestamp'";
+		$result = mysql_query($sql, $link);
+		if(!$result) {
+			trigger_error("Cannot get booking descriptions modified after a certain time: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
+			return null;
+		}
+		$bookings = array();
+		while($row = mysql_fetch_assoc($result)) {
+			$bookings[] = $row;
+		}
+		return $bookings;
+	}
+
 }
 
 

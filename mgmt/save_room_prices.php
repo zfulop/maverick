@@ -21,11 +21,7 @@ $_SESSION['room_price_room_type_ids'] = $roomTypeIds;
 $startDate = $_REQUEST['start_date'];
 $endDate = $_REQUEST['end_date'];
 
-if(isset($_REQUEST['sync'])) {
-	header('Location: ' . RECEPCIO_BASE_URL . "synchro/main.php?start_date=$startDate&end_date=$endDate&sites[]=myallocator&login_hotel=" . $_SESSION['login_hotel']);
-} else {
-	header("Location: " . $_SERVER['HTTP_REFERER']);
-}
+header("Location: " . $_SERVER['HTTP_REFERER']);
 
 $_SESSION['room_price_start_date'] = $startDate;
 $_SESSION['room_price_end_date'] = $endDate;
@@ -36,11 +32,24 @@ if(isset($_REQUEST['days'])) {
 }
 
 $_SESSION['room_price_days'] = $days;
-list($startYear,$startMonth,$startDay) = explode('-', $startDate);
-list($endYear,$endMonth,$endDay) = explode('-', $endDate);
+list($startYear,$startMonth,$startDay) = explode("-", $startDate);
+list($endYear,$endMonth,$endDay) = explode("-", $endDate);
 
-$startDateDash = str_replace('-', '/', $startDate);
-$endDateDash = str_replace('-', '/', $endDate);
+
+if(isset($_REQUEST['sync'])) {
+	$cmd = "cd ../reception/synchro; php -c ../../php.ini myallocator.php -login_hotel " . getLoginHotel() . 
+		" -start_year " . $startYear . " -start_month " . $startMonth . " -start_day " . $startDay . 
+		" -end_year " . $endYear . " -end_month " . $endMonth . " -end_day " . $endDay;
+	logDebug("Running sync with command: $cmd");
+	$output = array();
+	exec($cmd, $output);
+	$_SESSION['sync_result'] = implode("\n", $output);
+	logDebug("Sync executed. Response: " . $_SESSION['sync_result']);
+}
+
+
+$startDateDash = str_replace('-', '/', $_REQUEST['start_date']);
+$endDateDash = str_replace('-', '/', $_REQUEST['end_date']);
 
 $todaySlash = date('Y/m/d H:i:s');
 $roomTypes = RoomDao::getRoomTypes('eng', $link);

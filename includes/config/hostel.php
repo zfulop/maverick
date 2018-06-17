@@ -69,7 +69,13 @@ $myallocatorRoomMap = array(
 			'roomName' => 'Single room ensuite',
 			'roomTypeId' => 65,
 			'remoteRoomId' => '24369'
+		),
+		array(
+			'roomName' => '4 bed (mixed) dorm',
+			'roomTypeId' => 73,
+			'remoteRoomId' => '147959'
 		)
+
 	),
 	'5637' => array(
 		array(

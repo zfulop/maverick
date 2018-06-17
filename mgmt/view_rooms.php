@@ -170,11 +170,19 @@ $extraHeader = <<<EOT
 
 EOT;
 
+$syncResult = '';
+if(isset($_SESSION['sync_result'])) {
+	$syncResult = 'Sync result: <div style="border: 1px solid black; font-family: Couriel">' . $_SESSION['sync_result'] . "</div>\n";
+	unset($_SESSION['sync_result']);
+}
+
 
 html_start("Rooms ", $extraHeader);
 
 
 echo <<<EOT
+
+$syncResult
 
 <form>
 <div id="room_type_0">
@@ -214,7 +222,7 @@ $rpRoomTypesHtmlOptions
 </td></tr>
 <tr><td>Bed or Room Price: </td><td><input name="price" size="4"></td></tr>
 <tr><td>Surcharge per bed (for apartments): </td><td><input name="surcharge_per_bed" size="4"></td></tr>
-<tr><td>Automatic sync: </td><td><input name="sync" id="sync" type="checkbox" value="true" checked="true" onclick="if(this.checked) { document.getElementById('price_form').target='_blank'; } else { document.getElementById('price_form').target='_self'; }"></td></tr>
+<tr><td>Automatic sync: </td><td><input name="sync" id="sync" type="checkbox" value="true" checked="true"></td></tr>
 <tr><td colspan="2">
 	<input type="button" onclick="if(confirm('Are you sure to save the prices?'))submitPriceForm();return false;" value="Set price(s)">
 	<input type="button" onclick="document.getElementById('price_form').style.display='none'; document.getElementById('price_btn').style.display='block'; return false;" value="Cancel">
