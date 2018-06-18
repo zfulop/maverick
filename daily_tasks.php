@@ -18,15 +18,15 @@ set_time_limit(180);
 foreach($hostels as $hostel) {
 	echo "Processing $hostel\n";
 	echo "\tBCR 1 week\n";
-	$output['bcr 1 week ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -c ../php.ini send_bcr_one_week.php ' . $hostel);
+	$output['bcr 1 week ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -q -c ../php.ini send_bcr_one_week.php ' . $hostel);
 	echo "\tBCR 3 days\n";
-	$output['bcr 3 days ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -c ../php.ini send_bcr_3_days.php ' . $hostel);
+	$output['bcr 3 days ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -q -c ../php.ini send_bcr_3_days.php ' . $hostel);
 	echo "\thowazit\n";
-	$output['howazit ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -c ../php.ini howazit_extract.php ' . $hostel);
+	$output['howazit ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -q -c ../php.ini howazit_extract.php ' . $hostel);
 	echo "\tsending booking summary\n";
-	$output['send booking summary ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -c ../php.ini send_booking_summary.php ' . $hostel);
+	$output['send booking summary ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -q -c ../php.ini send_booking_summary.php ' . $hostel);
 	echo "\tbackup db\n";
-	$output['db backup ' . $hostel] = shell_exec("cd /home/maveric3/; php -c php.ini backup_db.php $hostel");
+	$output['db backup ' . $hostel] = shell_exec("cd /home/maveric3/; php -q -c php.ini backup_db.php $hostel");
 	echo "\tdeleting extracted rooms data\n";
 	$output['delete extracted room data ' . $hostel] = "Deleting extracted files containing rooms data\n";
 	$files = glob(JSON_DIR . $hostel . '/rooms*');
@@ -38,7 +38,7 @@ foreach($hostels as $hostel) {
 	
 	if(intval(date('d')) == 1) {
 		echo "\tFirst day of the month backup the archive db\n";
-		$output['db backup archive ' . $hostel] = shell_exec('cd /home/maveric3/; php -c php.ini backup_db.php archive_' . $hostel);
+		$output['db backup archive ' . $hostel] = shell_exec('cd /home/maveric3/; php -q -c php.ini backup_db.php archive_' . $hostel);
 	}
 
 	$link = db_connect($hostel);
@@ -118,6 +118,7 @@ function moveDataToArchive($link, $hostel, &$output) {
 	echo "\tMoving data to archive db\n";
 	$oneYearAgoSlash = date('Y/m/d', strtotime(date('Y-m-d') . ' -1 year'));
 	$oneYearAgoDash = date('Y-m-d', strtotime(date('Y-m-d') . ' -1 year'));
+	$oneMonthAgoDash = date('Y-m-d', strtotime(date('Y-m-d') . ' -1 month'));
 
 	$dbs = array('lodge' => array('active' => 'maveric3_lodge', 'archive' => 'maveric3_archive_lodge'),
 			'hostel' => array('active' => 'maveric3_hostel', 'archive' => 'maveric3_archive_hostel'));
@@ -148,6 +149,8 @@ function moveDataToArchive($link, $hostel, &$output) {
 	$sql[] = "DELETE FROM $activeSchema.prices_for_date WHERE date<'$oneYearAgoSlash'";
 	$sql[] = "DELETE FROM $activeSchema.prices_for_date_history WHERE date<'$oneYearAgoSlash'";
 	$sql[] = "DELETE FROM $activeSchema.cash_out WHERE time_of_payment<'$oneYearAgoDash'";
+	$sql[] = "DELETE si FROM $activeSchema.syncronization_item si inner join $activeSchema.synchronizations s ON si.sync_id=s.id WHERE s.time_of_sync<'$oneMonthAgoDash'";
+	$sql[] = "DELETE FROM $activeSchema.synchronizations WHERE time_of_sync<'$oneMonthAgoDash'";
 	$msg = '';
 	foreach($sql as $s) {
 		$result = mysql_query($s, $link);

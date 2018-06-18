@@ -1,3 +1,3 @@
 #!/bin/bash
-php -c ../../php.ini syncronize.php lodge
-php -c ../../php.ini syncronize.php hostel
+php -q -c ../../php.ini syncronize.php lodge
+php -q -c ../../php.ini syncronize.php hostel

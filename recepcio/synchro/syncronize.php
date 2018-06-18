@@ -14,6 +14,7 @@ require('../includes.php');
 $now = date("Y-m-d H:i:s");
 $link = db_connect($location);
 
+echo "Syncronizing: $location\n";
 logDebug("Syncronizing: $location at $now");
 
 // Get last syncronization
@@ -83,7 +84,7 @@ foreach($dateBlocks as $block) {
 echo "updating syncronizations\n";
 SyncDao::saveNewSync($now, $bookingDescrIds, $link);
 
-echo "done\n";
+echo "done\n\n";
 
 mysql_close($link);
 
