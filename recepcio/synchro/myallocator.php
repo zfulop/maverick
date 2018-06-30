@@ -42,7 +42,7 @@ class MyAllocatorBooker extends Booker {
 	function updateLocation($propertyId, $startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, &$rooms) {
 		global $myallocatorRoomMap;
 		$location = $_SESSION['login_hotel'];
-		$link = db_connect($loction);
+		$link = db_connect($location);
 		echo "Location is: $propertyId <br>\n";
 		//echo "<!-- " . print_r($rooms, true) . "-->\n";
 		$endTS = strtotime("$endYear-$endMonth-$endDay");

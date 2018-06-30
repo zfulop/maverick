@@ -17,17 +17,19 @@ set_time_limit(180);
 
 foreach($hostels as $hostel) {
 	echo "Processing $hostel\n";
-	echo "\tBCR 1 week\n";
+
+	logDebug("Processing $hostel");
+	logDebug("\tBCR 1 week");
 	$output['bcr 1 week ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -q -c ../php.ini send_bcr_one_week.php ' . $hostel);
-	echo "\tBCR 3 days\n";
+	logDebug("\tBCR 3 days");
 	$output['bcr 3 days ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -q -c ../php.ini send_bcr_3_days.php ' . $hostel);
-	echo "\thowazit\n";
+	logDebug("\thowazit");
 	$output['howazit ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -q -c ../php.ini howazit_extract.php ' . $hostel);
-	echo "\tsending booking summary\n";
+	logDebug("\tsending booking summary");
 	$output['send booking summary ' . $hostel] = shell_exec('cd /home/maveric3/reception; php -q -c ../php.ini send_booking_summary.php ' . $hostel);
-	echo "\tbackup db\n";
+	logDebug("\tbackup db");
 	$output['db backup ' . $hostel] = shell_exec("cd /home/maveric3/; php -q -c php.ini backup_db.php $hostel");
-	echo "\tdeleting extracted rooms data\n";
+	logDebug("\tdeleting extracted rooms data");
 	$output['delete extracted room data ' . $hostel] = "Deleting extracted files containing rooms data\n";
 	$files = glob(JSON_DIR . $hostel . '/rooms*');
 	foreach($files as $file) {
@@ -37,7 +39,7 @@ foreach($hostels as $hostel) {
 	
 	
 	if(intval(date('d')) == 1) {
-		echo "\tFirst day of the month backup the archive db\n";
+		logDebug("\tFirst day of the month backup the archive db");
 		$output['db backup archive ' . $hostel] = shell_exec('cd /home/maveric3/; php -q -c php.ini backup_db.php archive_' . $hostel);
 	}
 
@@ -53,7 +55,7 @@ deleteReceipt($link, $output);
 
 
 foreach($output as $title => $data) {
-	echo $title . "\n" . str_repeat("-", strlen($title)) . "\n" . $data . "\n\n";
+	logDebug($title . "\n" . str_repeat("-", strlen($title)) . "\n" . $data . "\n\n");
 }
 
 // END OF DAILY TASKS

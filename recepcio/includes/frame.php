@@ -27,6 +27,7 @@ function html_start($title = null, $extraHeader = '', $showMenu = true, $onloadS
 	$exchangeRates = ROOT_URL . 'view_exchange_rates.php';
 	$serviceCharges = ROOT_URL . 'view_service_charges.php';
 	$cashRegister = ROOT_URL . 'view_cash_register.php';
+	$payments = ROOT_URL . 'view_payments.php';
 	$services = ROOT_URL . 'view_services.php';
 	$specialOffers = ROOT_URL . 'view_special_offers.php';
 	$siteTexts = ROOT_URL . 'view_sitetexts.php';
@@ -128,6 +129,7 @@ EOT;
 				<li><a href="$exchangeRates" style="font-size: 14px; padding-right: 20px;">Exchange Rates</a></li>
 				<li><a href="$serviceCharges" style="font-size: 14px; padding-right: 20px;">Service Charges</a></li>
 				<li><a href="$cashRegister" style="font-size: 14px; padding-right: 20px;">Cash Register</a></li>
+				<li><a href="$payments" style="font-size: 14px; padding-right: 20px;">Payments</a></li>
 			</ul>
 		</div>
 		<a href="#" style="float: left; font-size: 14px; padding-right: 20px;" id="webMainMenu" onclick="showMenu('webMenu', this);return false;">Website</a>
@@ -207,6 +209,7 @@ function html_start_bootstrap($title = null, $extraHeader = '', $showMenu = true
 	$exchangeRates = ROOT_URL . 'view_exchange_rates.php';
 	$serviceCharges = ROOT_URL . 'view_service_charges.php';
 	$cashRegister = ROOT_URL . 'view_cash_register.php';
+	$payments = ROOT_URL . 'view_payments.php';
 	$services = ROOT_URL . 'view_services.php';
 	$specialOffers = ROOT_URL . 'view_special_offers.php';
 	$logout = ROOT_URL . 'logout.php';

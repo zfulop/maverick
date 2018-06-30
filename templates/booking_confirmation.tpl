@@ -17,6 +17,11 @@
     </tr>
     <tr>
         <td colspan='2' style="padding: 0px;">
+            <div style='position: absolute; z-index: 9999; text-align: right; width: 100%; max-width: 600px; padding: 40px; box-sizing: border-box'>
+                
+                <div style='font-size: 24px; font-weight: bold;'>Lorem Ipsum</div>
+                <div style='font-size: 14px;'>Dolor sit amet</div>
+            </div>
             <img src='cid:reservation' style="max-width: 100%">
         </td>
     </tr>

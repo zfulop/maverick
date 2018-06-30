@@ -3,7 +3,7 @@
 ini_set("include_path", '/home/maveric3/php:' . ini_get("include_path") );
 date_default_timezone_set('Europe/Budapest');
 
-define('ROOT_DIR', '/home/zolika/roomcaptain_recepcio/');
+define('ROOT_DIR', '/home/maveric3/reception/');
 
 require(ROOT_DIR . 'includes/config.php');
 require(ROOT_DIR . '../includes/message.php');
@@ -21,6 +21,7 @@ require(ROOT_DIR . '../includes/logger.php');
 require(ROOT_DIR . '../includes/dao.php');
 
 set_error_handler('log4phpErrorHandler');
+set_exception_handler('log4phpExceptionHandler');
 
 session_start();
 

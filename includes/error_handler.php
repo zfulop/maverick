@@ -48,6 +48,16 @@ function log4phpErrorHandler($errno, $errstr, $errfile, $errline, $errcontext) {
 	}
 }
 
+// exception handler function
+function log4phpExceptionHandler($exception) {
+	logError("[Exception] - " . $exception->getMessage());
+	foreach(debug_backtrace() as $trace) {
+		logError("\t\t" . $trace['function'] . ' ' . $trace['file']);
+	}
+	
+}
+
+
 
 function dbErrorHandler($errno, $errstr, $errfile, $errline, $errcontext) {
 	//$handler = set_error_handler("nullErrorHandler");

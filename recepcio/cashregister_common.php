@@ -9,13 +9,23 @@ function  loadCashRegisterData($viewDay, $lastDayCloseTime, $dayCloseEur, $dayCl
 	$eurCasse2 = $dayCloseEur2;
 	$hufCasse2 = $dayCloseHuf2;
 
-	$sql = "SELECT payments.*, booking_descriptions.name FROM payments LEFT OUTER JOIN booking_descriptions ON payments.booking_description_id=booking_descriptions.id WHERE ";
+	$schema = constant('DB_' . strtoupper($_SESSION['login_hotel']) . '_DBNAME');
+	$archiveSchema = constant('DB_' . strtoupper($_SESSION['login_hotel']) . '_ARCHIVE_DBNAME');
+
+	$sql = "SELECT p.*, bd.name FROM payments p LEFT OUTER JOIN booking_descriptions bd ON p.booking_description_id=bd.id WHERE ";
+	$asql = "SELECT ap.*, abd.name FROM $archiveSchema.payments ap LEFT OUTER JOIN $archiveSchema.booking_descriptions abd ON ap.booking_description_id=abd.id WHERE ";
 	if(!is_null($viewDay)) {
-		$sql .= "SUBSTR(payments.time_of_payment,1,10)='$viewDay'";
+		$sql .= "SUBSTR(p.time_of_payment,1,10)='$viewDay'";
+		$asql .= "SUBSTR(ap.time_of_payment,1,10)='$viewDay'";
+		$asql .= " ORDER BY ap.time_of_payment";
 	} else {
-		$sql .= "payments.time_of_payment>'$lastDayCloseTime'";
+		$sql .= "p.time_of_payment>'$lastDayCloseTime'";
+		$asql = null;
 	}
-	$sql .= " ORDER BY payments.time_of_payment";
+	$sql .= " ORDER BY p.time_of_payment";
+	if(!is_null($asql)) {
+		$sql = "($asql) UNION ALL ($sql)";
+	}
 	$result = mysql_query($sql, $link);
 	if(!$result) {
 		trigger_error("Cannot get payments at cash register: " . mysql_error($link) . " (SQL: $sql)", E_USER_ERROR);
@@ -43,8 +53,11 @@ function  loadCashRegisterData($viewDay, $lastDayCloseTime, $dayCloseEur, $dayCl
 		}
 	}
 
+	$asql = '';
 	if(!is_null($viewDay)) {
 		$sql = "SELECT * FROM cash_out WHERE SUBSTR(time_of_payment,1,10)='$viewDay' ORDER BY time_of_payment";
+		$asql = "SELECT * FROM $archiveSchema.cash_out WHERE SUBSTR(time_of_payment,1,10)='$viewDay' ORDER BY time_of_payment";
+		$sql = "($sql) UNION ALL ($asql)";
 	} else {
 		$sql = "SELECT * FROM cash_out WHERE time_of_payment>'$lastDayCloseTime' ORDER BY time_of_payment";
 	}
@@ -102,6 +115,10 @@ function  loadCashRegisterData($viewDay, $lastDayCloseTime, $dayCloseEur, $dayCl
 	}
 
 	return array($payments, $cashOuts, $gtransfers, $eurCasse, $hufCasse, $eurCasse2, $hufCasse2);
+}
+
+function isOlderThanOneYear($viewDay) {
+	
 }
 
 ?>

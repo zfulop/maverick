@@ -148,6 +148,9 @@ function &loadRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $en
 	$rooms = loadOnlyRooms($startYear, $startMonth, $startDay, $endYear, $endMonth, $endDay, $link, $lang);
 
 	$roomChanges = array();
+	if(!isset($_SESSION['login_hotel'])) {
+		throw new Exception("login_hotel property of SESSION is not defined");
+	}
 	$schema = ($archive ? constant('DB_' . strtoupper($_SESSION['login_hotel']) . '_ARCHIVE_DBNAME') : constant('DB_' . strtoupper($_SESSION['login_hotel']) . '_DBNAME')) . '.';
 	$sql = "SELECT brc.*, bd.name, bd.name_ext, b.description_id, b.room_payment, b.booking_type, b.num_of_person, b.creation_time, bd.first_night, bd.last_night, bd.num_of_nights, bd.confirmed, bd.cancelled, bd.checked_in, bd.paid FROM " . $schema . "booking_room_changes brc INNER JOIN " . $schema . "bookings b ON brc.booking_id=b.id INNER JOIN " . $schema . "booking_descriptions bd ON b.description_id=bd.id WHERE brc.date_of_room_change>='$arriveDate' AND brc.date_of_room_change<='$lastNightDate'";
 	logDebug("loadRooms - loading room changes for archive=" . $archive . ". sql: $sql");

@@ -36,6 +36,7 @@ $checkedinSelected = false;
 $checkedin = false;
 $paidSelected = false;
 $paid = false;
+$useArchive = false;
 
 
 if(isset($_REQUEST['new_search'])) {
@@ -58,6 +59,7 @@ if(isset($_REQUEST['new_search'])) {
 	$checkedin = isset($_REQUEST['checkedin']);
 	$paidSelected = isset($_REQUEST['paid_selected']);
 	$paid = isset($_REQUEST['paid']);
+	$useArchive = isset($_REQUEST['use_archive']);
 	$_SESSION['view_booking_param_set'] = true;
 	$_SESSION['view_booking_from_date'] = $fromDate;
 	$_SESSION['view_booking_to_date'] = $toDate;
@@ -78,6 +80,7 @@ if(isset($_REQUEST['new_search'])) {
 	$_SESSION['view_booking_checkedin'] = $checkedin;
 	$_SESSION['view_booking_paid_selected'] = $paidSelected;
 	$_SESSION['view_booking_paid'] = $paid;
+	$_SESSION['view_booking_use_archive'] = $useArchive;
 } elseif(isset($_SESSION['view_booking_param_set'])) {
 	$fromDate = $_SESSION['view_booking_from_date'];
 	$toDate = $_SESSION['view_booking_to_date'];
@@ -98,6 +101,7 @@ if(isset($_REQUEST['new_search'])) {
 	$checkedin = $_SESSION['view_booking_checkedin'];
 	$paidSelected = $_SESSION['view_booking_paid_selected'];
 	$paid = $_SESSION['view_booking_paid'];
+	$useArchive = $_SESSION['view_booking_use_archive'];
 }
 
 $confirmChecked = $confirmedSelected ? 'checked' : '';
@@ -113,6 +117,8 @@ $recCancelValueChecked = $recCancelled ? 'checked' : '';
 $noShowCancelValueChecked = $noShowCancelled ? 'checked' : '';
 $checkinValueChecked = $checkedin ? 'checked' : '';
 $paidValueChecked = $paid ? 'checked' : '';
+
+$useArchiveChecked = $useArchive ? 'checked' : '';
 
 $cancelSelected = ($noShowCancelledSelected or $recCancelledSelected or $guestCancelledSelected);
 
@@ -243,6 +249,7 @@ echo <<<EOT
 	<tr><td><input type="checkbox" name="noshow_cancelled_selected" $noShowCancelChecked value="1" id="noshow_cancelled_selected" onchange="updateSearchField('noshow_cancelled_selected', 'noshow_cancelled_label', 'noshow_cancelled_input');"><td id="noshow_cancelled_label" style="color: #aaaaaa;">No Show:</td><td><input type="checkbox"  id="noshow_cancelled_input" disabled="true" name="noshow_cancelled" value="1" $noShowCancelValueChecked ></td></tr>
 	<tr><td><input type="checkbox" name="checkedin_selected" $checkinChecked value="1" id="checkedin_selected" onchange="updateSearchField('checkedin_selected', 'checkedin_label', 'checkedin_input');"><td id="checkedin_label" style="color: #aaaaaa;">Checked in:</td><td><input type="checkbox"  id="checkedin_input" disabled="true" name="checkedin" value="1" $checkinValueChecked></td></tr>
 	<tr><td><input type="checkbox" name="paid_selected" value="1" $paidChecked id="paid_selected" onchange="updateSearchField('paid_selected', 'paid_label', 'paid_input');"><td id="paid_label" style="color: #aaaaaa;">Paid:</td><td><input type="checkbox"  id="paid_input" disabled="true" name="paid" value="1" $paidValueChecked></td></tr>
+	<tr><td colspan="3">Use archive DB as well <input type="checkbox" name="use_archive" value="1" $useArchiveChecked></td></tr>
 	<tr><td colspan="3"><input type="submit" value="Search"></td></tr>
 
 </table>
@@ -317,7 +324,6 @@ $roomsHtmlOptions
 
 
 
-
 <div style="clear: both;">
 </div>
 
@@ -331,26 +337,39 @@ if(isset($_REQUEST['order'])) {
 $order = $_SESSION['view_booking_order'];
 
 
-$sql = "SELECT bd.name, bd.source, bd.first_night, bd.num_of_nights, bd.last_night, bd.confirmed, bd.email, bd.telephone, bd.nationality, bd.cancelled, bd.cancel_type, bd.checked_in, bd.paid, bd.booking_ref, bd.my_allocator_id, b.*, r.name AS room_name FROM bookings b INNER JOIN booking_descriptions bd ON b.description_id=bd.id INNER JOIN rooms r ON r.id=b.room_id WHERE 1=1";
+$archiveSchema = constant('DB_' . strtoupper($_SESSION['login_hotel']) . '_ARCHIVE_DBNAME');
+
+
+$sql = "SELECT bd.name, bd.source, bd.first_night, bd.num_of_nights, bd.last_night, bd.confirmed, bd.email, " . 
+		"bd.telephone, bd.nationality, bd.cancelled, bd.cancel_type, bd.checked_in, bd.paid, bd.booking_ref, " .
+		"bd.my_allocator_id, b.*, r.name AS room_name FROM bookings b INNER JOIN booking_descriptions bd ON b.description_id=bd.id INNER JOIN rooms r ON r.id=b.room_id WHERE 1=1";
+$asql = "SELECT abd.name, abd.source, abd.first_night, abd.num_of_nights, abd.last_night, abd.confirmed, abd.email, " . 
+		"abd.telephone, abd.nationality, abd.cancelled, abd.cancel_type, abd.checked_in, abd.paid, abd.booking_ref, " .
+		"abd.my_allocator_id, ab.*, ar.name AS room_name FROM $archiveSchema.bookings ab INNER JOIN $archiveSchema.booking_descriptions abd ON ab.description_id=abd.id INNER JOIN rooms ar ON ar.id=ab.room_id WHERE 1=1";
 $searchFor = '';
 if(strlen($fromDate) > 0) {
 	$sql .= " AND bd.last_night>='" . str_replace('-', '/', $fromDate) . "'";
+	$asql .= " AND abd.last_night>='" . str_replace('-', '/', $fromDate) . "'";
 	$searchFor .= "<br>From date: $fromDate";
 }
 if(strlen($toDate) > 0) {
 	$sql .= " AND bd.first_night<='" . str_replace('-', '/', $toDate) . "'";
+	$asql .= " AND abd.first_night<='" . str_replace('-', '/', $toDate) . "'";
 	$searchFor .= "<br>To date: $toDate";
 }
 if(strlen($bookedAfterDate) > 0) {
 	$sql .= " AND bd.create_time>'$bookedAfterDate'";
+	$asql .= " AND abd.create_time>'$bookedAfterDate'";
 	$searchFor .= "<br>Booked on or after date: $bookedAfterDate";
 }
 if(strlen($bookedBeforeDate) > 0) {
 	$sql .= " AND bd.create_time<'$bookedBeforeDate'";
+	$asql .= " AND abd.create_time<'$bookedBeforeDate'";
 	$searchFor .= "<br>Booked before date: $bookedBeforeDate";
 }
 if(strlen(trim($source)) > 0) {
 	$sql .= " AND bd.source LIKE '%" . $source . "%'";
+	$asql .= " AND bd.source LIKE '%" . $source . "%'";
 	$searchFor .= "<br>Source contains: $source";
 }
 if(strlen(trim($name)) > 0) {
@@ -358,15 +377,18 @@ if(strlen(trim($name)) > 0) {
 	$name = str_replace('.', ' ', $name);
 	foreach(explode(' ', $name) as $namePart) {
 		$sql .= " AND bd.name LIKE '%" . $namePart . "%'";
+		$asql .= " AND abd.name LIKE '%" . $namePart . "%'";
 	}
 	$searchFor .= "<br>Name contains: $name";
 }
 if(strlen(trim($bookingRef)) > 0) {
 	$sql .= " AND (bd.booking_ref='$bookingRef' OR bd.my_allocator_id='$bookingRef')";
+	$asql .= " AND (abd.booking_ref='$bookingRef' OR abd.my_allocator_id='$bookingRef')";
 	$searchFor .= "<br>booking ref is: $bookingRef";
 }
 if($confirmedSelected) {
 	$sql .= " AND bd.confirmed=" . ($confirmed ? 1 : 0);
+	$asql .= " AND abd.confirmed=" . ($confirmed ? 1 : 0);
 	$searchFor .= "<br>" . ($confirmed ? '' : 'not ') . "confirmed";
 }
 if($cancelSelected) {
@@ -385,21 +407,27 @@ if($cancelSelected) {
 	}
 	if(count($ors) > 0) {
 		$sql .= " AND (" . implode(' OR ',$ors) . ")";
+		$asql .= " AND (" . str_replace("bd.", "abd.", implode(' OR ',$ors)) . ")";
 	}
 }
 if($checkedinSelected) {
 	$sql .= " AND bd.checked_in=" . ($checkedin ? 1 : 0);
+	$asql .= " AND abd.checked_in=" . ($checkedin ? 1 : 0);
 	$searchFor .= "<br>" . ($checkedin ? '' : 'not ') . "checked in";
 }
 if($paidSelected) {
 	$sql .= " AND bd.paid=" . ($paid ? 1 : 0);
+	$asql .= " AND bd.paid=" . ($paid ? 1 : 0);
 	$searchFor .= "<br>" . ($paid ? '' : 'not ') . "paid";
 }
 
 
 
 $sql .= " ORDER BY $order,bd.id";
-$searchSql = $sql;
+$asql .= " ORDER BY $order,abd.id";
+if($useArchive) {
+	$sql = "($sql) UNION ALL ($asql)";
+}
 
 $result = mysql_query($sql, $link);
 $cnt = 0;
@@ -432,7 +460,11 @@ if(!$result) {
 }
 
 if(count($bookingDescrIds) > 0) {
-	$sql = "SELECT * FROM booking_guest_data WHERE booking_description_id IN (" . implode(',', $bookingDescrIds) . ") ORDER BY name";
+	$sql = "SELECT bgd.* FROM booking_guest_data bgd WHERE bgd.booking_description_id IN (" . implode(',', $bookingDescrIds) . ") ORDER BY bgd.name";
+	$asql = "SELECT abgd.* FROM $archiveSchema.booking_guest_data abgd WHERE abgd.booking_description_id IN (" . implode(',', $bookingDescrIds) . ") ORDER BY abgd.name";
+	if($useArchive) {
+		$sql = "($sql) UNION ALL ($asql)";
+	}
 	$result = mysql_query($sql, $link);
 	while($row = mysql_fetch_assoc($result)) {
 		$guestDataByBookingDescrId[$row['booking_description_id']][] = $row;
